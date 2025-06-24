@@ -106,6 +106,7 @@ output "ai_agent_environment_id" {
 # ========================================
 output "application_insights" {
   description = "The Application Insights instance used for monitoring."
+  sensitive   = true
   value = {
     id                  = azurerm_application_insights.this.id
     name                = azurerm_application_insights.this.name

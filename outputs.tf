@@ -23,8 +23,8 @@ output "storage_account" {
     } : {
     id                    = module.storage_account[0].resource_id
     name                  = module.storage_account[0].name
-    primary_blob_endpoint = module.storage_account[0].primary_blob_endpoint
-    primary_dfs_endpoint  = module.storage_account[0].primary_dfs_endpoint
+    primary_blob_endpoint = module.storage_account[0].resource.primary_blob_endpoint
+    primary_dfs_endpoint  = module.storage_account[0].resource.primary_dfs_endpoint
   }
 }
 
@@ -40,7 +40,7 @@ output "key_vault" {
     } : {
     id        = module.key_vault[0].resource_id
     name      = module.key_vault[0].name
-    vault_uri = module.key_vault[0].vault_uri
+    vault_uri = module.key_vault[0].uri
   }
 }
 
@@ -58,9 +58,9 @@ output "cosmos_db" {
     } : {
     id              = module.cosmos_db[0].resource_id
     name            = module.cosmos_db[0].name
-    endpoint        = module.cosmos_db[0].endpoint
-    read_endpoints  = module.cosmos_db[0].read_endpoints
-    write_endpoints = module.cosmos_db[0].write_endpoints
+    endpoint        = "https://${module.cosmos_db[0].name}.documents.azure.com:443/"
+    read_endpoints  = []  # This would need to be calculated based on geo-locations
+    write_endpoints = []  # This would need to be calculated based on geo-locations
   }
 }
 
@@ -75,8 +75,8 @@ output "ai_search" {
     search_service_name = data.azurerm_search_service.existing[0].name
     } : {
     id                  = module.ai_search[0].resource_id
-    name                = module.ai_search[0].name
-    search_service_name = module.ai_search[0].name
+    name                = module.ai_search[0].resource.name
+    search_service_name = module.ai_search[0].resource.name
   }
 }
 
@@ -131,16 +131,16 @@ output "connection_info" {
       dfs_endpoint  = data.azurerm_storage_account.existing[0].primary_dfs_endpoint
       } : {
       account_name  = module.storage_account[0].name
-      account_key   = module.storage_account[0].primary_access_key
-      blob_endpoint = module.storage_account[0].primary_blob_endpoint
-      dfs_endpoint  = module.storage_account[0].primary_dfs_endpoint
+      account_key   = module.storage_account[0].resource.primary_access_key
+      blob_endpoint = module.storage_account[0].resource.primary_blob_endpoint
+      dfs_endpoint  = module.storage_account[0].resource.primary_dfs_endpoint
     }
 
     key_vault_connection = var.existing_key_vault_resource_id != null ? {
       vault_uri  = data.azurerm_key_vault.existing[0].vault_uri
       vault_name = data.azurerm_key_vault.existing[0].name
       } : {
-      vault_uri  = module.key_vault[0].vault_uri
+      vault_uri  = module.key_vault[0].uri
       vault_name = module.key_vault[0].name
     }
 
@@ -148,7 +148,7 @@ output "connection_info" {
       endpoint     = data.azurerm_cosmosdb_account.existing[0].endpoint
       account_name = data.azurerm_cosmosdb_account.existing[0].name
       } : {
-      endpoint     = module.cosmos_db[0].endpoint
+      endpoint     = "https://${module.cosmos_db[0].name}.documents.azure.com:443/"
       account_name = module.cosmos_db[0].name
     }
 
@@ -156,8 +156,8 @@ output "connection_info" {
       endpoint     = "https://${data.azurerm_search_service.existing[0].name}.search.windows.net"
       service_name = data.azurerm_search_service.existing[0].name
       } : {
-      endpoint     = "https://${module.ai_search[0].name}.search.windows.net"
-      service_name = module.ai_search[0].name
+      endpoint     = "https://${module.ai_search[0].resource.name}.search.windows.net"
+      service_name = module.ai_search[0].resource.name
     }
 
     openai_connection = {
