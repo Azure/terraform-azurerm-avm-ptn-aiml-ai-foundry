@@ -67,6 +67,44 @@ resource "azurerm_log_analytics_workspace" "this" {
   retention_in_days   = 30
 }
 
+# ========================================
+# Basic Networking Infrastructure
+# ========================================
+
+# Virtual Network for basic deployment (optional for basic, but good practice)
+resource "azurerm_virtual_network" "this" {
+  name                = module.naming.virtual_network.name_unique
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  address_space       = ["10.0.0.0/16"]
+
+  tags = local.tags
+}
+
+# Subnet for private endpoints (even in basic, good to have for future expansion)
+resource "azurerm_subnet" "private_endpoints" {
+  name                 = "snet-private-endpoints"
+  resource_group_name  = azurerm_resource_group.this.name
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+# Subnet for AI agent services (Container Apps)
+resource "azurerm_subnet" "agent_services" {
+  name                 = "snet-agent-services"
+  resource_group_name  = azurerm_resource_group.this.name
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["10.0.2.0/23"]
+
+  # Required for Container App Environment
+  delegation {
+    name = "Microsoft.App.environments"
+    service_delegation {
+      name = "Microsoft.App/environments"
+    }
+  }
+}
+
 # Local values for common configuration
 locals {
   tags = {
@@ -110,10 +148,11 @@ module "ai_foundry" {
   # Create AI Foundry project with basic configuration
   create_ai_foundry_project = true
 
-  # No agent service in basic configuration
-  create_ai_agent_service = false
+  # Enable agent service in basic configuration (with public endpoints)
+  create_ai_agent_service     = true
+  ai_agent_subnet_resource_id = azurerm_subnet.agent_services.id
 
-  # No private endpoints in basic configuration
+  # No private endpoints in basic configuration (public endpoints only)
   storage_private_endpoints            = {}
   key_vault_private_endpoints          = {}
   cosmos_db_private_endpoints          = {}

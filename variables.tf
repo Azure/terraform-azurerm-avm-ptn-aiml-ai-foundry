@@ -519,7 +519,7 @@ variable "ai_foundry_project_private_endpoints" {
 # ========================================
 variable "create_ai_agent_service" {
   type        = bool
-  default     = false
+  default     = true
   description = "Whether to create an AI agent service using AzAPI capability hosts."
 }
 
