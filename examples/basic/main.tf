@@ -1,13 +1,14 @@
 terraform {
   required_version = "~> 1.5"
+
   required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 4.21"
-    }
     azapi = {
       source  = "Azure/azapi"
       version = "~> 2.4"
+    }
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.21"
     }
     modtm = {
       source  = "azure/modtm"
@@ -52,19 +53,19 @@ resource "azurerm_resource_group" "this" {
 
 # Application Insights for AI Foundry (required)
 resource "azurerm_application_insights" "this" {
-  name                = module.naming.application_insights.name_unique
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
   application_type    = "web"
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.application_insights.name_unique
+  resource_group_name = azurerm_resource_group.this.name
 }
 
 # Log Analytics Workspace for monitoring
 resource "azurerm_log_analytics_workspace" "this" {
-  name                = module.naming.log_analytics_workspace.name_unique
   location            = azurerm_resource_group.this.location
+  name                = module.naming.log_analytics_workspace.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  sku                 = "PerGB2018"
   retention_in_days   = 30
+  sku                 = "PerGB2018"
 }
 
 # ========================================
@@ -73,32 +74,32 @@ resource "azurerm_log_analytics_workspace" "this" {
 
 # Virtual Network for basic deployment (optional for basic, but good practice)
 resource "azurerm_virtual_network" "this" {
-  name                = module.naming.virtual_network.name_unique
   location            = azurerm_resource_group.this.location
+  name                = module.naming.virtual_network.name_unique
   resource_group_name = azurerm_resource_group.this.name
   address_space       = ["10.0.0.0/16"]
-
-  tags = local.tags
+  tags                = local.tags
 }
 
 # Subnet for private endpoints (even in basic, good to have for future expansion)
 resource "azurerm_subnet" "private_endpoints" {
+  address_prefixes     = ["10.0.1.0/24"]
   name                 = "snet-private-endpoints"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
-  address_prefixes     = ["10.0.1.0/24"]
 }
 
 # Subnet for AI agent services (Container Apps)
 resource "azurerm_subnet" "agent_services" {
+  address_prefixes     = ["10.0.2.0/23"]
   name                 = "snet-agent-services"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
-  address_prefixes     = ["10.0.2.0/23"]
 
   # Required for Container App Environment
   delegation {
     name = "Microsoft.App.environments"
+
     service_delegation {
       name = "Microsoft.App/environments"
     }
@@ -119,17 +120,11 @@ locals {
 module "ai_foundry" {
   source = "../../"
 
-  name                = "ai-foundry-basic"
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
-
-  # Enable telemetry for the module
-  enable_telemetry = var.enable_telemetry
-
-  # Application Insights for AI Foundry workspaces
-  application_insights_id    = azurerm_application_insights.this.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
-
+  location                             = azurerm_resource_group.this.location
+  name                                 = "ai-foundry-basic"
+  resource_group_name                  = azurerm_resource_group.this.name
+  ai_agent_subnet_resource_id          = azurerm_subnet.agent_services.id
+  ai_foundry_project_private_endpoints = {}
   # Basic AI model deployments
   ai_model_deployments = {
     "gpt-35-turbo" = {
@@ -144,22 +139,21 @@ module "ai_foundry" {
       }
     }
   }
-
+  ai_search_private_endpoints   = {}
+  ai_services_private_endpoints = {}
+  # Application Insights for AI Foundry workspaces
+  application_insights_id     = azurerm_application_insights.this.id
+  cosmos_db_private_endpoints = {}
+  # Enable agent service in basic configuration (with public endpoints)
+  create_ai_agent_service = true
   # Create AI Foundry project with basic configuration
   create_ai_foundry_project = true
-
-  # Enable agent service in basic configuration (with public endpoints)
-  create_ai_agent_service     = true
-  ai_agent_subnet_resource_id = azurerm_subnet.agent_services.id
-
+  # Enable telemetry for the module
+  enable_telemetry            = var.enable_telemetry
+  key_vault_private_endpoints = {}
+  log_analytics_workspace_id  = azurerm_log_analytics_workspace.this.id
   # No private endpoints in basic configuration (public endpoints only)
-  storage_private_endpoints            = {}
-  key_vault_private_endpoints          = {}
-  cosmos_db_private_endpoints          = {}
-  ai_search_private_endpoints          = {}
-  ai_services_private_endpoints        = {}
-  ai_foundry_project_private_endpoints = {}
-
+  storage_private_endpoints = {}
   # Tags for all resources
   tags = local.tags
 }

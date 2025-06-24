@@ -9,18 +9,16 @@ resource "azurerm_resource_group" "this" {
 # Storage Account (BYO or Create New)
 # ========================================
 module "storage_account" {
-  count   = var.existing_storage_account_resource_id == null ? 1 : 0
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "~> 0.6.3"
+  count   = var.existing_storage_account_resource_id == null ? 1 : 0
 
+  location            = var.location
   name                = "${var.name}sa${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.this.name
-  location            = var.location
-
   managed_identities = {
     system_assigned = true
   }
-
   private_endpoints = var.storage_private_endpoints
   tags              = var.tags
 }
@@ -29,49 +27,46 @@ module "storage_account" {
 # Key Vault (BYO or Create New)
 # ========================================
 module "key_vault" {
-  count   = var.existing_key_vault_resource_id == null ? 1 : 0
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "~> 0.10.0"
+  count   = var.existing_key_vault_resource_id == null ? 1 : 0
 
+  location            = var.location
   name                = "${var.name}-kv-${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.this.name
-  location            = var.location
   tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  private_endpoints = var.key_vault_private_endpoints
-  tags              = var.tags
+  private_endpoints   = var.key_vault_private_endpoints
+  tags                = var.tags
 }
 
 # ========================================
 # Cosmos DB (BYO or Create New)
 # ========================================
 module "cosmos_db" {
-  count   = var.existing_cosmos_db_resource_id == null ? 1 : 0
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
   version = "~> 0.8.0"
+  count   = var.existing_cosmos_db_resource_id == null ? 1 : 0
 
+  location            = var.location
   name                = "${var.name}-cosmos-${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.this.name
-  location            = var.location
-
-  private_endpoints = var.cosmos_db_private_endpoints
-  tags              = var.tags
+  private_endpoints   = var.cosmos_db_private_endpoints
+  tags                = var.tags
 }
 
 # ========================================
 # AI Search (BYO or Create New)
 # ========================================
 module "ai_search" {
-  count   = var.existing_ai_search_resource_id == null ? 1 : 0
   source  = "Azure/avm-res-search-searchservice/azurerm"
   version = "~> 0.1.5"
+  count   = var.existing_ai_search_resource_id == null ? 1 : 0
 
+  location            = var.location
   name                = "${var.name}-search-${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.this.name
-  location            = var.location
-
-  private_endpoints = var.ai_search_private_endpoints
-  tags              = var.tags
+  private_endpoints   = var.ai_search_private_endpoints
+  tags                = var.tags
 }
 
 # ========================================
@@ -81,23 +76,19 @@ module "ai_services" {
   source  = "Azure/avm-res-cognitiveservices-account/azurerm"
   version = "~> 0.7.1"
 
+  kind                = "AIServices"
+  location            = var.location
   name                = "${var.name}-aiservices-${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.this.name
-  location            = var.location
-
-  kind                          = "AIServices"
-  sku_name                      = "S0"
-  public_network_access_enabled = length(var.ai_services_private_endpoints) == 0 ? true : false
-
+  sku_name            = "S0"
   # Deploy AI models including OpenAI
   cognitive_deployments = var.ai_model_deployments
-
   managed_identities = {
     system_assigned = true
   }
-
-  private_endpoints = var.ai_services_private_endpoints
-  tags              = var.tags
+  private_endpoints             = var.ai_services_private_endpoints
+  public_network_access_enabled = length(var.ai_services_private_endpoints) == 0 ? true : false
+  tags                          = var.tags
 }
 
 # ========================================
@@ -174,24 +165,22 @@ resource "azurerm_role_assignment" "this" {
 resource "azapi_resource" "ai_foundry_project" {
   count = var.create_ai_foundry_project ? 1 : 0
 
-  type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
+  location  = var.location
   name      = var.ai_foundry_project_name != null ? var.ai_foundry_project_name : "${var.name}-aiproject-${random_string.suffix.result}"
   parent_id = module.ai_services.resource_id
-  location  = var.location
-
-  # Optional identity block for managed identity support
-  identity {
-    type = "SystemAssigned"
-  }
-
+  type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
   body = {
     properties = {
       displayName = var.ai_foundry_project_display_name != null ? var.ai_foundry_project_display_name : "AI Foundry Project for ${var.name}"
       description = var.ai_foundry_project_description != null ? var.ai_foundry_project_description : "AI Foundry project for agent services and AI workloads"
     }
   }
-
   tags = var.tags
+
+  # Optional identity block for managed identity support
+  identity {
+    type = "SystemAssigned"
+  }
 
   depends_on = [
     module.ai_services,
@@ -206,10 +195,9 @@ resource "azapi_resource" "ai_foundry_project" {
 resource "azapi_resource" "ai_agent_capability_host" {
   count = var.create_ai_agent_service ? 1 : 0
 
-  type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
   name      = var.ai_agent_host_name != null ? var.ai_agent_host_name : "${var.name}-agent-host-${random_string.suffix.result}"
   parent_id = azapi_resource.ai_foundry_project[0].id
-
+  type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
   body = {
     properties = {
       capabilityHostKind = "Agents"
@@ -260,27 +248,26 @@ resource "azapi_resource" "ai_agent_capability_host" {
 resource "azurerm_private_endpoint" "ai_foundry_project" {
   for_each = var.create_ai_foundry_project ? var.ai_foundry_project_private_endpoints : {}
 
-  name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_foundry_project[0].name}-${each.key}"
   location            = each.value.location != null ? each.value.location : var.location
+  name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_foundry_project[0].name}-${each.key}"
   resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : azurerm_resource_group.this.name
   subnet_id           = each.value.subnet_resource_id
+  tags                = merge(var.tags, each.value.tags)
 
   private_service_connection {
+    is_manual_connection           = false
     name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "psc-${azapi_resource.ai_foundry_project[0].name}-${each.key}"
     private_connection_resource_id = module.ai_services.resource_id # Connect to the AI Services account
     subresource_names              = [each.value.subresource_name]
-    is_manual_connection           = false
   }
-
   dynamic "private_dns_zone_group" {
     for_each = length(each.value.private_dns_zone_resource_ids) > 0 ? [each.value.private_dns_zone_group_name] : []
+
     content {
       name                 = private_dns_zone_group.value
       private_dns_zone_ids = each.value.private_dns_zone_resource_ids
     }
   }
-
-  tags = merge(var.tags, each.value.tags)
 }
 
 # ========================================

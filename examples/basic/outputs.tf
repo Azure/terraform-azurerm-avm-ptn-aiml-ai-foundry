@@ -1,12 +1,3 @@
-output "resource_group" {
-  description = "The resource group information."
-  value = {
-    id       = azurerm_resource_group.this.id
-    name     = azurerm_resource_group.this.name
-    location = azurerm_resource_group.this.location
-  }
-}
-
 # No AI Foundry Hub in new implementation
 output "ai_foundry_hub" {
   description = "DEPRECATED: AI Foundry Hub is no longer created."
@@ -22,6 +13,11 @@ output "ai_foundry_project" {
   }
 }
 
+output "ai_search" {
+  description = "The AI Search service information."
+  value       = module.ai_foundry.ai_search
+}
+
 output "ai_services" {
   description = "The AI Services account information."
   value = {
@@ -31,9 +27,9 @@ output "ai_services" {
   }
 }
 
-output "storage_account" {
-  description = "The storage account information."
-  value       = module.ai_foundry.storage_account
+output "cosmos_db" {
+  description = "The Cosmos DB account information."
+  value       = module.ai_foundry.cosmos_db
 }
 
 output "key_vault" {
@@ -41,12 +37,16 @@ output "key_vault" {
   value       = module.ai_foundry.key_vault
 }
 
-output "cosmos_db" {
-  description = "The Cosmos DB account information."
-  value       = module.ai_foundry.cosmos_db
+output "resource_group" {
+  description = "The resource group information."
+  value = {
+    id       = azurerm_resource_group.this.id
+    name     = azurerm_resource_group.this.name
+    location = azurerm_resource_group.this.location
+  }
 }
 
-output "ai_search" {
-  description = "The AI Search service information."
-  value       = module.ai_foundry.ai_search
+output "storage_account" {
+  description = "The storage account information."
+  value       = module.ai_foundry.storage_account
 }
