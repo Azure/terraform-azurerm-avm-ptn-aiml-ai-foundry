@@ -49,18 +49,18 @@ output "cognitive_services" {
 # AI Foundry Outputs
 # ========================================
 output "ai_foundry_hub_id" {
-  description = "The resource ID of the AI Foundry Hub."
-  value       = module.ai_foundry.ai_foundry_hub_id
+  description = "DEPRECATED: AI Foundry Hub is no longer created. Use ai_foundry_project_id instead."
+  value       = null
 }
 
 output "ai_foundry_hub_name" {
-  description = "The name of the AI Foundry Hub."
-  value       = module.ai_foundry.ai_foundry_hub_name
+  description = "DEPRECATED: AI Foundry Hub is no longer created. Use ai_foundry_project_name instead."
+  value       = null
 }
 
 output "ai_foundry_hub_workspace_url" {
-  description = "The discovery URL of the AI Foundry Hub."
-  value       = module.ai_foundry.ai_foundry_hub_workspace_url
+  description = "DEPRECATED: AI Foundry Hub is no longer created. Use ai_foundry_project_workspace_url instead."
+  value       = null
 }
 
 output "ai_foundry_project_id" {
@@ -107,9 +107,9 @@ output "ai_agent_environment_id" {
 output "application_insights" {
   description = "The Application Insights instance used for monitoring."
   value = {
-    id                     = azurerm_application_insights.this.id
-    name                   = azurerm_application_insights.this.name
-    instrumentation_key    = azurerm_application_insights.this.instrumentation_key
-    connection_string      = azurerm_application_insights.this.connection_string
+    id                  = azurerm_application_insights.this.id
+    name                = azurerm_application_insights.this.name
+    instrumentation_key = azurerm_application_insights.this.instrumentation_key
+    connection_string   = azurerm_application_insights.this.connection_string
   }
 }

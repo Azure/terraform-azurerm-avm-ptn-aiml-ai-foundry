@@ -52,7 +52,7 @@ resource "azurerm_resource_group" "this" {
 
 # Application Insights for AI Foundry (required)
 resource "azurerm_application_insights" "this" {
-  name                = "${module.naming.application_insights.name_unique}"
+  name                = module.naming.application_insights.name_unique
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   application_type    = "web"
@@ -60,7 +60,7 @@ resource "azurerm_application_insights" "this" {
 
 # Log Analytics Workspace for Container App Environment
 resource "azurerm_log_analytics_workspace" "this" {
-  name                = "${module.naming.log_analytics_workspace.name_unique}"
+  name                = module.naming.log_analytics_workspace.name_unique
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "PerGB2018"
@@ -73,7 +73,7 @@ resource "azurerm_log_analytics_workspace" "this" {
 
 # Virtual Network for private endpoints and agent services
 resource "azurerm_virtual_network" "this" {
-  name                = "${module.naming.virtual_network.name_unique}"
+  name                = module.naming.virtual_network.name_unique
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   address_space       = ["10.0.0.0/16"]
@@ -226,15 +226,15 @@ module "ai_foundry" {
   source = "../../"
 
   name                = "ai-foundry-std-prv"
-  location           = azurerm_resource_group.this.location
+  location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
 
   # Enable telemetry for the module
   enable_telemetry = var.enable_telemetry
 
   # Application Insights and Log Analytics for AI Foundry workspaces
-  application_insights_id      = azurerm_application_insights.this.id
-  log_analytics_workspace_id   = azurerm_log_analytics_workspace.this.id
+  application_insights_id    = azurerm_application_insights.this.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 
   # Standard AI model deployments (including OpenAI)
   ai_model_deployments = {
@@ -274,13 +274,13 @@ module "ai_foundry" {
   }
 
   # AI Foundry project configuration (standard with private endpoints)
-  create_ai_foundry_project       = true
+  create_ai_foundry_project      = true
   ai_foundry_project_name        = "AI-Foundry-Standard-Private"
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
 
   # Enable AI agent service with dedicated subnet
-  create_ai_agent_service        = true
-  ai_agent_subnet_resource_id    = azurerm_subnet.agent_services.id
+  create_ai_agent_service     = true
+  ai_agent_subnet_resource_id = azurerm_subnet.agent_services.id
 
   # Private endpoint configurations with created DNS zones
   storage_private_endpoints = {
@@ -329,16 +329,6 @@ module "ai_foundry" {
       subresource_name   = "account"
       private_dns_zone_resource_ids = [
         azurerm_private_dns_zone.openai.id
-      ]
-    }
-  }
-
-  ai_foundry_hub_private_endpoints = {
-    "amlworkspace" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "amlworkspace"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.ml_workspace.id
       ]
     }
   }

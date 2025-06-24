@@ -17,10 +17,10 @@ output "location" {
 output "virtual_network" {
   description = "The virtual network created for private endpoint connectivity."
   value = {
-    id                = azurerm_virtual_network.this.id
-    name              = azurerm_virtual_network.this.name
-    address_space     = azurerm_virtual_network.this.address_space
-    subnet_ids        = {
+    id            = azurerm_virtual_network.this.id
+    name          = azurerm_virtual_network.this.name
+    address_space = azurerm_virtual_network.this.address_space
+    subnet_ids = {
       private_endpoints = azurerm_subnet.private_endpoints.id
       agent_services    = azurerm_subnet.agent_services.id
     }
@@ -30,27 +30,27 @@ output "virtual_network" {
 output "private_dns_zones" {
   description = "The private DNS zones created for private endpoint connectivity."
   value = {
-    storage_blob   = {
+    storage_blob = {
       id   = azurerm_private_dns_zone.storage_blob.id
       name = azurerm_private_dns_zone.storage_blob.name
     }
-    keyvault       = {
+    keyvault = {
       id   = azurerm_private_dns_zone.keyvault.id
       name = azurerm_private_dns_zone.keyvault.name
     }
-    cosmosdb       = {
+    cosmosdb = {
       id   = azurerm_private_dns_zone.cosmosdb.id
       name = azurerm_private_dns_zone.cosmosdb.name
     }
-    search         = {
+    search = {
       id   = azurerm_private_dns_zone.search.id
       name = azurerm_private_dns_zone.search.name
     }
-    openai         = {
+    openai = {
       id   = azurerm_private_dns_zone.openai.id
       name = azurerm_private_dns_zone.openai.name
     }
-    ml_workspace   = {
+    ml_workspace = {
       id   = azurerm_private_dns_zone.ml_workspace.id
       name = azurerm_private_dns_zone.ml_workspace.name
     }
@@ -94,20 +94,6 @@ output "cognitive_services" {
 # ========================================
 # AI Foundry Outputs
 # ========================================
-output "ai_foundry_hub_id" {
-  description = "The resource ID of the AI Foundry Hub."
-  value       = module.ai_foundry.ai_foundry_hub_id
-}
-
-output "ai_foundry_hub_name" {
-  description = "The name of the AI Foundry Hub."
-  value       = module.ai_foundry.ai_foundry_hub_name
-}
-
-output "ai_foundry_hub_workspace_url" {
-  description = "The discovery URL of the AI Foundry Hub."
-  value       = module.ai_foundry.ai_foundry_hub_workspace_url
-}
 
 output "ai_foundry_project_id" {
   description = "The resource ID of the AI Foundry Project."
@@ -151,8 +137,8 @@ output "ai_agent_environment_id" {
 # Private Endpoint Outputs
 # ========================================
 output "ai_foundry_hub_private_endpoints" {
-  description = "A map of private endpoints created for the AI Foundry Hub."
-  value       = module.ai_foundry.ai_foundry_hub_private_endpoints
+  description = "DEPRECATED: AI Foundry Hub is no longer created."
+  value       = {}
 }
 
 output "ai_foundry_project_private_endpoints" {
@@ -166,9 +152,9 @@ output "ai_foundry_project_private_endpoints" {
 output "application_insights" {
   description = "The Application Insights instance used for monitoring."
   value = {
-    id                     = azurerm_application_insights.this.id
-    name                   = azurerm_application_insights.this.name
-    instrumentation_key    = azurerm_application_insights.this.instrumentation_key
-    connection_string      = azurerm_application_insights.this.connection_string
+    id                  = azurerm_application_insights.this.id
+    name                = azurerm_application_insights.this.name
+    instrumentation_key = azurerm_application_insights.this.instrumentation_key
+    connection_string   = azurerm_application_insights.this.connection_string
   }
 }
