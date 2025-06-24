@@ -168,3 +168,86 @@ output "managed_identities" {
     cognitive_services = try(module.cognitive_services.system_assigned_mi_principal_id, null)
   }
 }
+
+# ========================================
+# AI Foundry Outputs
+# ========================================
+output "ai_foundry_hub_id" {
+  description = "The resource ID of the AI Foundry Hub."
+  value       = azurerm_machine_learning_workspace.ai_foundry_hub.id
+}
+
+output "ai_foundry_hub_name" {
+  description = "The name of the AI Foundry Hub."
+  value       = azurerm_machine_learning_workspace.ai_foundry_hub.name
+}
+
+output "ai_foundry_hub_workspace_url" {
+  description = "The discovery URL of the AI Foundry Hub."
+  value       = azurerm_machine_learning_workspace.ai_foundry_hub.discovery_url
+}
+
+output "ai_foundry_project_id" {
+  description = "The resource ID of the AI Foundry Project."
+  value       = var.create_ai_foundry_project ? azurerm_machine_learning_workspace.ai_foundry_project[0].id : null
+}
+
+output "ai_foundry_project_name" {
+  description = "The name of the AI Foundry Project."
+  value       = var.create_ai_foundry_project ? azurerm_machine_learning_workspace.ai_foundry_project[0].name : null
+}
+
+output "ai_foundry_project_workspace_url" {
+  description = "The discovery URL of the AI Foundry Project."
+  value       = var.create_ai_foundry_project ? azurerm_machine_learning_workspace.ai_foundry_project[0].discovery_url : null
+}
+
+# ========================================
+# AI Agent Service Outputs
+# ========================================
+output "ai_agent_service_id" {
+  description = "The resource ID of the AI agent service Container App."
+  value       = var.create_ai_agent_service ? azurerm_container_app.ai_agent_service[0].id : null
+}
+
+output "ai_agent_service_name" {
+  description = "The name of the AI agent service Container App."
+  value       = var.create_ai_agent_service ? azurerm_container_app.ai_agent_service[0].name : null
+}
+
+output "ai_agent_service_fqdn" {
+  description = "The FQDN of the AI agent service Container App."
+  value       = var.create_ai_agent_service ? azurerm_container_app.ai_agent_service[0].ingress[0].fqdn : null
+}
+
+output "ai_agent_environment_id" {
+  description = "The resource ID of the Container App Environment for AI agent services."
+  value       = var.create_ai_agent_service ? azurerm_container_app_environment.ai_agent_env[0].id : null
+}
+
+# ========================================
+# Private Endpoint Outputs
+# ========================================
+output "ai_foundry_hub_private_endpoints" {
+  description = "A map of private endpoints created for the AI Foundry Hub."
+  value = {
+    for k, v in azurerm_private_endpoint.ai_foundry_hub : k => {
+      id           = v.id
+      name         = v.name
+      fqdn         = try(v.private_dns_zone_group[0].private_dns_zone_configs[0].record_sets[0].fqdn, null)
+      ip_addresses = v.private_service_connection[0].private_ip_address
+    }
+  }
+}
+
+output "ai_foundry_project_private_endpoints" {
+  description = "A map of private endpoints created for the AI Foundry Project."
+  value = {
+    for k, v in azurerm_private_endpoint.ai_foundry_project : k => {
+      id           = v.id
+      name         = v.name
+      fqdn         = try(v.private_dns_zone_group[0].private_dns_zone_configs[0].record_sets[0].fqdn, null)
+      ip_addresses = v.private_service_connection[0].private_ip_address
+    }
+  }
+}
