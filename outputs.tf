@@ -20,7 +20,7 @@ output "storage_account" {
     name                  = data.azurerm_storage_account.existing[0].name
     primary_blob_endpoint = data.azurerm_storage_account.existing[0].primary_blob_endpoint
     primary_dfs_endpoint  = data.azurerm_storage_account.existing[0].primary_dfs_endpoint
-  } : {
+    } : {
     id                    = module.storage_account[0].resource_id
     name                  = module.storage_account[0].name
     primary_blob_endpoint = module.storage_account[0].primary_blob_endpoint
@@ -37,7 +37,7 @@ output "key_vault" {
     id        = var.existing_key_vault_resource_id
     name      = data.azurerm_key_vault.existing[0].name
     vault_uri = data.azurerm_key_vault.existing[0].vault_uri
-  } : {
+    } : {
     id        = module.key_vault[0].resource_id
     name      = module.key_vault[0].name
     vault_uri = module.key_vault[0].vault_uri
@@ -55,7 +55,7 @@ output "cosmos_db" {
     endpoint        = data.azurerm_cosmosdb_account.existing[0].endpoint
     read_endpoints  = data.azurerm_cosmosdb_account.existing[0].read_endpoints
     write_endpoints = data.azurerm_cosmosdb_account.existing[0].write_endpoints
-  } : {
+    } : {
     id              = module.cosmos_db[0].resource_id
     name            = module.cosmos_db[0].name
     endpoint        = module.cosmos_db[0].endpoint
@@ -73,7 +73,7 @@ output "ai_search" {
     id                  = var.existing_ai_search_resource_id
     name                = data.azurerm_search_service.existing[0].name
     search_service_name = data.azurerm_search_service.existing[0].name
-  } : {
+    } : {
     id                  = module.ai_search[0].resource_id
     name                = module.ai_search[0].name
     search_service_name = module.ai_search[0].name
@@ -129,7 +129,7 @@ output "connection_info" {
       account_key   = data.azurerm_storage_account.existing[0].primary_access_key
       blob_endpoint = data.azurerm_storage_account.existing[0].primary_blob_endpoint
       dfs_endpoint  = data.azurerm_storage_account.existing[0].primary_dfs_endpoint
-    } : {
+      } : {
       account_name  = module.storage_account[0].name
       account_key   = module.storage_account[0].primary_access_key
       blob_endpoint = module.storage_account[0].primary_blob_endpoint
@@ -139,7 +139,7 @@ output "connection_info" {
     key_vault_connection = var.existing_key_vault_resource_id != null ? {
       vault_uri  = data.azurerm_key_vault.existing[0].vault_uri
       vault_name = data.azurerm_key_vault.existing[0].name
-    } : {
+      } : {
       vault_uri  = module.key_vault[0].vault_uri
       vault_name = module.key_vault[0].name
     }
@@ -147,7 +147,7 @@ output "connection_info" {
     cosmos_db_connection = var.existing_cosmos_db_resource_id != null ? {
       endpoint     = data.azurerm_cosmosdb_account.existing[0].endpoint
       account_name = data.azurerm_cosmosdb_account.existing[0].name
-    } : {
+      } : {
       endpoint     = module.cosmos_db[0].endpoint
       account_name = module.cosmos_db[0].name
     }
@@ -155,7 +155,7 @@ output "connection_info" {
     ai_search_connection = var.existing_ai_search_resource_id != null ? {
       endpoint     = "https://${data.azurerm_search_service.existing[0].name}.search.windows.net"
       service_name = data.azurerm_search_service.existing[0].name
-    } : {
+      } : {
       endpoint     = "https://${module.ai_search[0].name}.search.windows.net"
       service_name = module.ai_search[0].name
     }
