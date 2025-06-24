@@ -202,9 +202,9 @@ variable "existing_ai_search_resource_id" {
 }
 
 # ========================================
-# OpenAI Deployments Configuration
+# AI Model Deployments Configuration
 # ========================================
-variable "openai_deployments" {
+variable "ai_model_deployments" {
   type = map(object({
     name                   = string
     rai_policy_name        = optional(string)
@@ -224,7 +224,7 @@ variable "openai_deployments" {
   }))
   default     = {}
   description = <<DESCRIPTION
-Configuration for OpenAI model deployments. Each deployment includes:
+Configuration for AI model deployments (including OpenAI). Each deployment includes:
 - `name` - The name of the deployment
 - `rai_policy_name` - (Optional) The name of the RAI policy
 - `version_upgrade_option` - (Optional) How to handle version upgrades (default: "OnceNewDefaultVersionAvailable")
@@ -388,7 +388,7 @@ variable "ai_search_private_endpoints" {
   nullable    = false
 }
 
-variable "cognitive_services_private_endpoints" {
+variable "ai_services_private_endpoints" {
   type = map(object({
     name = optional(string, null)
     role_assignments = optional(map(object({
@@ -420,7 +420,7 @@ variable "cognitive_services_private_endpoints" {
     })), {})
   }))
   default     = {}
-  description = "Private endpoint configuration for the Cognitive Services account."
+  description = "Private endpoint configuration for the AI Services account."
   nullable    = false
 }
 
@@ -454,6 +454,12 @@ variable "ai_foundry_project_name" {
   description = "The name of the AI Foundry project. If not provided, will use pattern name with suffix."
 }
 
+variable "ai_foundry_project_display_name" {
+  type        = string
+  default     = null
+  description = "The display/friendly name of the AI Foundry project. If not provided, will use a default name."
+}
+
 variable "ai_foundry_project_description" {
   type        = string
   default     = "AI Foundry project for agent services and AI workloads"
@@ -470,42 +476,6 @@ variable "log_analytics_workspace_id" {
   type        = string
   default     = null
   description = "The resource ID of the Log Analytics workspace for Container App Environment."
-}
-
-variable "ai_foundry_hub_private_endpoints" {
-  type = map(object({
-    name = optional(string, null)
-    role_assignments = optional(map(object({
-      role_definition_id_or_name             = string
-      principal_id                           = string
-      description                            = optional(string, null)
-      skip_service_principal_aad_check       = optional(bool, false)
-      condition                              = optional(string, null)
-      condition_version                      = optional(string, null)
-      delegated_managed_identity_resource_id = optional(string, null)
-    })), {})
-    lock = optional(object({
-      kind = string
-      name = optional(string, null)
-    }), null)
-    tags                                    = optional(map(string), null)
-    subnet_resource_id                      = string
-    subresource_name                        = string
-    private_dns_zone_group_name             = optional(string, "default")
-    private_dns_zone_resource_ids           = optional(set(string), [])
-    application_security_group_associations = optional(map(string), {})
-    private_service_connection_name         = optional(string, null)
-    network_interface_name                  = optional(string, null)
-    location                                = optional(string, null)
-    resource_group_name                     = optional(string, null)
-    ip_configurations = optional(map(object({
-      name               = string
-      private_ip_address = string
-    })), {})
-  }))
-  default     = {}
-  description = "Private endpoint configuration for the AI Foundry Hub."
-  nullable    = false
 }
 
 variable "ai_foundry_project_private_endpoints" {
@@ -550,47 +520,17 @@ variable "ai_foundry_project_private_endpoints" {
 variable "create_ai_agent_service" {
   type        = bool
   default     = false
-  description = "Whether to create an AI agent service using Container Apps."
+  description = "Whether to create an AI agent service using AzAPI capability hosts."
+}
+
+variable "ai_agent_host_name" {
+  type        = string
+  default     = null
+  description = "The name of the AI agent capability host. If not provided, will use pattern name with suffix."
 }
 
 variable "ai_agent_subnet_resource_id" {
   type        = string
   default     = null
-  description = "The resource ID of the subnet for the AI agent service Container App Environment."
-}
-
-variable "ai_agent_container_image" {
-  type        = string
-  default     = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
-  description = "The container image for the AI agent service."
-}
-
-variable "ai_agent_cpu" {
-  type        = number
-  default     = 0.5
-  description = "CPU allocation for the AI agent service container."
-}
-
-variable "ai_agent_memory" {
-  type        = string
-  default     = "1Gi"
-  description = "Memory allocation for the AI agent service container."
-}
-
-variable "ai_agent_external_ingress" {
-  type        = bool
-  default     = true
-  description = "Whether to enable external ingress for the AI agent service."
-}
-
-variable "ai_agent_target_port" {
-  type        = number
-  default     = 80
-  description = "The target port for the AI agent service."
-}
-
-variable "ai_agent_environment_variables" {
-  type        = map(string)
-  default     = {}
-  description = "Environment variables for the AI agent service container."
+  description = "The resource ID of the subnet for the AI agent service. When provided, enables private networking."
 }

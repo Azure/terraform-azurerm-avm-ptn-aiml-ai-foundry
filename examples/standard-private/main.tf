@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.21"
     }
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.4"
+    }
     modtm = {
       source  = "azure/modtm"
       version = "~> 0.3"
@@ -232,8 +236,8 @@ module "ai_foundry" {
   application_insights_id      = azurerm_application_insights.this.id
   log_analytics_workspace_id   = azurerm_log_analytics_workspace.this.id
 
-  # Standard OpenAI deployments
-  openai_deployments = {
+  # Standard AI model deployments (including OpenAI)
+  ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4o"
       model = {
@@ -277,15 +281,6 @@ module "ai_foundry" {
   # Enable AI agent service with dedicated subnet
   create_ai_agent_service        = true
   ai_agent_subnet_resource_id    = azurerm_subnet.agent_services.id
-  ai_agent_container_image       = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
-  ai_agent_cpu                   = 1.0
-  ai_agent_memory                = "2Gi"
-  ai_agent_external_ingress      = false  # Private ingress only
-  ai_agent_target_port           = 80
-  ai_agent_environment_variables = {
-    "ENVIRONMENT" = "STANDARD_PRIVATE"
-    "LOG_LEVEL"   = "INFO"
-  }
 
   # Private endpoint configurations with created DNS zones
   storage_private_endpoints = {
@@ -328,7 +323,7 @@ module "ai_foundry" {
     }
   }
 
-  cognitive_services_private_endpoints = {
+  ai_services_private_endpoints = {
     "account" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
       subresource_name   = "account"

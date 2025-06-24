@@ -9,95 +9,95 @@ resource "azurerm_resource_group" "this" {
 # Storage Account (BYO or Create New)
 # ========================================
 module "storage_account" {
-  count  = var.existing_storage_account_resource_id == null ? 1 : 0
-  source = "Azure/avm-res-storage-storageaccount/azurerm"
+  count   = var.existing_storage_account_resource_id == null ? 1 : 0
+  source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "~> 0.6.3"
 
   name                = "${var.name}sa${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.this.name
-  location           = var.location
+  location            = var.location
 
   managed_identities = {
     system_assigned = true
   }
 
   private_endpoints = var.storage_private_endpoints
-  tags = var.tags
+  tags              = var.tags
 }
 
 # ========================================
 # Key Vault (BYO or Create New)
 # ========================================
 module "key_vault" {
-  count  = var.existing_key_vault_resource_id == null ? 1 : 0
-  source = "Azure/avm-res-keyvault-vault/azurerm"
+  count   = var.existing_key_vault_resource_id == null ? 1 : 0
+  source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "~> 0.10.0"
 
   name                = "${var.name}-kv-${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.this.name
-  location           = var.location
-  tenant_id          = data.azurerm_client_config.current.tenant_id
+  location            = var.location
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   private_endpoints = var.key_vault_private_endpoints
-  tags = var.tags
+  tags              = var.tags
 }
 
 # ========================================
 # Cosmos DB (BYO or Create New)
 # ========================================
 module "cosmos_db" {
-  count  = var.existing_cosmos_db_resource_id == null ? 1 : 0
-  source = "Azure/avm-res-documentdb-databaseaccount/azurerm"
+  count   = var.existing_cosmos_db_resource_id == null ? 1 : 0
+  source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
   version = "~> 0.8.0"
 
   name                = "${var.name}-cosmos-${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.this.name
-  location           = var.location
+  location            = var.location
 
   private_endpoints = var.cosmos_db_private_endpoints
-  tags = var.tags
+  tags              = var.tags
 }
 
 # ========================================
 # AI Search (BYO or Create New)
 # ========================================
 module "ai_search" {
-  count  = var.existing_ai_search_resource_id == null ? 1 : 0
-  source = "Azure/avm-res-search-searchservice/azurerm"
+  count   = var.existing_ai_search_resource_id == null ? 1 : 0
+  source  = "Azure/avm-res-search-searchservice/azurerm"
   version = "~> 0.1.5"
 
   name                = "${var.name}-search-${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.this.name
-  location           = var.location
+  location            = var.location
 
   private_endpoints = var.ai_search_private_endpoints
-  tags = var.tags
+  tags              = var.tags
 }
 
 # ========================================
-# Azure OpenAI / Cognitive Services
+# Azure AI Services (AIServices kind includes OpenAI)
 # ========================================
-module "cognitive_services" {
-  source = "Azure/avm-res-cognitiveservices-account/azurerm"
+module "ai_services" {
+  source  = "Azure/avm-res-cognitiveservices-account/azurerm"
   version = "~> 0.7.1"
 
-  name                = "${var.name}-openai-${random_string.suffix.result}"
+  name                = "${var.name}-aiservices-${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.this.name
-  location           = var.location
+  location            = var.location
 
-  kind                         = "OpenAI"
-  sku_name                    = "S0"
-  public_network_access_enabled = false
+  kind                          = "AIServices"
+  sku_name                      = "S0"
+  public_network_access_enabled = length(var.ai_services_private_endpoints) == 0 ? true : false
 
-  # Deploy required models for AI Foundry
-  cognitive_deployments = var.openai_deployments
+  # Deploy AI models including OpenAI
+  cognitive_deployments = var.ai_model_deployments
 
   managed_identities = {
     system_assigned = true
   }
 
-  private_endpoints = var.cognitive_services_private_endpoints
-  tags = var.tags
+  private_endpoints = var.ai_services_private_endpoints
+  tags              = var.tags
 }
 
 # ========================================
@@ -169,175 +169,107 @@ resource "azurerm_role_assignment" "this" {
 }
 
 # ========================================
-# AI Foundry Hub (Machine Learning Workspace)
+# AI Foundry Project (Using AzAPI - Microsoft.CognitiveServices/accounts/projects)
 # ========================================
-resource "azurerm_machine_learning_workspace" "ai_foundry_hub" {
-  name                          = "${var.name}-aihub-${random_string.suffix.result}"
-  location                      = var.location
-  resource_group_name           = azurerm_resource_group.this.name
-  application_insights_id       = var.application_insights_id
-  key_vault_id                  = var.existing_key_vault_resource_id != null ? var.existing_key_vault_resource_id : module.key_vault[0].resource_id
-  storage_account_id            = var.existing_storage_account_resource_id != null ? var.existing_storage_account_resource_id : module.storage_account[0].resource_id
-
-  # Use default kind (will be configured as Hub via additional settings)
-  description = "AI Foundry Hub for agent services and AI workloads"
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  # Enable public network access based on whether private endpoints are configured
-  public_network_access_enabled = length(var.ai_foundry_hub_private_endpoints) == 0 ? true : false
-
-  tags = var.tags
-}
-
-# ========================================
-# AI Foundry Project (Machine Learning Workspace)
-# ========================================
-resource "azurerm_machine_learning_workspace" "ai_foundry_project" {
+resource "azapi_resource" "ai_foundry_project" {
   count = var.create_ai_foundry_project ? 1 : 0
 
-  name                          = var.ai_foundry_project_name != null ? var.ai_foundry_project_name : "${var.name}-aiproject-${random_string.suffix.result}"
-  location                      = var.location
-  resource_group_name           = azurerm_resource_group.this.name
-  application_insights_id       = var.application_insights_id
-  key_vault_id                  = var.existing_key_vault_resource_id != null ? var.existing_key_vault_resource_id : module.key_vault[0].resource_id
-  storage_account_id            = var.existing_storage_account_resource_id != null ? var.existing_storage_account_resource_id : module.storage_account[0].resource_id
+  type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
+  name      = var.ai_foundry_project_name != null ? var.ai_foundry_project_name : "${var.name}-aiproject-${random_string.suffix.result}"
+  parent_id = module.ai_services.resource_id
+  location  = var.location
 
-  # Configure as project workspace
-  description = var.ai_foundry_project_description
-
+  # Optional identity block for managed identity support
   identity {
     type = "SystemAssigned"
   }
 
-  # Enable public network access based on whether private endpoints are configured
-  public_network_access_enabled = length(var.ai_foundry_project_private_endpoints) == 0 ? true : false
+  body = {
+    properties = {
+      displayName = var.ai_foundry_project_display_name != null ? var.ai_foundry_project_display_name : "AI Foundry Project for ${var.name}"
+      description = var.ai_foundry_project_description != null ? var.ai_foundry_project_description : "AI Foundry project for agent services and AI workloads"
+    }
+  }
 
   tags = var.tags
+
+  depends_on = [
+    module.ai_services,
+    module.storage_account,
+    module.key_vault
+  ]
 }
 
 # ========================================
-# AI Foundry Agent Service (Container App)
+# AI Agent Service (Using AzAPI - Microsoft.CognitiveServices/accounts/projects/capabilityHosts)
 # ========================================
-resource "azurerm_container_app_environment" "ai_agent_env" {
+resource "azapi_resource" "ai_agent_capability_host" {
   count = var.create_ai_agent_service ? 1 : 0
 
-  name                       = "${var.name}-agent-env-${random_string.suffix.result}"
-  location                   = var.location
-  resource_group_name        = azurerm_resource_group.this.name
-  log_analytics_workspace_id = var.log_analytics_workspace_id
+  type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
+  name      = var.ai_agent_host_name != null ? var.ai_agent_host_name : "${var.name}-agent-host-${random_string.suffix.result}"
+  parent_id = azapi_resource.ai_foundry_project[0].id
 
-  # Use agent subnet if provided, otherwise use default subnet
-  infrastructure_subnet_id = var.ai_agent_subnet_resource_id
-  internal_load_balancer_enabled = var.ai_agent_subnet_resource_id != null ? true : false
+  body = {
+    properties = {
+      capabilityHostKind = "Agents"
+      description        = "AI Agent capability host for ${var.name}"
 
-  tags = var.tags
-}
+      # Storage connections for agent service data
+      storageConnections = var.existing_storage_account_resource_id != null ? [
+        var.existing_storage_account_resource_id
+        ] : [
+        module.storage_account[0].resource_id
+      ]
 
-resource "azurerm_container_app" "ai_agent_service" {
-  count = var.create_ai_agent_service ? 1 : 0
+      # AI Services connections for model access
+      aiServicesConnections = [
+        module.ai_services.resource_id
+      ]
 
-  name                         = "${var.name}-agent-${random_string.suffix.result}"
-  container_app_environment_id = azurerm_container_app_environment.ai_agent_env[0].id
-  resource_group_name          = azurerm_resource_group.this.name
-  revision_mode                = "Single"
+      # Optional: Thread storage connections
+      threadStorageConnections = var.existing_storage_account_resource_id != null ? [
+        var.existing_storage_account_resource_id
+        ] : [
+        module.storage_account[0].resource_id
+      ]
 
-  identity {
-    type = "SystemAssigned"
-  }
+      # Optional: Vector store connections (if AI Search is available)
+      vectorStoreConnections = var.existing_ai_search_resource_id != null ? [
+        var.existing_ai_search_resource_id
+        ] : (
+        length(module.ai_search) > 0 ? [module.ai_search[0].resource_id] : []
+      )
 
-  template {
-    min_replicas = 1
-    max_replicas = 3
+      # Customer subnet for private networking
+      customerSubnet = var.ai_agent_subnet_resource_id
 
-    container {
-      name   = "ai-agent"
-      image  = var.ai_agent_container_image
-      cpu    = var.ai_agent_cpu
-      memory = var.ai_agent_memory
-
-      env {
-        name  = "AZURE_CLIENT_ID"
-        value = azurerm_machine_learning_workspace.ai_foundry_project[0].identity[0].principal_id
-      }
-
-      env {
-        name  = "AI_FOUNDRY_PROJECT_ID"
-        value = azurerm_machine_learning_workspace.ai_foundry_project[0].id
-      }
-
-      env {
-        name  = "OPENAI_ENDPOINT"
-        value = module.cognitive_services.resource.endpoint
-      }
-
-      dynamic "env" {
-        for_each = var.ai_agent_environment_variables
-        content {
-          name  = env.key
-          value = env.value
-        }
-      }
+      # Optional tags within properties
+      tags = var.tags
     }
   }
 
-  ingress {
-    external_enabled = var.ai_agent_external_ingress
-    target_port      = var.ai_agent_target_port
-
-    traffic_weight {
-      percentage      = 100
-      latest_revision = true
-    }
-  }
-
-  tags = var.tags
+  depends_on = [
+    azapi_resource.ai_foundry_project
+  ]
 }
 
 # ========================================
-# Private Endpoints for AI Foundry Hub and Project
+# Private Endpoints for AI Foundry Project (via AI Services)
 # ========================================
-resource "azurerm_private_endpoint" "ai_foundry_hub" {
-  for_each = var.ai_foundry_hub_private_endpoints
-
-  name                = each.value.name != null ? each.value.name : "pe-${azurerm_machine_learning_workspace.ai_foundry_hub.name}-${each.key}"
-  location            = each.value.location != null ? each.value.location : var.location
-  resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : azurerm_resource_group.this.name
-  subnet_id          = each.value.subnet_resource_id
-
-  private_service_connection {
-    name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "psc-${azurerm_machine_learning_workspace.ai_foundry_hub.name}-${each.key}"
-    private_connection_resource_id = azurerm_machine_learning_workspace.ai_foundry_hub.id
-    subresource_names             = [each.value.subresource_name]
-    is_manual_connection          = false
-  }
-
-  dynamic "private_dns_zone_group" {
-    for_each = length(each.value.private_dns_zone_resource_ids) > 0 ? [each.value.private_dns_zone_group_name] : []
-    content {
-      name                 = private_dns_zone_group.value
-      private_dns_zone_ids = each.value.private_dns_zone_resource_ids
-    }
-  }
-
-  tags = merge(var.tags, each.value.tags)
-}
-
 resource "azurerm_private_endpoint" "ai_foundry_project" {
   for_each = var.create_ai_foundry_project ? var.ai_foundry_project_private_endpoints : {}
 
-  name                = each.value.name != null ? each.value.name : "pe-${azurerm_machine_learning_workspace.ai_foundry_project[0].name}-${each.key}"
+  name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_foundry_project[0].name}-${each.key}"
   location            = each.value.location != null ? each.value.location : var.location
   resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : azurerm_resource_group.this.name
-  subnet_id          = each.value.subnet_resource_id
+  subnet_id           = each.value.subnet_resource_id
 
   private_service_connection {
-    name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "psc-${azurerm_machine_learning_workspace.ai_foundry_project[0].name}-${each.key}"
-    private_connection_resource_id = azurerm_machine_learning_workspace.ai_foundry_project[0].id
-    subresource_names             = [each.value.subresource_name]
-    is_manual_connection          = false
+    name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "psc-${azapi_resource.ai_foundry_project[0].name}-${each.key}"
+    private_connection_resource_id = module.ai_services.resource_id # Connect to the AI Services account
+    subresource_names              = [each.value.subresource_name]
+    is_manual_connection           = false
   }
 
   dynamic "private_dns_zone_group" {

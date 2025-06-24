@@ -80,9 +80,15 @@ output "ai_search" {
   value       = module.ai_foundry.ai_search
 }
 
+output "ai_services" {
+  description = "The AI Services account used for AI capabilities."
+  value       = module.ai_foundry.ai_services
+}
+
+# Legacy output for backward compatibility
 output "cognitive_services" {
-  description = "The Azure Cognitive Services account used for AI capabilities."
-  value       = module.ai_foundry.cognitive_services
+  description = "The AI Services account (legacy name for backward compatibility)."
+  value       = module.ai_foundry.ai_services
 }
 
 # ========================================

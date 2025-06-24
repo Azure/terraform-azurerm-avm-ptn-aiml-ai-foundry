@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.21"
     }
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.4"
+    }
     modtm = {
       source  = "azure/modtm"
       version = "~> 0.3"
@@ -88,14 +92,25 @@ module "ai_foundry" {
   application_insights_id      = azurerm_application_insights.this.id
   log_analytics_workspace_id   = azurerm_log_analytics_workspace.this.id
 
-  # Standard OpenAI deployments
-  openai_deployments = {
+  # Standard AI model deployments (including OpenAI)
+  ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4o"
       model = {
         format  = "OpenAI"
         name    = "gpt-4o"
         version = "2024-08-06"
+      }
+      scale = {
+        type = "Standard"
+      }
+    }
+    "gpt-35-turbo" = {
+      name = "gpt-35-turbo"
+      model = {
+        format  = "OpenAI"
+        name    = "gpt-35-turbo"
+        version = "0613"
       }
       scale = {
         type = "Standard"
@@ -110,15 +125,6 @@ module "ai_foundry" {
 
   # Enable AI agent service with public endpoints
   create_ai_agent_service = true
-  ai_agent_container_image = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
-  ai_agent_cpu = 1.0
-  ai_agent_memory = "2Gi"
-  ai_agent_external_ingress = true
-  ai_agent_target_port = 80
-  ai_agent_environment_variables = {
-    "ENVIRONMENT" = "STANDARD_PUBLIC"
-    "LOG_LEVEL" = "INFO"
-  }
 
   # Tags for all resources
   tags = local.tags
