@@ -1,7 +1,55 @@
 <!-- BEGIN_TF_DOCS -->
-# terraform-azurerm-avm-template
+# Azure AI Foundry Pattern Module
 
-This is a template repo for Terraform Azure Verified Modules.
+This Terraform module deploys a comprehensive AI Foundry Agent Standard Setup on Azure, providing all the necessary services for enterprise AI/ML workloads with private endpoint connectivity.
+
+## Features
+
+This pattern module creates and configures the following Azure services:
+
+### Core AI Services
+- **Azure OpenAI / Cognitive Services** - For language models and AI capabilities
+- **Azure AI Search** - For vector search and retrieval augmented generation (RAG)
+- **Storage Account** - For data storage with hierarchical namespace enabled
+- **Cosmos DB** - For metadata and document storage
+- **Key Vault** - For secure secrets and key management
+
+### Networking & Security
+- **Private Endpoints** - For all services to ensure secure network isolation
+- **Managed Identities** - For secure service-to-service authentication
+- **RBAC Integration** - For fine-grained access control
+
+### Bring Your Own Resources (BYO)
+The module supports using existing resources instead of creating new ones:
+- Existing Storage Account
+- Existing Key Vault
+- Existing Cosmos DB
+- Existing AI Search service
+
+## Architecture
+
+The module implements the AI Foundry Agent Standard Setup architecture with the following components:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    AI Foundry Project                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │   Azure OpenAI  │  │    AI Search    │  │  Storage     │ │
+│  │   Service       │  │                 │  │  Account     │ │
+│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+│  ┌─────────────────┐  ┌─────────────────┐                   │
+│  │    Cosmos DB    │  │    Key Vault    │                   │
+│  │                 │  │                 │                   │
+│  └─────────────────┘  └─────────────────┘                   │
+└─────────────────────────────────────────────────────────────┘
+                               │
+                   ┌───────────────────────┐
+                   │   Private Endpoints   │
+                   │       Subnet          │
+                   └───────────────────────┘
+```
+
+All services are connected through private endpoints for secure communication.
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
@@ -118,8 +166,8 @@ Default: `{}`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
-Description: This variable controls whether or not telemetry is enabled for the module.  
-For more information see <https://aka.ms/avm/telemetryinfo>.  
+Description: This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
 If it is set to false, then no telemetry will be collected.
 
 Type: `bool`

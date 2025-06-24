@@ -1,5 +1,6 @@
-# TODO: insert locals here.
+# AI Foundry Pattern Module Locals
 locals {
+  # Managed identities configuration
   managed_identities = {
     system_assigned_user_assigned = (var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) > 0) ? {
       this = {
@@ -19,16 +20,19 @@ locals {
       }
     } : {}
   }
-  # Private endpoint application security group associations.
-  # We merge the nested maps from private endpoints and application security group associations into a single map.
-  private_endpoint_application_security_group_associations = { for assoc in flatten([
-    for pe_k, pe_v in var.private_endpoints : [
-      for asg_k, asg_v in pe_v.application_security_group_associations : {
-        asg_key         = asg_k
-        pe_key          = pe_k
-        asg_resource_id = asg_v
-      }
-    ]
-  ]) : "${assoc.pe_key}-${assoc.asg_key}" => assoc }
+
+  # Resource naming with random suffix
+  resource_suffix = random_string.suffix.result
+
+  # AI Foundry project name
+  ai_foundry_project_name = var.ai_foundry_project_name != null ? var.ai_foundry_project_name : "${var.name}-ai-foundry"
+
+  # Role definition resource substring for role assignments
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
+
+  # Common tags for all resources
+  common_tags = merge(var.tags, {
+    "ai-foundry-pattern" = "true"
+    "deployment-type"    = "avm-pattern"
+  })
 }

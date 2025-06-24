@@ -6,13 +6,11 @@ variable "location" {
 
 variable "name" {
   type        = string
-  description = "The name of the this resource."
+  description = "The name prefix for the AI Foundry resources."
 
   validation {
-    condition     = can(regex("TODO", var.name))
-    error_message = "The name must be TODO." # TODO remove the example below once complete:
-    #condition     = can(regex("^[a-z0-9]{5,50}$", var.name))
-    #error_message = "The name must be between 5 and 50 characters long and can only contain lowercase letters and numbers."
+    condition     = can(regex("^[a-z0-9][a-z0-9-]{1,60}[a-z0-9]$", var.name))
+    error_message = "The name must be between 3 and 62 characters long, start and end with alphanumeric characters, and can only contain lowercase letters, numbers, and hyphens."
   }
 }
 
@@ -136,70 +134,6 @@ DESCRIPTION
   nullable    = false
 }
 
-variable "private_endpoints" {
-  type = map(object({
-    name = optional(string, null)
-    role_assignments = optional(map(object({
-      role_definition_id_or_name             = string
-      principal_id                           = string
-      description                            = optional(string, null)
-      skip_service_principal_aad_check       = optional(bool, false)
-      condition                              = optional(string, null)
-      condition_version                      = optional(string, null)
-      delegated_managed_identity_resource_id = optional(string, null)
-    })), {})
-    lock = optional(object({
-      kind = string
-      name = optional(string, null)
-    }), null)
-    tags                                    = optional(map(string), null)
-    subnet_resource_id                      = string
-    private_dns_zone_group_name             = optional(string, "default")
-    private_dns_zone_resource_ids           = optional(set(string), [])
-    application_security_group_associations = optional(map(string), {})
-    private_service_connection_name         = optional(string, null)
-    network_interface_name                  = optional(string, null)
-    location                                = optional(string, null)
-    resource_group_name                     = optional(string, null)
-    ip_configurations = optional(map(object({
-      name               = string
-      private_ip_address = string
-    })), {})
-  }))
-  default     = {}
-  description = <<DESCRIPTION
-A map of private endpoints to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-- `name` - (Optional) The name of the private endpoint. One will be generated if not set.
-- `role_assignments` - (Optional) A map of role assignments to create on the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time. See `var.role_assignments` for more information.
-- `lock` - (Optional) The lock level to apply to the private endpoint. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
-- `tags` - (Optional) A mapping of tags to assign to the private endpoint.
-- `subnet_resource_id` - The resource ID of the subnet to deploy the private endpoint in.
-- `private_dns_zone_group_name` - (Optional) The name of the private DNS zone group. One will be generated if not set.
-- `private_dns_zone_resource_ids` - (Optional) A set of resource IDs of private DNS zones to associate with the private endpoint. If not set, no zone groups will be created and the private endpoint will not be associated with any private DNS zones. DNS records must be managed external to this module.
-- `application_security_group_resource_ids` - (Optional) A map of resource IDs of application security groups to associate with the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-- `private_service_connection_name` - (Optional) The name of the private service connection. One will be generated if not set.
-- `network_interface_name` - (Optional) The name of the network interface. One will be generated if not set.
-- `location` - (Optional) The Azure location where the resources will be deployed. Defaults to the location of the resource group.
-- `resource_group_name` - (Optional) The resource group where the resources will be deployed. Defaults to the resource group of this resource.
-- `ip_configurations` - (Optional) A map of IP configurations to create on the private endpoint. If not specified the platform will create one. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-  - `name` - The name of the IP configuration.
-  - `private_ip_address` - The private IP address of the IP configuration.
-DESCRIPTION
-  nullable    = false
-}
-
-# This variable is used to determine if the private_dns_zone_group block should be included,
-# or if it is to be managed externally, e.g. using Azure Policy.
-# https://github.com/Azure/terraform-azurerm-avm-res-keyvault-vault/issues/32
-# Alternatively you can use AzAPI, which does not have this issue.
-variable "private_endpoints_manage_dns_zone_group" {
-  type        = bool
-  default     = true
-  description = "Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy."
-  nullable    = false
-}
-
 variable "role_assignments" {
   type = map(object({
     role_definition_id_or_name             = string
@@ -234,4 +168,294 @@ variable "tags" {
   type        = map(string)
   default     = null
   description = "(Optional) Tags of the resource."
+}
+
+# =======================================================
+# AI Foundry Specific Variables
+# =======================================================
+
+# ========================================
+# Bring Your Own Resource IDs
+# ========================================
+variable "existing_storage_account_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created."
+}
+
+variable "existing_key_vault_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created."
+}
+
+variable "existing_cosmos_db_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of an existing Cosmos DB account to use. If not provided, a new Cosmos DB account will be created."
+}
+
+variable "existing_ai_search_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created."
+}
+
+# ========================================
+# OpenAI Deployments Configuration
+# ========================================
+variable "openai_deployments" {
+  type = map(object({
+    name                   = string
+    rai_policy_name        = optional(string)
+    version_upgrade_option = optional(string, "OnceNewDefaultVersionAvailable")
+    model = object({
+      format  = string
+      name    = string
+      version = string
+    })
+    scale = object({
+      capacity = optional(number)
+      family   = optional(string)
+      size     = optional(string)
+      tier     = optional(string)
+      type     = string
+    })
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+Configuration for OpenAI model deployments. Each deployment includes:
+- `name` - The name of the deployment
+- `rai_policy_name` - (Optional) The name of the RAI policy
+- `version_upgrade_option` - (Optional) How to handle version upgrades (default: "OnceNewDefaultVersionAvailable")
+- `model` - The model configuration:
+  - `format` - The format of the model (e.g., "OpenAI")
+  - `name` - The name of the model to deploy
+  - `version` - The version of the model
+- `scale` - The scaling configuration:
+  - `type` - The scaling type (e.g., "Standard")
+  - `capacity` - (Optional) The capacity of the deployment
+  - `family` - (Optional) The family of the deployment
+  - `size` - (Optional) The size of the deployment
+  - `tier` - (Optional) The pricing tier for the deployment
+DESCRIPTION
+}
+
+# ========================================
+# Private Endpoint Configurations
+# ========================================
+variable "storage_private_endpoints" {
+  type = map(object({
+    name = optional(string, null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
+    lock = optional(object({
+      kind = string
+      name = optional(string, null)
+    }), null)
+    tags                                    = optional(map(string), null)
+    subnet_resource_id                      = string
+    subresource_name                        = string
+    private_dns_zone_group_name             = optional(string, "default")
+    private_dns_zone_resource_ids           = optional(set(string), [])
+    application_security_group_associations = optional(map(string), {})
+    private_service_connection_name         = optional(string, null)
+    network_interface_name                  = optional(string, null)
+    location                                = optional(string, null)
+    resource_group_name                     = optional(string, null)
+    ip_configurations = optional(map(object({
+      name               = string
+      private_ip_address = string
+    })), {})
+  }))
+  default     = {}
+  description = "Private endpoint configuration for the Storage Account."
+  nullable    = false
+}
+
+variable "key_vault_private_endpoints" {
+  type = map(object({
+    name = optional(string, null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
+    lock = optional(object({
+      kind = string
+      name = optional(string, null)
+    }), null)
+    tags                                    = optional(map(string), null)
+    subnet_resource_id                      = string
+    subresource_name                        = string
+    private_dns_zone_group_name             = optional(string, "default")
+    private_dns_zone_resource_ids           = optional(set(string), [])
+    application_security_group_associations = optional(map(string), {})
+    private_service_connection_name         = optional(string, null)
+    network_interface_name                  = optional(string, null)
+    location                                = optional(string, null)
+    resource_group_name                     = optional(string, null)
+    ip_configurations = optional(map(object({
+      name               = string
+      private_ip_address = string
+    })), {})
+  }))
+  default     = {}
+  description = "Private endpoint configuration for the Key Vault."
+  nullable    = false
+}
+
+variable "cosmos_db_private_endpoints" {
+  type = map(object({
+    name = optional(string, null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
+    lock = optional(object({
+      kind = string
+      name = optional(string, null)
+    }), null)
+    tags                                    = optional(map(string), null)
+    subnet_resource_id                      = string
+    subresource_name                        = string
+    private_dns_zone_group_name             = optional(string, "default")
+    private_dns_zone_resource_ids           = optional(set(string), [])
+    application_security_group_associations = optional(map(string), {})
+    private_service_connection_name         = optional(string, null)
+    network_interface_name                  = optional(string, null)
+    location                                = optional(string, null)
+    resource_group_name                     = optional(string, null)
+    ip_configurations = optional(map(object({
+      name               = string
+      private_ip_address = string
+    })), {})
+  }))
+  default     = {}
+  description = "Private endpoint configuration for the Cosmos DB account."
+  nullable    = false
+}
+
+variable "ai_search_private_endpoints" {
+  type = map(object({
+    name = optional(string, null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
+    lock = optional(object({
+      kind = string
+      name = optional(string, null)
+    }), null)
+    tags                                    = optional(map(string), null)
+    subnet_resource_id                      = string
+    subresource_name                        = string
+    private_dns_zone_group_name             = optional(string, "default")
+    private_dns_zone_resource_ids           = optional(set(string), [])
+    application_security_group_associations = optional(map(string), {})
+    private_service_connection_name         = optional(string, null)
+    network_interface_name                  = optional(string, null)
+    location                                = optional(string, null)
+    resource_group_name                     = optional(string, null)
+    ip_configurations = optional(map(object({
+      name               = string
+      private_ip_address = string
+    })), {})
+  }))
+  default     = {}
+  description = "Private endpoint configuration for the AI Search service."
+  nullable    = false
+}
+
+variable "cognitive_services_private_endpoints" {
+  type = map(object({
+    name = optional(string, null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
+    lock = optional(object({
+      kind = string
+      name = optional(string, null)
+    }), null)
+    tags                                    = optional(map(string), null)
+    subnet_resource_id                      = string
+    subresource_name                        = string
+    private_dns_zone_group_name             = optional(string, "default")
+    private_dns_zone_resource_ids           = optional(set(string), [])
+    application_security_group_associations = optional(map(string), {})
+    private_service_connection_name         = optional(string, null)
+    network_interface_name                  = optional(string, null)
+    location                                = optional(string, null)
+    resource_group_name                     = optional(string, null)
+    ip_configurations = optional(map(object({
+      name               = string
+      private_ip_address = string
+    })), {})
+  }))
+  default     = {}
+  description = "Private endpoint configuration for the Cognitive Services account."
+  nullable    = false
+}
+
+# ========================================
+# Network Configuration
+# ========================================
+variable "virtual_network_resource_id" {
+  type        = string
+  description = "The resource ID of the virtual network where private endpoints will be created."
+  default     = null
+}
+
+variable "subnet_resource_id" {
+  type        = string
+  description = "The resource ID of the subnet where private endpoints will be created."
+  default     = null
+}
+
+# ========================================
+# AI Foundry Project Configuration
+# ========================================
+variable "ai_foundry_project_name" {
+  type        = string
+  default     = null
+  description = "(Optional) The name of the AI Foundry project. If not provided, it will be generated based on the module name."
+}
+
+variable "ai_foundry_project_description" {
+  type        = string
+  default     = "AI Foundry project for machine learning workloads"
+  description = "The description of the AI Foundry project."
+}
+
+variable "ai_foundry_project_tags" {
+  type        = map(string)
+  default     = {}
+  description = "Additional tags to apply to the AI Foundry project."
 }
