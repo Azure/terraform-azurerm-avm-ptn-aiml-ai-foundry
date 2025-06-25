@@ -206,10 +206,8 @@ locals {
 module "ai_foundry" {
   source = "../../"
 
-  location                         = azurerm_resource_group.this.location
-  name                             = "ai-foundry-std-prv"
-  existing_resource_group_name     = azurerm_resource_group.this.name
-  existing_subnet_id               = azurerm_subnet.agent_services.id
+  location                       = azurerm_resource_group.this.location
+  name                           = "ai-foundry-std-prv"
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
   ai_foundry_project_name        = "AI-Foundry-Standard-Private"
   ai_foundry_project_private_endpoints = {
@@ -275,8 +273,6 @@ module "ai_foundry" {
       ]
     }
   }
-  # Application Insights and Log Analytics for AI Foundry workspaces
-  existing_application_insights_id = azurerm_application_insights.this.id
   cosmos_db_private_endpoints = {
     "sql" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -292,6 +288,11 @@ module "ai_foundry" {
   create_ai_foundry_project = true
   # Enable telemetry for the module
   enable_telemetry = var.enable_telemetry
+  # Application Insights and Log Analytics for AI Foundry workspaces
+  existing_application_insights_id    = azurerm_application_insights.this.id
+  existing_log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+  existing_resource_group_name        = azurerm_resource_group.this.name
+  existing_subnet_id                  = azurerm_subnet.agent_services.id
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -301,7 +302,6 @@ module "ai_foundry" {
       ]
     }
   }
-  existing_log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
   # Private endpoint configurations with created DNS zones
   storage_private_endpoints = {
     "blob" = {

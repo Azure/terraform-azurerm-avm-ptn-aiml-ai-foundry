@@ -114,8 +114,6 @@ module "ai_foundry" {
 
   location                             = azurerm_resource_group.this.location
   name                                 = "ai-foundry-std-pub"
-  existing_resource_group_name         = azurerm_resource_group.this.name
-  existing_subnet_id                   = azurerm_subnet.agent_services.id
   ai_foundry_project_description       = "Standard AI Foundry project with agent services (public endpoints)"
   ai_foundry_project_name              = "AI-Foundry-Standard-Public"
   ai_foundry_project_private_endpoints = {}
@@ -146,17 +144,19 @@ module "ai_foundry" {
   }
   ai_search_private_endpoints   = {}
   ai_services_private_endpoints = {}
-  # Application Insights and Log Analytics for AI Foundry workspaces
-  existing_application_insights_id     = azurerm_application_insights.this.id
-  cosmos_db_private_endpoints = {}
+  cosmos_db_private_endpoints   = {}
   # Enable AI agent service with public endpoints
   create_ai_agent_service = true
   # AI Foundry project configuration (standard)
   create_ai_foundry_project = true
   # Enable telemetry for the module
-  enable_telemetry            = var.enable_telemetry
-  key_vault_private_endpoints = {}
-  existing_log_analytics_workspace_id  = azurerm_log_analytics_workspace.this.id
+  enable_telemetry = var.enable_telemetry
+  # Application Insights and Log Analytics for AI Foundry workspaces
+  existing_application_insights_id    = azurerm_application_insights.this.id
+  existing_log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+  existing_resource_group_name        = azurerm_resource_group.this.name
+  existing_subnet_id                  = azurerm_subnet.agent_services.id
+  key_vault_private_endpoints         = {}
   # No private endpoints in public configuration (all services use public endpoints)
   storage_private_endpoints = {}
   # Tags for all resources

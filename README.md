@@ -32,11 +32,16 @@ The following resources are used by this module:
 - [random_string.suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
+- [azurerm_application_insights.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/application_insights) (data source)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 - [azurerm_cosmosdb_account.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/cosmosdb_account) (data source)
 - [azurerm_key_vault.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) (data source)
+- [azurerm_log_analytics_workspace.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/log_analytics_workspace) (data source)
+- [azurerm_resource_group.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) (data source)
 - [azurerm_search_service.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/search_service) (data source)
 - [azurerm_storage_account.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) (data source)
+- [azurerm_subnet.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subnet) (data source)
+- [azurerm_virtual_network.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_network) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -56,12 +61,6 @@ Description: The name prefix for the AI Foundry resources.
 
 Type: `string`
 
-### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
-
-Description: The resource group where the resources will be deployed.
-
-Type: `string`
-
 ## Optional Inputs
 
 The following input variables are optional (have default values):
@@ -69,14 +68,6 @@ The following input variables are optional (have default values):
 ### <a name="input_ai_agent_host_name"></a> [ai\_agent\_host\_name](#input\_ai\_agent\_host\_name)
 
 Description: The name of the AI agent capability host. If not provided, will use pattern name with suffix.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_ai_agent_subnet_resource_id"></a> [ai\_agent\_subnet\_resource\_id](#input\_ai\_agent\_subnet\_resource\_id)
-
-Description: The resource ID of the subnet for the AI agent service. When provided, enables private networking.
 
 Type: `string`
 
@@ -270,14 +261,6 @@ map(object({
 
 Default: `{}`
 
-### <a name="input_application_insights_id"></a> [application\_insights\_id](#input\_application\_insights\_id)
-
-Description: The resource ID of the Application Insights instance. Required for AI Foundry workspaces.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_cosmos_db_private_endpoints"></a> [cosmos\_db\_private\_endpoints](#input\_cosmos\_db\_private\_endpoints)
 
 Description: Private endpoint configuration for the Cosmos DB account.
@@ -359,40 +342,6 @@ object({
 
 Default: `null`
 
-### <a name="input_diagnostic_settings"></a> [diagnostic\_settings](#input\_diagnostic\_settings)
-
-Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-- `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
-- `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
-- `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
-- `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
-- `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
-- `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
-- `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
-- `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
-- `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
-- `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
-
-Type:
-
-```hcl
-map(object({
-    name                                     = optional(string, null)
-    log_categories                           = optional(set(string), [])
-    log_groups                               = optional(set(string), ["allLogs"])
-    metric_categories                        = optional(set(string), ["AllMetrics"])
-    log_analytics_destination_type           = optional(string, "Dedicated")
-    workspace_resource_id                    = optional(string, null)
-    storage_account_resource_id              = optional(string, null)
-    event_hub_authorization_rule_resource_id = optional(string, null)
-    event_hub_name                           = optional(string, null)
-    marketplace_partner_resource_id          = optional(string, null)
-  }))
-```
-
-Default: `{}`
-
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
 Description: This variable controls whether or not telemetry is enabled for the module.  
@@ -406,6 +355,14 @@ Default: `true`
 ### <a name="input_existing_ai_search_resource_id"></a> [existing\_ai\_search\_resource\_id](#input\_existing\_ai\_search\_resource\_id)
 
 Description: (Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_existing_application_insights_id"></a> [existing\_application\_insights\_id](#input\_existing\_application\_insights\_id)
+
+Description: The resource ID of an existing Application Insights instance to use. Optional for AI Foundry workspaces.
 
 Type: `string`
 
@@ -427,9 +384,49 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_existing_log_analytics_workspace_id"></a> [existing\_log\_analytics\_workspace\_id](#input\_existing\_log\_analytics\_workspace\_id)
+
+Description: The resource ID of an existing Log Analytics workspace to use. Optional for monitoring and diagnostics.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_existing_resource_group_id"></a> [existing\_resource\_group\_id](#input\_existing\_resource\_group\_id)
+
+Description: The resource ID of an existing resource group to use. If not provided, a new resource group will be created.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_existing_resource_group_name"></a> [existing\_resource\_group\_name](#input\_existing\_resource\_group\_name)
+
+Description: The name of an existing resource group to use. If not provided, a new resource group will be created.
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_existing_storage_account_resource_id"></a> [existing\_storage\_account\_resource\_id](#input\_existing\_storage\_account\_resource\_id)
 
 Description: (Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_existing_subnet_id"></a> [existing\_subnet\_id](#input\_existing\_subnet\_id)
+
+Description: The resource ID of an existing subnet to use for private endpoints. If not provided, private endpoints will be disabled or a new subnet will be created if needed.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_existing_virtual_network_id"></a> [existing\_virtual\_network\_id](#input\_existing\_virtual\_network\_id)
+
+Description: The resource ID of an existing virtual network to use. If not provided, private endpoints will be disabled or a new VNet will be created if needed.
 
 Type: `string`
 
@@ -494,14 +491,6 @@ object({
 
 Default: `null`
 
-### <a name="input_log_analytics_workspace_id"></a> [log\_analytics\_workspace\_id](#input\_log\_analytics\_workspace\_id)
-
-Description: The resource ID of the Log Analytics workspace for Container App Environment.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
 
 Description: Controls the Managed Identity configuration on this resource. The following properties can be specified:
@@ -519,6 +508,14 @@ object({
 ```
 
 Default: `{}`
+
+### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
+
+Description: The name for a new resource group. Required only if existing\_resource\_group\_name and existing\_resource\_group\_id are not provided.
+
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
 
@@ -593,27 +590,11 @@ map(object({
 
 Default: `{}`
 
-### <a name="input_subnet_resource_id"></a> [subnet\_resource\_id](#input\_subnet\_resource\_id)
-
-Description: The resource ID of the subnet where private endpoints will be created.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
 Description: (Optional) Tags of the resource.
 
 Type: `map(string)`
-
-Default: `null`
-
-### <a name="input_virtual_network_resource_id"></a> [virtual\_network\_resource\_id](#input\_virtual\_network\_resource\_id)
-
-Description: The resource ID of the virtual network where private endpoints will be created.
-
-Type: `string`
 
 Default: `null`
 

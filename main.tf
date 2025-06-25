@@ -3,42 +3,47 @@
 # ========================================
 data "azurerm_resource_group" "existing" {
   count = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? 1 : 0
-  name  = var.existing_resource_group_name != null ? var.existing_resource_group_name : split("/", var.existing_resource_group_id)[4]
+
+  name = var.existing_resource_group_name != null ? var.existing_resource_group_name : split("/", var.existing_resource_group_id)[4]
 }
 
 data "azurerm_application_insights" "existing" {
-  count               = var.existing_application_insights_id != null ? 1 : 0
+  count = var.existing_application_insights_id != null ? 1 : 0
+
   name                = split("/", var.existing_application_insights_id)[8]
   resource_group_name = split("/", var.existing_application_insights_id)[4]
 }
 
 data "azurerm_log_analytics_workspace" "existing" {
-  count               = var.existing_log_analytics_workspace_id != null ? 1 : 0
+  count = var.existing_log_analytics_workspace_id != null ? 1 : 0
+
   name                = split("/", var.existing_log_analytics_workspace_id)[8]
   resource_group_name = split("/", var.existing_log_analytics_workspace_id)[4]
 }
 
 data "azurerm_virtual_network" "existing" {
-  count               = var.existing_virtual_network_id != null ? 1 : 0
+  count = var.existing_virtual_network_id != null ? 1 : 0
+
   name                = split("/", var.existing_virtual_network_id)[8]
   resource_group_name = split("/", var.existing_virtual_network_id)[4]
 }
 
 data "azurerm_subnet" "existing" {
-  count                = var.existing_subnet_id != null ? 1 : 0
+  count = var.existing_subnet_id != null ? 1 : 0
+
   name                 = split("/", var.existing_subnet_id)[10]
-  virtual_network_name = split("/", var.existing_subnet_id)[8]
   resource_group_name  = split("/", var.existing_subnet_id)[4]
+  virtual_network_name = split("/", var.existing_subnet_id)[8]
 }
 
 # ========================================
 # Local Values for Resource References
 # ========================================
 locals {
+  location          = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].location : var.location
+  resource_group_id = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.this[0].id
   # Resource group reference - use existing or create new
   resource_group_name = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].name : azurerm_resource_group.this[0].name
-  resource_group_id   = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.this[0].id
-  location           = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].location : var.location
 }
 
 # ========================================

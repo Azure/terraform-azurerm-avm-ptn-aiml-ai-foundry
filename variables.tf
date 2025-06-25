@@ -18,54 +18,6 @@ variable "name" {
   }
 }
 
-# BYO Resource Group Configuration
-variable "existing_resource_group_name" {
-  type        = string
-  default     = null
-  description = "The name of an existing resource group to use. If not provided, a new resource group will be created."
-}
-
-variable "existing_resource_group_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing resource group to use. If not provided, a new resource group will be created."
-}
-
-# This is required when creating a new resource group
-variable "resource_group_name" {
-  type        = string
-  default     = null
-  description = "The name for a new resource group. Required only if existing_resource_group_name and existing_resource_group_id are not provided."
-}
-
-# BYO Application Insights Configuration
-variable "existing_application_insights_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing Application Insights instance to use. Optional for AI Foundry workspaces."
-}
-
-# BYO Log Analytics Workspace Configuration
-variable "existing_log_analytics_workspace_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing Log Analytics workspace to use. Optional for monitoring and diagnostics."
-}
-
-# BYO Virtual Network Configuration
-variable "existing_virtual_network_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing virtual network to use. If not provided, private endpoints will be disabled or a new VNet will be created if needed."
-}
-
-# BYO Subnet Configuration
-variable "existing_subnet_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing subnet to use for private endpoints. If not provided, private endpoints will be disabled or a new subnet will be created if needed."
-}
-
 variable "ai_agent_host_name" {
   type        = string
   default     = null
@@ -238,7 +190,6 @@ variable "ai_services_private_endpoints" {
   nullable    = false
 }
 
-
 variable "cosmos_db_private_endpoints" {
   type = map(object({
     name = optional(string, null)
@@ -333,6 +284,13 @@ variable "existing_ai_search_resource_id" {
   description = "(Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created."
 }
 
+# BYO Application Insights Configuration
+variable "existing_application_insights_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing Application Insights instance to use. Optional for AI Foundry workspaces."
+}
+
 variable "existing_cosmos_db_resource_id" {
   type        = string
   default     = null
@@ -345,6 +303,26 @@ variable "existing_key_vault_resource_id" {
   description = "(Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created."
 }
 
+# BYO Log Analytics Workspace Configuration
+variable "existing_log_analytics_workspace_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing Log Analytics workspace to use. Optional for monitoring and diagnostics."
+}
+
+variable "existing_resource_group_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing resource group to use. If not provided, a new resource group will be created."
+}
+
+# BYO Resource Group Configuration
+variable "existing_resource_group_name" {
+  type        = string
+  default     = null
+  description = "The name of an existing resource group to use. If not provided, a new resource group will be created."
+}
+
 # ========================================
 # Bring Your Own Resource IDs
 # ========================================
@@ -352,6 +330,20 @@ variable "existing_storage_account_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created."
+}
+
+# BYO Subnet Configuration
+variable "existing_subnet_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing subnet to use for private endpoints. If not provided, private endpoints will be disabled or a new subnet will be created if needed."
+}
+
+# BYO Virtual Network Configuration
+variable "existing_virtual_network_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing virtual network to use. If not provided, private endpoints will be disabled or a new VNet will be created if needed."
 }
 
 variable "key_vault_private_endpoints" {
@@ -408,6 +400,7 @@ DESCRIPTION
     error_message = "The lock level must be one of: 'None', 'CanNotDelete', or 'ReadOnly'."
   }
 }
+
 # tflint-ignore: terraform_unused_declarations
 variable "managed_identities" {
   type = object({
@@ -422,6 +415,13 @@ Controls the Managed Identity configuration on this resource. The following prop
 - `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
 DESCRIPTION
   nullable    = false
+}
+
+# This is required when creating a new resource group
+variable "resource_group_name" {
+  type        = string
+  default     = null
+  description = "The name for a new resource group. Required only if existing_resource_group_name and existing_resource_group_id are not provided."
 }
 
 variable "role_assignments" {
