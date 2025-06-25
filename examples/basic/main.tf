@@ -2,17 +2,9 @@ terraform {
   required_version = "~> 1.5"
 
   required_providers {
-    azapi = {
-      source  = "Azure/azapi"
-      version = "~> 2.4"
-    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.21"
-    }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
     }
     random = {
       source  = "hashicorp/random"
@@ -120,10 +112,12 @@ locals {
 module "ai_foundry" {
   source = "../../"
 
-  location                             = azurerm_resource_group.this.location
-  name                                 = "ai-foundry-basic"
-  resource_group_name                  = azurerm_resource_group.this.name
-  ai_agent_subnet_resource_id          = azurerm_subnet.agent_services.id
+  location                           = azurerm_resource_group.this.location
+  name                               = "ai-foundry-basic"
+  existing_resource_group_name       = azurerm_resource_group.this.name
+  existing_application_insights_id   = azurerm_application_insights.this.id
+  existing_log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+  existing_subnet_id                 = azurerm_subnet.agent_services.id
   ai_foundry_project_private_endpoints = {}
   # Basic AI model deployments
   ai_model_deployments = {
@@ -141,8 +135,6 @@ module "ai_foundry" {
   }
   ai_search_private_endpoints   = {}
   ai_services_private_endpoints = {}
-  # Application Insights for AI Foundry workspaces
-  application_insights_id     = azurerm_application_insights.this.id
   cosmos_db_private_endpoints = {}
   # Enable agent service in basic configuration (with public endpoints)
   create_ai_agent_service = true
@@ -151,7 +143,6 @@ module "ai_foundry" {
   # Enable telemetry for the module
   enable_telemetry            = var.enable_telemetry
   key_vault_private_endpoints = {}
-  log_analytics_workspace_id  = azurerm_log_analytics_workspace.this.id
   # No private endpoints in basic configuration (public endpoints only)
   storage_private_endpoints = {}
   # Tags for all resources

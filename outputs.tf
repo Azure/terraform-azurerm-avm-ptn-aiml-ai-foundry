@@ -236,9 +236,9 @@ output "private_endpoints" {
 output "resource_group" {
   description = "The resource group containing all AI Foundry resources."
   value = {
-    id       = azurerm_resource_group.this.id
-    name     = azurerm_resource_group.this.name
-    location = azurerm_resource_group.this.location
+    id       = local.resource_group_id
+    name     = local.resource_group_name
+    location = local.location
   }
 }
 

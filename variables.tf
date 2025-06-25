@@ -18,22 +18,58 @@ variable "name" {
   }
 }
 
-# This is required for most resource modules
+# BYO Resource Group Configuration
+variable "existing_resource_group_name" {
+  type        = string
+  default     = null
+  description = "The name of an existing resource group to use. If not provided, a new resource group will be created."
+}
+
+variable "existing_resource_group_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing resource group to use. If not provided, a new resource group will be created."
+}
+
+# This is required when creating a new resource group
 variable "resource_group_name" {
   type        = string
-  description = "The resource group where the resources will be deployed."
+  default     = null
+  description = "The name for a new resource group. Required only if existing_resource_group_name and existing_resource_group_id are not provided."
+}
+
+# BYO Application Insights Configuration
+variable "existing_application_insights_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing Application Insights instance to use. Optional for AI Foundry workspaces."
+}
+
+# BYO Log Analytics Workspace Configuration
+variable "existing_log_analytics_workspace_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing Log Analytics workspace to use. Optional for monitoring and diagnostics."
+}
+
+# BYO Virtual Network Configuration
+variable "existing_virtual_network_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing virtual network to use. If not provided, private endpoints will be disabled or a new VNet will be created if needed."
+}
+
+# BYO Subnet Configuration
+variable "existing_subnet_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing subnet to use for private endpoints. If not provided, private endpoints will be disabled or a new subnet will be created if needed."
 }
 
 variable "ai_agent_host_name" {
   type        = string
   default     = null
   description = "The name of the AI agent capability host. If not provided, will use pattern name with suffix."
-}
-
-variable "ai_agent_subnet_resource_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of the subnet for the AI agent service. When provided, enables private networking."
 }
 
 variable "ai_foundry_project_description" {
@@ -202,11 +238,6 @@ variable "ai_services_private_endpoints" {
   nullable    = false
 }
 
-variable "application_insights_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of the Application Insights instance. Required for AI Foundry workspaces."
-}
 
 variable "cosmos_db_private_endpoints" {
   type = map(object({
@@ -283,51 +314,6 @@ A map describing customer-managed keys to associate with the resource. This incl
 - `user_assigned_identity` - (Optional) An object representing a user-assigned identity with the following properties:
   - `resource_id` - The resource ID of the user-assigned identity.
 DESCRIPTION
-}
-
-variable "diagnostic_settings" {
-  type = map(object({
-    name                                     = optional(string, null)
-    log_categories                           = optional(set(string), [])
-    log_groups                               = optional(set(string), ["allLogs"])
-    metric_categories                        = optional(set(string), ["AllMetrics"])
-    log_analytics_destination_type           = optional(string, "Dedicated")
-    workspace_resource_id                    = optional(string, null)
-    storage_account_resource_id              = optional(string, null)
-    event_hub_authorization_rule_resource_id = optional(string, null)
-    event_hub_name                           = optional(string, null)
-    marketplace_partner_resource_id          = optional(string, null)
-  }))
-  default     = {}
-  description = <<DESCRIPTION
-A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-- `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
-- `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
-- `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
-- `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
-- `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
-- `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
-- `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
-- `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
-- `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
-- `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
-DESCRIPTION
-  nullable    = false
-
-  validation {
-    condition     = alltrue([for _, v in var.diagnostic_settings : contains(["Dedicated", "AzureDiagnostics"], v.log_analytics_destination_type)])
-    error_message = "Log analytics destination type must be one of: 'Dedicated', 'AzureDiagnostics'."
-  }
-  validation {
-    condition = alltrue(
-      [
-        for _, v in var.diagnostic_settings :
-        v.workspace_resource_id != null || v.storage_account_resource_id != null || v.event_hub_authorization_rule_resource_id != null || v.marketplace_partner_resource_id != null
-      ]
-    )
-    error_message = "At least one of `workspace_resource_id`, `storage_account_resource_id`, `marketplace_partner_resource_id`, or `event_hub_authorization_rule_resource_id`, must be set."
-  }
 }
 
 variable "enable_telemetry" {
@@ -422,13 +408,6 @@ DESCRIPTION
     error_message = "The lock level must be one of: 'None', 'CanNotDelete', or 'ReadOnly'."
   }
 }
-
-variable "log_analytics_workspace_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of the Log Analytics workspace for Container App Environment."
-}
-
 # tflint-ignore: terraform_unused_declarations
 variable "managed_identities" {
   type = object({
@@ -513,24 +492,9 @@ variable "storage_private_endpoints" {
   nullable    = false
 }
 
-variable "subnet_resource_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of the subnet where private endpoints will be created."
-}
-
 # tflint-ignore: terraform_unused_declarations
 variable "tags" {
   type        = map(string)
   default     = null
   description = "(Optional) Tags of the resource."
-}
-
-# ========================================
-# Network Configuration
-# ========================================
-variable "virtual_network_resource_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of the virtual network where private endpoints will be created."
 }

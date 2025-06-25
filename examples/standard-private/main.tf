@@ -2,17 +2,9 @@ terraform {
   required_version = "~> 1.5"
 
   required_providers {
-    azapi = {
-      source  = "Azure/azapi"
-      version = "~> 2.4"
-    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.21"
-    }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
     }
     random = {
       source  = "hashicorp/random"
@@ -214,10 +206,10 @@ locals {
 module "ai_foundry" {
   source = "../../"
 
-  location                       = azurerm_resource_group.this.location
-  name                           = "ai-foundry-std-prv"
-  resource_group_name            = azurerm_resource_group.this.name
-  ai_agent_subnet_resource_id    = azurerm_subnet.agent_services.id
+  location                         = azurerm_resource_group.this.location
+  name                             = "ai-foundry-std-prv"
+  existing_resource_group_name     = azurerm_resource_group.this.name
+  existing_subnet_id               = azurerm_subnet.agent_services.id
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
   ai_foundry_project_name        = "AI-Foundry-Standard-Private"
   ai_foundry_project_private_endpoints = {
@@ -284,7 +276,7 @@ module "ai_foundry" {
     }
   }
   # Application Insights and Log Analytics for AI Foundry workspaces
-  application_insights_id = azurerm_application_insights.this.id
+  existing_application_insights_id = azurerm_application_insights.this.id
   cosmos_db_private_endpoints = {
     "sql" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -309,7 +301,7 @@ module "ai_foundry" {
       ]
     }
   }
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+  existing_log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
   # Private endpoint configurations with created DNS zones
   storage_private_endpoints = {
     "blob" = {

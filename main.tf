@@ -1,5 +1,52 @@
-# Resource Group - AI Foundry Project container
+# ========================================
+# Data Sources for Existing Resources
+# ========================================
+data "azurerm_resource_group" "existing" {
+  count = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? 1 : 0
+  name  = var.existing_resource_group_name != null ? var.existing_resource_group_name : split("/", var.existing_resource_group_id)[4]
+}
+
+data "azurerm_application_insights" "existing" {
+  count               = var.existing_application_insights_id != null ? 1 : 0
+  name                = split("/", var.existing_application_insights_id)[8]
+  resource_group_name = split("/", var.existing_application_insights_id)[4]
+}
+
+data "azurerm_log_analytics_workspace" "existing" {
+  count               = var.existing_log_analytics_workspace_id != null ? 1 : 0
+  name                = split("/", var.existing_log_analytics_workspace_id)[8]
+  resource_group_name = split("/", var.existing_log_analytics_workspace_id)[4]
+}
+
+data "azurerm_virtual_network" "existing" {
+  count               = var.existing_virtual_network_id != null ? 1 : 0
+  name                = split("/", var.existing_virtual_network_id)[8]
+  resource_group_name = split("/", var.existing_virtual_network_id)[4]
+}
+
+data "azurerm_subnet" "existing" {
+  count                = var.existing_subnet_id != null ? 1 : 0
+  name                 = split("/", var.existing_subnet_id)[10]
+  virtual_network_name = split("/", var.existing_subnet_id)[8]
+  resource_group_name  = split("/", var.existing_subnet_id)[4]
+}
+
+# ========================================
+# Local Values for Resource References
+# ========================================
+locals {
+  # Resource group reference - use existing or create new
+  resource_group_name = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].name : azurerm_resource_group.this[0].name
+  resource_group_id   = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.this[0].id
+  location           = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].location : var.location
+}
+
+# ========================================
+# Resource Group - Create if not using existing
+# ========================================
 resource "azurerm_resource_group" "this" {
+  count = var.existing_resource_group_name == null && var.existing_resource_group_id == null ? 1 : 0
+
   location = var.location
   name     = var.resource_group_name
   tags     = var.tags
@@ -13,9 +60,9 @@ module "storage_account" {
   version = "~> 0.6.3"
   count   = var.existing_storage_account_resource_id == null ? 1 : 0
 
-  location            = var.location
+  location            = local.location
   name                = "${var.name}sa${random_string.suffix.result}"
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
   managed_identities = {
     system_assigned = true
   }
@@ -31,9 +78,9 @@ module "key_vault" {
   version = "~> 0.10.0"
   count   = var.existing_key_vault_resource_id == null ? 1 : 0
 
-  location            = var.location
+  location            = local.location
   name                = "${var.name}-kv-${random_string.suffix.result}"
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   private_endpoints   = var.key_vault_private_endpoints
   tags                = var.tags
@@ -47,9 +94,9 @@ module "cosmos_db" {
   version = "~> 0.8.0"
   count   = var.existing_cosmos_db_resource_id == null ? 1 : 0
 
-  location            = var.location
+  location            = local.location
   name                = "${var.name}-cosmos-${random_string.suffix.result}"
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
   private_endpoints   = var.cosmos_db_private_endpoints
   tags                = var.tags
 }
@@ -62,9 +109,9 @@ module "ai_search" {
   version = "~> 0.1.5"
   count   = var.existing_ai_search_resource_id == null ? 1 : 0
 
-  location            = var.location
+  location            = local.location
   name                = "${var.name}-search-${random_string.suffix.result}"
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
   private_endpoints   = var.ai_search_private_endpoints
   tags                = var.tags
 }
@@ -77,9 +124,9 @@ module "ai_services" {
   version = "~> 0.7.1"
 
   kind                = "AIServices"
-  location            = var.location
+  location            = local.location
   name                = "${var.name}-aiservices-${random_string.suffix.result}"
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
   sku_name            = "S0"
   # Deploy AI models including OpenAI
   cognitive_deployments = var.ai_model_deployments
@@ -141,7 +188,7 @@ resource "azurerm_management_lock" "this" {
 
   lock_level = var.lock.kind
   name       = coalesce(var.lock.name, "lock-${var.lock.kind}")
-  scope      = azurerm_resource_group.this.id
+  scope      = local.resource_group_id
   notes      = var.lock.kind == "CanNotDelete" ? "Cannot delete the resource or its child resources." : "Cannot delete or modify the resource or its child resources."
 }
 
@@ -149,7 +196,7 @@ resource "azurerm_role_assignment" "this" {
   for_each = var.role_assignments
 
   principal_id                           = each.value.principal_id
-  scope                                  = azurerm_resource_group.this.id
+  scope                                  = local.resource_group_id
   condition                              = each.value.condition
   condition_version                      = each.value.condition_version
   delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
@@ -165,7 +212,7 @@ resource "azurerm_role_assignment" "this" {
 resource "azapi_resource" "ai_foundry_project" {
   count = var.create_ai_foundry_project ? 1 : 0
 
-  location  = var.location
+  location  = local.location
   name      = var.ai_foundry_project_name != null ? var.ai_foundry_project_name : "${var.name}-aiproject-${random_string.suffix.result}"
   parent_id = module.ai_services.resource_id
   type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
@@ -230,7 +277,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
       )
 
       # Customer subnet for private networking
-      customerSubnet = var.ai_agent_subnet_resource_id
+      customerSubnet = var.existing_subnet_id
 
       # Optional tags within properties
       tags = var.tags
@@ -250,7 +297,7 @@ resource "azurerm_private_endpoint" "ai_foundry_project" {
 
   location            = each.value.location != null ? each.value.location : var.location
   name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_foundry_project[0].name}-${each.key}"
-  resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : azurerm_resource_group.this.name
+  resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : local.resource_group_name
   subnet_id           = each.value.subnet_resource_id
   tags                = merge(var.tags, each.value.tags)
 
