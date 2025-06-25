@@ -395,8 +395,8 @@ Default: `{}`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
-Description: This variable controls whether or not telemetry is enabled for the module.
-For more information see <https://aka.ms/avm/telemetryinfo>.
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see <https://aka.ms/avm/telemetryinfo>.  
 If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
@@ -704,6 +704,10 @@ Description: All private endpoints created for the AI Foundry services.
 ### <a name="output_resource_group"></a> [resource\_group](#output\_resource\_group)
 
 Description: The resource group containing all AI Foundry resources.
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: The resource ID of the primary AI Foundry project resource.
 
 ### <a name="output_storage_account"></a> [storage\_account](#output\_storage\_account)
 

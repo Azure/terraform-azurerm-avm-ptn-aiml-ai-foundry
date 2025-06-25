@@ -243,6 +243,14 @@ output "resource_group" {
 }
 
 # ========================================
+# Required AVM Outputs
+# ========================================
+output "resource_id" {
+  description = "The resource ID of the primary AI Foundry project resource."
+  value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].id : null
+}
+
+# ========================================
 # Storage Account Outputs
 # ========================================
 output "storage_account" {
@@ -258,12 +266,4 @@ output "storage_account" {
     primary_blob_endpoint = module.storage_account[0].resource.primary_blob_endpoint
     primary_dfs_endpoint  = module.storage_account[0].resource.primary_dfs_endpoint
   }
-}
-
-# ========================================
-# Required AVM Outputs
-# ========================================
-output "resource_id" {
-  description = "The resource ID of the primary AI Foundry project resource."
-  value       = azapi_resource.ai_foundry_project.id
 }
