@@ -60,16 +60,6 @@ resource "azurerm_log_analytics_workspace" "this" {
   sku                 = "PerGB2018"
 }
 
-# Local values for common configuration
-locals {
-  tags = {
-    Environment = "Demo"
-    Project     = "AI-Foundry"
-    CreatedBy   = "Terraform-AVM"
-    Example     = "StandardPublic"
-  }
-}
-
 # This is the module call for AI Foundry Pattern - Standard Public Configuration
 module "ai_foundry" {
   source = "../../"
@@ -79,7 +69,7 @@ module "ai_foundry" {
   ai_foundry_project_description       = "Standard AI Foundry project with agent services (public endpoints)"
   ai_foundry_project_name              = "AI-Foundry-Standard-Public"
   ai_foundry_project_private_endpoints = {}
-  # Standard AI model deployments (including OpenAI)
+  # Standard AI model deployment (single model)
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4o"
@@ -92,25 +82,10 @@ module "ai_foundry" {
         type = "Standard"
       }
     }
-    "gpt-35-turbo" = {
-      name = "gpt-35-turbo"
-      model = {
-        format  = "OpenAI"
-        name    = "gpt-35-turbo"
-        version = "0613"
-      }
-      scale = {
-        type = "Standard"
-      }
-    }
   }
   ai_search_private_endpoints   = {}
   ai_services_private_endpoints = {}
   cosmos_db_private_endpoints   = {}
-  # Enable AI agent service with public endpoints
-  create_ai_agent_service = true
-  # AI Foundry project configuration (standard)
-  create_ai_foundry_project = true
   # Enable telemetry for the module
   enable_telemetry = var.enable_telemetry
   # Application Insights and Log Analytics for AI Foundry workspaces
@@ -119,6 +94,4 @@ module "ai_foundry" {
   existing_resource_group_name        = azurerm_resource_group.this.name
   key_vault_private_endpoints         = {}
   storage_private_endpoints           = {}
-  # Tags for all resources
-  tags = local.tags
 }

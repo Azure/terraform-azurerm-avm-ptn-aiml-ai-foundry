@@ -211,39 +211,6 @@ variable "bastion_host_resource_id" {
   }
 }
 
-variable "content_safety_enabled" {
-  type        = bool
-  default     = true
-  description = "Whether to include Azure AI Content Safety in the deployment."
-}
-
-variable "cosmos_databases" {
-  type = list(object({
-    name                              = string
-    throughput                        = optional(number, 400)
-    autoscale_settings_max_throughput = optional(number)
-    containers = optional(list(object({
-      name                              = string
-      partition_key_paths               = list(string)
-      analytical_storage_ttl            = optional(number, 0)
-      autoscale_settings_max_throughput = optional(number)
-      default_ttl                       = optional(number, -1)
-      indexing_policy = optional(object({
-        automatic     = optional(bool, true)
-        indexing_mode = optional(string, "consistent")
-        included_paths = optional(list(object({
-          path = string
-        })), [])
-        excluded_paths = optional(list(object({
-          path = string
-        })), [])
-      }))
-    })), [])
-  }))
-  default     = []
-  description = "List of Cosmos DB databases to create."
-}
-
 variable "cosmos_db_private_endpoints" {
   type = map(object({
     name = optional(string, null)
@@ -559,28 +526,26 @@ variable "storage_private_endpoints" {
   nullable    = false
 }
 
+variable "agent_subnet_resource_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing subnet for AI agent services (Container Apps). Optional - only needed when deploying agent services."
+
+  validation {
+    condition     = var.agent_subnet_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+/subnets/[^/]+$", var.agent_subnet_resource_id))
+    error_message = "The agent_subnet_resource_id must be a valid Azure Subnet resource ID."
+  }
+}
+
 variable "subnet_resource_id" {
   type        = string
   default     = null
-  description = "The resource ID of an existing subnet within the virtual network for VM and private endpoints. Optional - only needed for private network deployments."
+  description = "The resource ID of an existing subnet for private endpoints. Optional - only needed for private network deployments."
 
   validation {
     condition     = var.subnet_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+/subnets/[^/]+$", var.subnet_resource_id))
     error_message = "The subnet_resource_id must be a valid Azure Subnet resource ID."
   }
-}
-
-# tflint-ignore: terraform_unused_declarations
-variable "tags" {
-  type        = map(string)
-  default     = null
-  description = "(Optional) Tags of the resource."
-}
-
-variable "use_random_names" {
-  type        = bool
-  default     = true
-  description = "Whether to use random names for resources when neither custom names nor base_name are provided."
 }
 
 variable "virtual_machine_resource_id" {

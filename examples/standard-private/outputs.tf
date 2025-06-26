@@ -2,6 +2,15 @@
 # AI Foundry Outputs
 # ========================================
 
+output "bastion_host" {
+  description = "The Azure Bastion Host for secure VM access."
+  value = {
+    id           = module.bastion_host.resource_id
+    name         = module.bastion_host.name
+    dns_name     = module.bastion_host.dns_name
+  }
+}
+
 output "ai_agent_environment_id" {
   description = "The resource ID of the Container App Environment for AI agent services."
   value       = module.ai_foundry.ai_agent_environment_id
@@ -79,16 +88,8 @@ output "application_insights" {
 
 # ========================================
 # ========================================
-# Bastion Host Outputs
+# Bastion Host Outputs (removed duplicate)
 # ========================================
-output "bastion_host" {
-  description = "The Bastion Host for secure VM access."
-  value = {
-    id   = azurerm_bastion_host.this.id
-    name = azurerm_bastion_host.this.name
-    fqdn = azurerm_bastion_host.this.dns_name
-  }
-}
 
 # Legacy output for backward compatibility
 output "cognitive_services" {
@@ -158,20 +159,7 @@ output "storage_account" {
 }
 
 # ========================================
-# Virtual Machine Outputs
-# ========================================
-output "virtual_machine" {
-  description = "The Virtual Machine for AI development and testing."
-  value = {
-    id                 = azurerm_linux_virtual_machine.this.id
-    name               = azurerm_linux_virtual_machine.this.name
-    private_ip_address = azurerm_network_interface.vm.private_ip_address
-    admin_username     = azurerm_linux_virtual_machine.this.admin_username
-  }
-}
-
-# ========================================
-# Networking Outputs
+# Virtual Machine Outputs (using AVM module)
 # ========================================
 output "virtual_network" {
   description = "The virtual network created for private endpoint connectivity."
@@ -188,13 +176,17 @@ output "virtual_network" {
   }
 }
 
-output "vm_ssh_private_key" {
-  description = "The private SSH key for VM access (sensitive)."
-  sensitive   = true
-  value       = tls_private_key.vm_ssh.private_key_pem
+output "virtual_machine" {
+  description = "The Virtual Machine for AI development and testing."
+  value = {
+    id           = module.virtual_machine.resource_id
+    name         = module.virtual_machine.virtual_machine_azurerm.name
+    admin_username = "azureadmin"
+  }
 }
 
-output "vm_ssh_public_key" {
-  description = "The public SSH key for VM access."
-  value       = tls_private_key.vm_ssh.public_key_openssh
+output "vm_admin_password" {
+  description = "The admin password for VM access (sensitive)."
+  sensitive   = true
+  value       = "P@ssw0rd1234!"
 }

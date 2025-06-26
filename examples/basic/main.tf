@@ -60,16 +60,6 @@ resource "azurerm_log_analytics_workspace" "this" {
   sku                 = "PerGB2018"
 }
 
-# Local values for common configuration
-locals {
-  tags = {
-    Environment = "Demo"
-    Project     = "AI-Foundry"
-    CreatedBy   = "Terraform-AVM"
-    Example     = "Basic"
-  }
-}
-
 # This is the module call for AI Foundry Pattern - Basic Configuration
 # Basic only deploys AI Services - no Storage, Key Vault, Cosmos DB, AI Search, Container Registry, or Networking
 module "ai_foundry" {
@@ -77,7 +67,7 @@ module "ai_foundry" {
 
   location = azurerm_resource_group.this.location
   name     = "ai-foundry-basic"
-  # Basic AI model deployments (only AI Services deployed)
+  # Basic AI model deployment (single model)
   ai_model_deployments = {
     "gpt-35-turbo" = {
       name = "gpt-35-turbo"
@@ -105,6 +95,4 @@ module "ai_foundry" {
   # Basic deployment - no additional resources
   # Skip deployment by providing non-null values (these won't be used, just prevent deployment)
   existing_storage_account_resource_id = "skip-deployment" # Skip storage deployment
-  # Tags for all resources
-  tags = local.tags
 }

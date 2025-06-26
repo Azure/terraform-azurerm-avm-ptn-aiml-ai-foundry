@@ -70,7 +70,6 @@ resource "azurerm_virtual_network" "this" {
   name                = module.naming.virtual_network.name_unique
   resource_group_name = azurerm_resource_group.this.name
   address_space       = ["10.0.0.0/16"]
-  tags                = local.tags
 }
 
 # Subnet for private endpoints
@@ -122,7 +121,6 @@ resource "azurerm_subnet" "vm" {
 resource "azurerm_private_dns_zone" "storage_blob" {
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = azurerm_resource_group.this.name
-  tags                = local.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage_blob" {
@@ -130,14 +128,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage_blob" {
   private_dns_zone_name = azurerm_private_dns_zone.storage_blob.name
   resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
-  tags                  = local.tags
 }
 
 # Key Vault Private DNS Zone
 resource "azurerm_private_dns_zone" "keyvault" {
   name                = "privatelink.vaultcore.azure.net"
   resource_group_name = azurerm_resource_group.this.name
-  tags                = local.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
@@ -145,14 +141,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
   private_dns_zone_name = azurerm_private_dns_zone.keyvault.name
   resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
-  tags                  = local.tags
 }
 
 # Cosmos DB Private DNS Zone
 resource "azurerm_private_dns_zone" "cosmosdb" {
   name                = "privatelink.documents.azure.com"
   resource_group_name = azurerm_resource_group.this.name
-  tags                = local.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "cosmosdb" {
@@ -160,14 +154,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "cosmosdb" {
   private_dns_zone_name = azurerm_private_dns_zone.cosmosdb.name
   resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
-  tags                  = local.tags
 }
 
 # AI Search Private DNS Zone
 resource "azurerm_private_dns_zone" "search" {
   name                = "privatelink.search.windows.net"
   resource_group_name = azurerm_resource_group.this.name
-  tags                = local.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "search" {
@@ -175,14 +167,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "search" {
   private_dns_zone_name = azurerm_private_dns_zone.search.name
   resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
-  tags                  = local.tags
 }
 
 # Cognitive Services Private DNS Zone
 resource "azurerm_private_dns_zone" "openai" {
   name                = "privatelink.openai.azure.com"
   resource_group_name = azurerm_resource_group.this.name
-  tags                = local.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "openai" {
@@ -190,14 +180,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "openai" {
   private_dns_zone_name = azurerm_private_dns_zone.openai.name
   resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
-  tags                  = local.tags
 }
 
 # Machine Learning Workspace Private DNS Zone
 resource "azurerm_private_dns_zone" "ml_workspace" {
   name                = "privatelink.api.azureml.ms"
   resource_group_name = azurerm_resource_group.this.name
-  tags                = local.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "ml_workspace" {
@@ -205,11 +193,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "ml_workspace" {
   private_dns_zone_name = azurerm_private_dns_zone.ml_workspace.name
   resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
-  tags                  = local.tags
 }
 
 # ========================================
-# Bastion Host
+# Bastion Host (using AVM module)
 # ========================================
 
 # Public IP for Bastion
@@ -219,115 +206,71 @@ resource "azurerm_public_ip" "bastion" {
   name                = module.naming.public_ip.name_unique
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "Standard"
-  tags                = local.tags
 }
 
-# Bastion Host for secure VM access
-resource "azurerm_bastion_host" "this" {
-  location            = azurerm_resource_group.this.location
+module "bastion_host" {
+  source  = "Azure/avm-res-network-bastionhost/azurerm"
+  version = "~> 0.3"
+
   name                = module.naming.bastion_host.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  file_copy_enabled   = true
-  sku                 = "Standard"
-  tags                = local.tags
-  tunneling_enabled   = true
+  location            = azurerm_resource_group.this.location
 
-  ip_configuration {
-    name                 = "configuration"
-    public_ip_address_id = azurerm_public_ip.bastion.id
+  copy_paste_enabled     = true
+  file_copy_enabled      = true
+  ip_connect_enabled     = true
+  scale_units            = 2
+  shareable_link_enabled = true
+  sku                    = "Standard"
+  tunneling_enabled      = true
+
+  ip_configuration = {
+    name                 = "IpConf"
     subnet_id            = azurerm_subnet.bastion.id
+    public_ip_address_id = azurerm_public_ip.bastion.id
   }
 }
 
 # ========================================
-# Virtual Machine
+# Windows Virtual Machine (using AVM module)
 # ========================================
 
-# Network Security Group for VM
-resource "azurerm_network_security_group" "vm" {
-  location            = azurerm_resource_group.this.location
-  name                = "${module.naming.network_security_group.name_unique}-vm"
-  resource_group_name = azurerm_resource_group.this.name
-  tags                = local.tags
-}
+module "virtual_machine" {
+  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
+  version = "~> 0.15"
 
-# Network Security Rule to allow internal traffic
-resource "azurerm_network_security_rule" "allow_internal" {
-  access                      = "Allow"
-  direction                   = "Inbound"
-  name                        = "AllowInternal"
-  network_security_group_name = azurerm_network_security_group.vm.name
-  priority                    = 1000
-  protocol                    = "*"
-  resource_group_name         = azurerm_resource_group.this.name
-  destination_address_prefix  = "*"
-  destination_port_range      = "*"
-  source_address_prefix       = "10.0.0.0/16"
-  source_port_range           = "*"
-}
+  admin_username                     = "azureadmin"
+  disable_password_authentication    = false
+  location                          = azurerm_resource_group.this.location
+  name                              = module.naming.virtual_machine.name_unique
+  resource_group_name               = azurerm_resource_group.this.name
+  sku_size                          = "Standard_D4s_v3"
+  zone                              = "1"
 
-# Associate NSG with VM subnet
-resource "azurerm_subnet_network_security_group_association" "vm" {
-  network_security_group_id = azurerm_network_security_group.vm.id
-  subnet_id                 = azurerm_subnet.vm.id
-}
+  admin_password = "P@ssw0rd1234!"
 
-# Network Interface for VM
-resource "azurerm_network_interface" "vm" {
-  location            = azurerm_resource_group.this.location
-  name                = "${module.naming.network_interface.name_unique}-vm"
-  resource_group_name = azurerm_resource_group.this.name
-  tags                = local.tags
-
-  ip_configuration {
-    name                          = "internal"
-    private_ip_address_allocation = "Dynamic"
-    subnet_id                     = azurerm_subnet.vm.id
+  network_interfaces = {
+    network_interface_1 = {
+      name = "${module.naming.network_interface.name_unique}-vm"
+      ip_configurations = {
+        ip_configuration_1 = {
+          name                          = "internal"
+          private_ip_subnet_resource_id = azurerm_subnet.vm.id
+        }
+      }
+    }
   }
-}
 
-# Virtual Machine for AI development and testing
-resource "azurerm_linux_virtual_machine" "this" {
-  admin_username = "adminuser"
-  location       = azurerm_resource_group.this.location
-  name           = module.naming.virtual_machine.name_unique
-  network_interface_ids = [
-    azurerm_network_interface.vm.id,
-  ]
-  resource_group_name             = azurerm_resource_group.this.name
-  size                            = "Standard_D4s_v3"
-  disable_password_authentication = true
-  tags                            = local.tags
-
-  os_disk {
+  os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }
-  admin_ssh_key {
-    public_key = tls_private_key.vm_ssh.public_key_openssh
-    username   = "adminuser"
-  }
-  source_image_reference {
-    offer     = "0001-com-ubuntu-server-jammy"
-    publisher = "Canonical"
-    sku       = "22_04-lts-gen2"
+
+  source_image_reference = {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-g2"
     version   = "latest"
-  }
-}
-
-# SSH Key for VM access
-resource "tls_private_key" "vm_ssh" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-# Local values for common configuration
-locals {
-  tags = {
-    Environment = "Demo"
-    Project     = "AI-Foundry"
-    CreatedBy   = "Terraform-AVM"
-    Example     = "StandardPrivate"
   }
 }
 
@@ -348,7 +291,7 @@ module "ai_foundry" {
       ]
     }
   }
-  # Standard AI model deployments (including OpenAI)
+  # Standard AI model deployment (single model)
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4o"
@@ -356,28 +299,6 @@ module "ai_foundry" {
         format  = "OpenAI"
         name    = "gpt-4o"
         version = "2024-08-06"
-      }
-      scale = {
-        type = "Standard"
-      }
-    }
-    "gpt-35-turbo" = {
-      name = "gpt-35-turbo"
-      model = {
-        format  = "OpenAI"
-        name    = "gpt-35-turbo"
-        version = "0125"
-      }
-      scale = {
-        type = "Standard"
-      }
-    }
-    "text-embedding-3-large" = {
-      name = "text-embedding-3-large"
-      model = {
-        format  = "OpenAI"
-        name    = "text-embedding-3-large"
-        version = "1"
       }
       scale = {
         type = "Standard"
@@ -411,17 +332,13 @@ module "ai_foundry" {
       ]
     }
   }
-  # Enable AI agent service with dedicated subnet
-  create_ai_agent_service = true
-  # AI Foundry project configuration (standard with private endpoints)
-  create_ai_foundry_project = true
   # Enable telemetry for the module
   enable_telemetry = var.enable_telemetry
   # Application Insights and Log Analytics for AI Foundry workspaces
   existing_application_insights_id    = azurerm_application_insights.this.id
   existing_log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
   existing_resource_group_name        = azurerm_resource_group.this.name
-  existing_subnet_id                  = azurerm_subnet.agent_services.id
+  agent_subnet_resource_id            = azurerm_subnet.agent_services.id
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -441,6 +358,4 @@ module "ai_foundry" {
       ]
     }
   }
-  # Tags for all resources
-  tags = local.tags
 }

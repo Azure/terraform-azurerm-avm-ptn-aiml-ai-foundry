@@ -4,7 +4,6 @@ resource "azurerm_resource_group" "this" {
 
   location = var.location
   name     = local.resource_names.resource_group
-  tags     = local.all_tags
 }
 
 # Storage Account (BYO or Create New)
@@ -20,7 +19,6 @@ module "storage_account" {
     system_assigned = true
   }
   private_endpoints = var.storage_private_endpoints
-  tags              = local.all_tags
 }
 
 # Key Vault (BYO or Create New)
@@ -34,7 +32,6 @@ module "key_vault" {
   resource_group_name = local.resource_group_name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   private_endpoints   = var.key_vault_private_endpoints
-  tags                = local.all_tags
 }
 
 # Cosmos DB (BYO or Create New)
@@ -47,7 +44,6 @@ module "cosmos_db" {
   name                = local.resource_names.cosmos_db
   resource_group_name = local.resource_group_name
   private_endpoints   = var.cosmos_db_private_endpoints
-  tags                = local.all_tags
 }
 
 # AI Search (BYO or Create New)
@@ -60,7 +56,6 @@ module "ai_search" {
   name                = local.resource_names.ai_search
   resource_group_name = local.resource_group_name
   private_endpoints   = var.ai_search_private_endpoints
-  tags                = local.all_tags
 }
 
 # Azure AI Services (AIServices kind includes OpenAI)
@@ -80,7 +75,6 @@ module "ai_services" {
   }
   private_endpoints             = var.ai_services_private_endpoints
   public_network_access_enabled = length(var.ai_services_private_endpoints) == 0 ? true : false
-  tags                          = local.all_tags
 }
 
 # Required AVM interfaces
@@ -121,7 +115,6 @@ resource "azapi_resource" "ai_foundry_project" {
       description = var.ai_foundry_project_description != null ? var.ai_foundry_project_description : "AI Foundry project for agent services and AI workloads"
     }
   }
-  tags = var.tags
 
   # Optional identity block for managed identity support
   identity {
@@ -175,9 +168,6 @@ resource "azapi_resource" "ai_agent_capability_host" {
 
       # Customer subnet for private networking - use external subnet
       customerSubnet = local.subnet_id
-
-      # Optional tags within properties
-      tags = var.tags
     }
   }
 
@@ -194,7 +184,6 @@ resource "azurerm_private_endpoint" "ai_foundry_project" {
   name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_foundry_project[0].name}-${each.key}"
   resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : local.resource_group_name
   subnet_id           = each.value.subnet_resource_id
-  tags                = merge(var.tags, each.value.tags)
 
   private_service_connection {
     is_manual_connection           = false
