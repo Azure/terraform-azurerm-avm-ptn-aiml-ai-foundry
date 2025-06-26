@@ -7,9 +7,6 @@ module "storage_account" {
   location            = var.location
   name                = local.resource_names.storage_account
   resource_group_name = var.resource_group_name
-  private_endpoints   = var.storage_private_endpoints
-  tags                = var.tags
-
   diagnostic_settings_storage_account = {
     workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
       "default" = {
@@ -19,6 +16,8 @@ module "storage_account" {
       }
     } : {}
   }
+  private_endpoints = var.storage_private_endpoints
+  tags              = var.tags
 }
 
 # Key Vault (BYO or Create New)
@@ -31,9 +30,6 @@ module "key_vault" {
   name                = local.resource_names.key_vault
   resource_group_name = var.resource_group_name
   tenant_id           = data.azurerm_client_config.current.tenant_id
-  private_endpoints   = var.key_vault_private_endpoints
-  tags                = var.tags
-
   diagnostic_settings = {
     workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
       "default" = {
@@ -43,6 +39,8 @@ module "key_vault" {
       }
     } : {}
   }
+  private_endpoints = var.key_vault_private_endpoints
+  tags              = var.tags
 }
 
 # Cosmos DB (BYO or Create New)
@@ -54,9 +52,6 @@ module "cosmos_db" {
   location            = var.location
   name                = local.resource_names.cosmos_db
   resource_group_name = var.resource_group_name
-  private_endpoints   = var.cosmos_db_private_endpoints
-  tags                = var.tags
-
   # Optional Log Analytics Workspace for diagnostic settings
   diagnostic_settings = {
     workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
@@ -67,6 +62,8 @@ module "cosmos_db" {
       }
     } : {}
   }
+  private_endpoints = var.cosmos_db_private_endpoints
+  tags              = var.tags
 }
 
 # AI Search (BYO or Create New)
@@ -78,9 +75,6 @@ module "ai_search" {
   location            = var.location
   name                = local.resource_names.ai_search
   resource_group_name = var.resource_group_name
-  private_endpoints   = var.ai_search_private_endpoints
-  tags                = var.tags
-
   # Optional Log Analytics Workspace for diagnostic settings
   diagnostic_settings = {
     workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
@@ -91,6 +85,8 @@ module "ai_search" {
       }
     } : {}
   }
+  private_endpoints = var.ai_search_private_endpoints
+  tags              = var.tags
 }
 
 # Azure AI Services (Using AzAPI - AIServices kind includes OpenAI)

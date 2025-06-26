@@ -49,15 +49,7 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-# Application Insights for AI Foundry (required)
-resource "azurerm_application_insights" "this" {
-  application_type    = "web"
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.application_insights.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-}
-
-# Log Analytics Workspace for Container App Environment
+# Log Analytics Workspace for Container App Environment and AVM modules
 resource "azurerm_log_analytics_workspace" "this" {
   location            = azurerm_resource_group.this.location
   name                = module.naming.log_analytics_workspace.name_unique
@@ -72,6 +64,7 @@ module "ai_foundry" {
 
   location                             = azurerm_resource_group.this.location
   name                                 = "ai-foundry-std-pub"
+  resource_group_name                  = azurerm_resource_group.this.name
   ai_foundry_project_description       = "Standard AI Foundry project with agent services (public endpoints)"
   ai_foundry_project_name              = "AI-Foundry-Standard-Public"
   ai_foundry_project_private_endpoints = {}
@@ -93,10 +86,10 @@ module "ai_foundry" {
   ai_services_private_endpoints = {}
   cosmos_db_private_endpoints   = {}
   # Enable telemetry for the module
-  enable_telemetry             = var.enable_telemetry
-  existing_resource_group_name = azurerm_resource_group.this.name
-  key_vault_private_endpoints  = {}
-  storage_private_endpoints    = {}
+  enable_telemetry                             = var.enable_telemetry
+  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
+  key_vault_private_endpoints                  = {}
+  storage_private_endpoints                    = {}
 }
 ```
 
@@ -115,7 +108,6 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [azurerm_application_insights.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_insights) (resource)
 - [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
@@ -191,10 +183,6 @@ Description: The Azure AI Search service used for intelligent search capabilitie
 
 Description: The AI Services account used for AI capabilities.
 
-### <a name="output_application_insights"></a> [application\_insights](#output\_application\_insights)
-
-Description: The Application Insights instance used for monitoring.
-
 ### <a name="output_cognitive_services"></a> [cognitive\_services](#output\_cognitive\_services)
 
 Description: The AI Services account (legacy name for backward compatibility).
@@ -210,6 +198,10 @@ Description: The Key Vault used for AI Foundry secrets management.
 ### <a name="output_location"></a> [location](#output\_location)
 
 Description: The Azure region where resources are deployed.
+
+### <a name="output_log_analytics_workspace"></a> [log\_analytics\_workspace](#output\_log\_analytics\_workspace)
+
+Description: The Log Analytics Workspace used for monitoring and diagnostics.
 
 ### <a name="output_resource_group"></a> [resource\_group](#output\_resource\_group)
 

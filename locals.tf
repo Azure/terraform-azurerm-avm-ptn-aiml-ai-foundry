@@ -3,7 +3,6 @@ locals {
   # AI Agent Service deployment logic - simplified to avoid dependency issues
   # Deploy when create_ai_agent_service is true (default is true)
   deploy_ai_agent_service = var.create_ai_agent_service
-
   # Resource group and location references
   resource_group_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${var.resource_group_name}"
   # Advanced resource naming logic

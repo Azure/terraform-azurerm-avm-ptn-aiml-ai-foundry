@@ -58,8 +58,8 @@ module "ai_foundry" {
   source = "../../"
 
   location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
   name                = "ai-foundry-basic"
+  resource_group_name = azurerm_resource_group.this.name
   # Basic AI model deployment (single model)
   ai_model_deployments = {
     "gpt-35-turbo" = {

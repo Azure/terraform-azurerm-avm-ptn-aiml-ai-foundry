@@ -29,15 +29,12 @@ The following resources are used by this module:
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_private_endpoint.ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 - [azurerm_cosmosdb_account.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/cosmosdb_account) (data source)
 - [azurerm_key_vault.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) (data source)
-- [azurerm_resource_group.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) (data source)
 - [azurerm_search_service.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/search_service) (data source)
 - [azurerm_storage_account.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
@@ -56,6 +53,12 @@ Type: `string`
 ### <a name="input_name"></a> [name](#input\_name)
 
 Description: The name prefix for the AI Foundry resources.
+
+Type: `string`
+
+### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
+
+Description: The name of the resource group where all resources will be deployed.
 
 Type: `string`
 
@@ -318,19 +321,11 @@ Default: `{}`
 
 ### <a name="input_create_ai_agent_service"></a> [create\_ai\_agent\_service](#input\_create\_ai\_agent\_service)
 
-Description: Whether to create an AI agent service using AzAPI capability hosts.
+Description: Whether to create an AI agent service using AzAPI capability hosts. Only enabled when agent\_subnet\_resource\_id is provided and ai\_foundry\_project\_private\_endpoints is not null.
 
 Type: `bool`
 
-Default: `true`
-
-### <a name="input_create_ai_foundry_project"></a> [create\_ai\_foundry\_project](#input\_create\_ai\_foundry\_project)
-
-Description: Whether to create an AI Foundry project workspace.
-
-Type: `bool`
-
-Default: `true`
+Default: `false`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
@@ -366,17 +361,9 @@ Type: `string`
 
 Default: `null`
 
-### <a name="input_existing_resource_group_id"></a> [existing\_resource\_group\_id](#input\_existing\_resource\_group\_id)
+### <a name="input_existing_log_analytics_workspace_resource_id"></a> [existing\_log\_analytics\_workspace\_resource\_id](#input\_existing\_log\_analytics\_workspace\_resource\_id)
 
-Description: The resource ID of an existing resource group to use. If not provided, a new resource group will be created.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_existing_resource_group_name"></a> [existing\_resource\_group\_name](#input\_existing\_resource\_group\_name)
-
-Description: The name of an existing resource group to use. If not provided, a new resource group will be created.
+Description: The resource ID of an existing Log Analytics Workspace to use for diagnostic settings. If not provided, Log Analytics Workspace will not be attached to AVM modules.
 
 Type: `string`
 
@@ -449,14 +436,6 @@ object({
 
 Default: `null`
 
-### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
-
-Description: The name for a new resource group. Required only if existing\_resource\_group\_name and existing\_resource\_group\_id are not provided.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_resource_names"></a> [resource\_names](#input\_resource\_names)
 
 Description: Custom names for each resource. If not provided, names will be generated using base\_name or random names.
@@ -472,7 +451,6 @@ object({
     ai_services        = optional(string)
     ai_foundry_project = optional(string)
     ai_agent_host      = optional(string)
-    resource_group     = optional(string)
   })
 ```
 

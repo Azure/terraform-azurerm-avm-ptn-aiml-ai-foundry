@@ -57,8 +57,8 @@ module "ai_foundry" {
   source = "../../"
 
   location                             = azurerm_resource_group.this.location
-  resource_group_name                  = azurerm_resource_group.this.name
   name                                 = "ai-foundry-std-pub"
+  resource_group_name                  = azurerm_resource_group.this.name
   ai_foundry_project_description       = "Standard AI Foundry project with agent services (public endpoints)"
   ai_foundry_project_name              = "AI-Foundry-Standard-Public"
   ai_foundry_project_private_endpoints = {}
