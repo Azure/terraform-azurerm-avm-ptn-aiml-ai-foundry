@@ -1,136 +1,76 @@
-# ========================================
-# Data Sources for Existing Resources
-# ========================================
-data "azurerm_resource_group" "existing" {
-  count = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? 1 : 0
-
-  name = var.existing_resource_group_name != null ? var.existing_resource_group_name : split("/", var.existing_resource_group_id)[4]
-}
-
-data "azurerm_application_insights" "existing" {
-  count = var.existing_application_insights_id != null ? 1 : 0
-
-  name                = split("/", var.existing_application_insights_id)[8]
-  resource_group_name = split("/", var.existing_application_insights_id)[4]
-}
-
-data "azurerm_log_analytics_workspace" "existing" {
-  count = var.existing_log_analytics_workspace_id != null ? 1 : 0
-
-  name                = split("/", var.existing_log_analytics_workspace_id)[8]
-  resource_group_name = split("/", var.existing_log_analytics_workspace_id)[4]
-}
-
-data "azurerm_virtual_network" "existing" {
-  count = var.existing_virtual_network_id != null ? 1 : 0
-
-  name                = split("/", var.existing_virtual_network_id)[8]
-  resource_group_name = split("/", var.existing_virtual_network_id)[4]
-}
-
-data "azurerm_subnet" "existing" {
-  count = var.existing_subnet_id != null ? 1 : 0
-
-  name                 = split("/", var.existing_subnet_id)[10]
-  resource_group_name  = split("/", var.existing_subnet_id)[4]
-  virtual_network_name = split("/", var.existing_subnet_id)[8]
-}
-
-# ========================================
-# Local Values for Resource References
-# ========================================
-locals {
-  location          = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].location : var.location
-  resource_group_id = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.this[0].id
-  # Resource group reference - use existing or create new
-  resource_group_name = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].name : azurerm_resource_group.this[0].name
-}
-
-# ========================================
 # Resource Group - Create if not using existing
-# ========================================
 resource "azurerm_resource_group" "this" {
   count = var.existing_resource_group_name == null && var.existing_resource_group_id == null ? 1 : 0
 
   location = var.location
-  name     = var.resource_group_name
-  tags     = var.tags
+  name     = local.resource_names.resource_group
+  tags     = local.all_tags
 }
 
-# ========================================
 # Storage Account (BYO or Create New)
-# ========================================
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "~> 0.6.3"
-  count   = var.existing_storage_account_resource_id == null ? 1 : 0
+  count   = local.deploy_storage_account ? 1 : 0
 
   location            = local.location
-  name                = "${var.name}sa${random_string.suffix.result}"
+  name                = local.resource_names.storage_account
   resource_group_name = local.resource_group_name
   managed_identities = {
     system_assigned = true
   }
   private_endpoints = var.storage_private_endpoints
-  tags              = var.tags
+  tags              = local.all_tags
 }
 
-# ========================================
 # Key Vault (BYO or Create New)
-# ========================================
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "~> 0.10.0"
-  count   = var.existing_key_vault_resource_id == null ? 1 : 0
+  count   = local.deploy_key_vault ? 1 : 0
 
   location            = local.location
-  name                = "${var.name}-kv-${random_string.suffix.result}"
+  name                = local.resource_names.key_vault
   resource_group_name = local.resource_group_name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   private_endpoints   = var.key_vault_private_endpoints
-  tags                = var.tags
+  tags                = local.all_tags
 }
 
-# ========================================
 # Cosmos DB (BYO or Create New)
-# ========================================
 module "cosmos_db" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
   version = "~> 0.8.0"
-  count   = var.existing_cosmos_db_resource_id == null ? 1 : 0
+  count   = local.deploy_cosmos_db ? 1 : 0
 
   location            = local.location
-  name                = "${var.name}-cosmos-${random_string.suffix.result}"
+  name                = local.resource_names.cosmos_db
   resource_group_name = local.resource_group_name
   private_endpoints   = var.cosmos_db_private_endpoints
-  tags                = var.tags
+  tags                = local.all_tags
 }
 
-# ========================================
 # AI Search (BYO or Create New)
-# ========================================
 module "ai_search" {
   source  = "Azure/avm-res-search-searchservice/azurerm"
   version = "~> 0.1.5"
-  count   = var.existing_ai_search_resource_id == null ? 1 : 0
+  count   = local.deploy_ai_search ? 1 : 0
 
   location            = local.location
-  name                = "${var.name}-search-${random_string.suffix.result}"
+  name                = local.resource_names.ai_search
   resource_group_name = local.resource_group_name
   private_endpoints   = var.ai_search_private_endpoints
-  tags                = var.tags
+  tags                = local.all_tags
 }
 
-# ========================================
 # Azure AI Services (AIServices kind includes OpenAI)
-# ========================================
 module "ai_services" {
   source  = "Azure/avm-res-cognitiveservices-account/azurerm"
   version = "~> 0.7.1"
 
   kind                = "AIServices"
   location            = local.location
-  name                = "${var.name}-aiservices-${random_string.suffix.result}"
+  name                = local.resource_names.ai_services
   resource_group_name = local.resource_group_name
   sku_name            = "S0"
   # Deploy AI models including OpenAI
@@ -140,54 +80,10 @@ module "ai_services" {
   }
   private_endpoints             = var.ai_services_private_endpoints
   public_network_access_enabled = length(var.ai_services_private_endpoints) == 0 ? true : false
-  tags                          = var.tags
+  tags                          = local.all_tags
 }
 
-# ========================================
-# Random suffix for unique naming
-# ========================================
-resource "random_string" "suffix" {
-  length  = 6
-  special = false
-  upper   = false
-}
-
-# ========================================
-# Data sources for existing resources
-# ========================================
-data "azurerm_client_config" "current" {}
-
-data "azurerm_storage_account" "existing" {
-  count = var.existing_storage_account_resource_id != null ? 1 : 0
-
-  name                = split("/", var.existing_storage_account_resource_id)[8]
-  resource_group_name = split("/", var.existing_storage_account_resource_id)[4]
-}
-
-data "azurerm_key_vault" "existing" {
-  count = var.existing_key_vault_resource_id != null ? 1 : 0
-
-  name                = split("/", var.existing_key_vault_resource_id)[8]
-  resource_group_name = split("/", var.existing_key_vault_resource_id)[4]
-}
-
-data "azurerm_cosmosdb_account" "existing" {
-  count = var.existing_cosmos_db_resource_id != null ? 1 : 0
-
-  name                = split("/", var.existing_cosmos_db_resource_id)[8]
-  resource_group_name = split("/", var.existing_cosmos_db_resource_id)[4]
-}
-
-data "azurerm_search_service" "existing" {
-  count = var.existing_ai_search_resource_id != null ? 1 : 0
-
-  name                = split("/", var.existing_ai_search_resource_id)[8]
-  resource_group_name = split("/", var.existing_ai_search_resource_id)[4]
-}
-
-# ========================================
 # Required AVM interfaces
-# ========================================
 resource "azurerm_management_lock" "this" {
   count = var.lock != null ? 1 : 0
 
@@ -211,14 +107,12 @@ resource "azurerm_role_assignment" "this" {
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }
 
-# ========================================
-# AI Foundry Project (Using AzAPI - Microsoft.CognitiveServices/accounts/projects)
-# ========================================
+# AI Foundry Project (Using AzAPI)
 resource "azapi_resource" "ai_foundry_project" {
   count = var.create_ai_foundry_project ? 1 : 0
 
   location  = local.location
-  name      = var.ai_foundry_project_name != null ? var.ai_foundry_project_name : "${var.name}-aiproject-${random_string.suffix.result}"
+  name      = local.resource_names.ai_foundry_project
   parent_id = module.ai_services.resource_id
   type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
   body = {
@@ -241,13 +135,11 @@ resource "azapi_resource" "ai_foundry_project" {
   ]
 }
 
-# ========================================
-# AI Agent Service (Using AzAPI - Microsoft.CognitiveServices/accounts/projects/capabilityHosts)
-# ========================================
+# AI Agent Service (Using AzAPI)
 resource "azapi_resource" "ai_agent_capability_host" {
   count = var.create_ai_agent_service ? 1 : 0
 
-  name      = var.ai_agent_host_name != null ? var.ai_agent_host_name : "${var.name}-agent-host-${random_string.suffix.result}"
+  name      = local.resource_names.ai_agent_host
   parent_id = azapi_resource.ai_foundry_project[0].id
   type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
   body = {
@@ -281,8 +173,8 @@ resource "azapi_resource" "ai_agent_capability_host" {
         length(module.ai_search) > 0 ? [module.ai_search[0].resource_id] : []
       )
 
-      # Customer subnet for private networking
-      customerSubnet = var.existing_subnet_id
+      # Customer subnet for private networking - use external subnet
+      customerSubnet = local.subnet_id
 
       # Optional tags within properties
       tags = var.tags
@@ -294,9 +186,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
   ]
 }
 
-# ========================================
 # Private Endpoints for AI Foundry Project (via AI Services)
-# ========================================
 resource "azurerm_private_endpoint" "ai_foundry_project" {
   for_each = var.create_ai_foundry_project ? var.ai_foundry_project_private_endpoints : {}
 
@@ -321,5 +211,3 @@ resource "azurerm_private_endpoint" "ai_foundry_project" {
     }
   }
 }
-
-# ========================================

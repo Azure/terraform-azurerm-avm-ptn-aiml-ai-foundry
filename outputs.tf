@@ -8,9 +8,7 @@ output "ai_agent_service_fqdn" {
   value       = var.create_ai_agent_service ? try(azapi_resource.ai_agent_capability_host[0].output.properties.fqdn, null) : null
 }
 
-# ========================================
 # AI Agent Service Outputs
-# ========================================
 output "ai_agent_service_id" {
   description = "The resource ID of the AI agent capability host."
   value       = var.create_ai_agent_service ? azapi_resource.ai_agent_capability_host[0].id : null
@@ -21,9 +19,7 @@ output "ai_agent_service_name" {
   value       = var.create_ai_agent_service ? azapi_resource.ai_agent_capability_host[0].name : null
 }
 
-# ========================================
 # AI Foundry Outputs
-# ========================================
 # Note: AI Foundry Hub is no longer created - only Project is supported
 output "ai_foundry_hub_id" {
   description = "DEPRECATED: AI Foundry Hub is no longer created. Use ai_foundry_project_id instead."
@@ -35,9 +31,7 @@ output "ai_foundry_hub_name" {
   value       = null
 }
 
-# ========================================
 # Private Endpoint Outputs
-# ========================================
 output "ai_foundry_hub_private_endpoints" {
   description = "DEPRECATED: AI Foundry Hub is no longer created."
   value       = {}
@@ -75,9 +69,7 @@ output "ai_foundry_project_workspace_url" {
   value       = var.create_ai_foundry_project ? try(azapi_resource.ai_foundry_project[0].output.properties.projectUrl, null) : null
 }
 
-# ========================================
 # AI Search Outputs
-# ========================================
 output "ai_search" {
   description = "The AI Search service used for vector search and retrieval."
   value = var.existing_ai_search_resource_id != null ? {
@@ -91,9 +83,7 @@ output "ai_search" {
   }
 }
 
-# ========================================
 # AI Services Outputs
-# ========================================
 output "ai_services" {
   description = "The AI Services account with OpenAI and other AI models."
   value = {
@@ -115,9 +105,7 @@ output "cognitive_services" {
   }
 }
 
-# ========================================
 # Connection Information
-# ========================================
 output "connection_info" {
   description = "Connection information for integrating with the AI Foundry services."
   sensitive   = true
@@ -166,9 +154,7 @@ output "connection_info" {
   }
 }
 
-# ========================================
 # Cosmos DB Outputs
-# ========================================
 output "cosmos_db" {
   description = "The Cosmos DB account used for AI Foundry data storage."
   value = var.existing_cosmos_db_resource_id != null ? {
@@ -186,9 +172,7 @@ output "cosmos_db" {
   }
 }
 
-# ========================================
 # Key Vault Outputs
-# ========================================
 output "key_vault" {
   description = "The Key Vault used for secrets management."
   value = var.existing_key_vault_resource_id != null ? {
@@ -202,9 +186,7 @@ output "key_vault" {
   }
 }
 
-# ========================================
 # Managed Identity Outputs
-# ========================================
 output "managed_identities" {
   description = "Managed identities created for the AI Foundry services."
   value = {
@@ -216,9 +198,7 @@ output "managed_identities" {
   }
 }
 
-# ========================================
 # Private Endpoints Outputs
-# ========================================
 output "private_endpoints" {
   description = "All private endpoints created for the AI Foundry services."
   value = {
@@ -230,9 +210,7 @@ output "private_endpoints" {
   }
 }
 
-# ========================================
 # Resource Group Outputs
-# ========================================
 output "resource_group" {
   description = "The resource group containing all AI Foundry resources."
   value = {
@@ -242,17 +220,13 @@ output "resource_group" {
   }
 }
 
-# ========================================
 # Required AVM Outputs
-# ========================================
 output "resource_id" {
   description = "The resource ID of the primary AI Foundry project resource."
   value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].id : null
 }
 
-# ========================================
 # Storage Account Outputs
-# ========================================
 output "storage_account" {
   description = "The storage account used for AI Foundry workloads."
   value = var.existing_storage_account_resource_id != null ? {
@@ -266,4 +240,134 @@ output "storage_account" {
     primary_blob_endpoint = module.storage_account[0].resource.primary_blob_endpoint
     primary_dfs_endpoint  = module.storage_account[0].resource.primary_dfs_endpoint
   }
+}
+
+# Bicep Pattern Outputs (matching main.bicep outputs)
+
+output "resource_group_name" {
+  description = "Name of the deployed Azure Resource Group."
+  value       = local.resource_group_name
+}
+
+output "azure_key_vault_name" {
+  description = "Name of the deployed Azure Key Vault."
+  value       = local.deploy_key_vault ? module.key_vault[0].resource.name : (var.existing_key_vault_resource_id != null ? data.azurerm_key_vault.existing[0].name : "")
+}
+
+output "azure_ai_services_name" {
+  description = "Name of the deployed Azure AI Services account."
+  value       = module.ai_services.resource.name
+}
+
+output "azure_ai_search_name" {
+  description = "Name of the deployed Azure AI Search service."
+  value       = local.deploy_ai_search ? module.ai_search[0].resource.name : (var.existing_ai_search_resource_id != null ? split("/", var.existing_ai_search_resource_id)[8] : "")
+}
+
+output "azure_ai_project_name" {
+  description = "Name of the deployed Azure AI Project."
+  value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].name : ""
+}
+
+# Additional Bicep Pattern Outputs (new outputs only)
+
+output "azure_bastion_name" {
+  description = "Name of the external Azure Bastion host (provided by user)."
+  value       = var.bastion_host_resource_id != null ? split("/", var.bastion_host_resource_id)[8] : ""
+}
+
+output "azure_container_registry_name" {
+  description = "DEPRECATED: Container Registry has been moved to examples. Provide external container registry if needed."
+  value       = ""
+}
+
+output "azure_virtual_network_name" {
+  description = "Name of the external Azure Virtual Network (provided by user)."
+  value       = local.virtual_network_id != null ? split("/", local.virtual_network_id)[8] : ""
+}
+
+output "azure_virtual_network_subnet_name" {
+  description = "Name of the external Azure Virtual Network Subnet (provided by user)."
+  value       = local.subnet_id != null ? split("/", local.subnet_id)[10] : ""
+}
+
+output "azure_vm_resource_id" {
+  description = "Resource ID of the external Azure VM (provided by user)."
+  value       = var.virtual_machine_resource_id != null ? var.virtual_machine_resource_id : ""
+}
+
+output "azure_vm_username" {
+  description = "Username for the external Azure VM (not managed by this module)."
+  value       = "" # VM is external - username not managed by this module
+}
+
+# AI Services Endpoint and Keys (for examples)
+output "ai_services_endpoint" {
+  description = "The endpoint of the AI Services account."
+  value       = module.ai_services.endpoint
+}
+
+output "ai_services_name" {
+  description = "The name of the AI Services account."
+  value       = module.ai_services.name
+}
+
+output "ai_services_primary_access_key" {
+  description = "The primary access key for the AI Services account."
+  value       = module.ai_services.primary_access_key
+  sensitive   = true
+}
+
+# Storage Account Outputs (for examples)
+output "storage_account_id" {
+  description = "The resource ID of the storage account."
+  value       = var.existing_storage_account_resource_id != null ? var.existing_storage_account_resource_id : (local.deploy_storage_account ? module.storage_account[0].resource_id : null)
+}
+
+output "storage_account_name" {
+  description = "The name of the storage account."
+  value       = var.existing_storage_account_resource_id != null ? data.azurerm_storage_account.existing[0].name : (local.deploy_storage_account ? module.storage_account[0].name : null)
+}
+
+# Key Vault Outputs (for examples)
+output "key_vault_id" {
+  description = "The resource ID of the Key Vault."
+  value       = var.existing_key_vault_resource_id != null ? var.existing_key_vault_resource_id : (local.deploy_key_vault ? module.key_vault[0].resource_id : null)
+}
+
+output "key_vault_name" {
+  description = "The name of the Key Vault."
+  value       = var.existing_key_vault_resource_id != null ? data.azurerm_key_vault.existing[0].name : (local.deploy_key_vault ? module.key_vault[0].name : null)
+}
+
+output "key_vault_uri" {
+  description = "The URI of the Key Vault."
+  value       = var.existing_key_vault_resource_id != null ? data.azurerm_key_vault.existing[0].vault_uri : (local.deploy_key_vault ? module.key_vault[0].vault_uri : null)
+}
+
+# Resource Group Outputs (for examples)
+output "resource_group_id" {
+  description = "The resource ID of the resource group."
+  value       = local.resource_group_id
+}
+
+# External Networking Resource References
+output "virtual_network_id" {
+  description = "The resource ID of the virtual network (external resource)."
+  value       = local.virtual_network_id
+}
+
+output "subnet_id" {
+  description = "The resource ID of the subnet (external resource)."
+  value       = local.subnet_id
+}
+
+output "bastion_host_id" {
+  description = "The resource ID of the Bastion host (external resource)."
+  value       = var.bastion_host_resource_id
+}
+
+output "virtual_machine_id" {
+  description = "The resource ID of the virtual machine (external resource)."
+  value       = var.virtual_machine_resource_id
 }
