@@ -27,7 +27,7 @@ provider "azurerm" {
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.5.2"
+  version = "~> 0.1"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -40,7 +40,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "0.4.2"
+  version = "~> 0.3"
 }
 
 # This is required for resource modules
@@ -49,7 +49,15 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-# Log Analytics Workspace for Container App Environment and AVM modules
+# Application Insights for AI Foundry (required)
+resource "azurerm_application_insights" "this" {
+  application_type    = "web"
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.application_insights.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+}
+
+# Log Analytics Workspace for Container App Environment
 resource "azurerm_log_analytics_workspace" "this" {
   location            = azurerm_resource_group.this.location
   name                = module.naming.log_analytics_workspace.name_unique
@@ -204,35 +212,36 @@ resource "azurerm_public_ip" "bastion" {
   name                = module.naming.public_ip.name_unique
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "Standard"
-  zones               = ["1", "2", "3"]
 }
 
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
-  version = "0.7.2"
+  version = "~> 0.3"
 
   location            = azurerm_resource_group.this.location
   name                = module.naming.bastion_host.name_unique
   resource_group_name = azurerm_resource_group.this.name
+  copy_paste_enabled  = true
+  file_copy_enabled   = true
   ip_configuration = {
     name                 = "IpConf"
     subnet_id            = azurerm_subnet.bastion.id
     public_ip_address_id = azurerm_public_ip.bastion.id
   }
-  sku = "Standard"
+  ip_connect_enabled     = true
+  scale_units            = 2
+  shareable_link_enabled = true
+  sku                    = "Standard"
+  tunneling_enabled      = true
 }
 
-module "vm_sku" {
-  source  = "Azure/avm-utl-sku-finder/azapi"
-  version = "0.3.0"
-
-  location = azurerm_resource_group.this.location
-}
-
+# ========================================
 # Windows Virtual Machine (using AVM module)
+# ========================================
+
 module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.19.3"
+  version = "~> 0.15"
 
   location = azurerm_resource_group.this.location
   name     = module.naming.virtual_machine.name_unique
@@ -247,8 +256,22 @@ module "virtual_machine" {
       }
     }
   }
-  resource_group_name = azurerm_resource_group.this.name
-  zone                = "1"
+  resource_group_name             = azurerm_resource_group.this.name
+  zone                            = "1"
+  admin_password                  = "P@ssw0rd1234!"
+  admin_username                  = "azureadmin"
+  disable_password_authentication = false
+  os_disk = {
+    caching              = "ReadWrite"
+    storage_account_type = "Premium_LRS"
+  }
+  sku_size = "Standard_D4s_v3"
+  source_image_reference = {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-g2"
+    version   = "latest"
+  }
 }
 
 # This is the module call for AI Foundry Pattern - Standard Private Configuration
@@ -257,11 +280,9 @@ module "ai_foundry" {
 
   location                       = azurerm_resource_group.this.location
   name                           = "ai-foundry-std-prv"
-  resource_group_name            = azurerm_resource_group.this.name
   agent_subnet_resource_id       = azurerm_subnet.agent_services.id
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
   ai_foundry_project_name        = "AI-Foundry-Standard-Private"
-  # Private endpoint configurations
   ai_foundry_project_private_endpoints = {
     "amlworkspace" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -271,7 +292,7 @@ module "ai_foundry" {
       ]
     }
   }
-  # Standard AI model deployment
+  # Standard AI model deployment (single model)
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4o"
@@ -312,10 +333,9 @@ module "ai_foundry" {
       ]
     }
   }
-  # Enable agent service with agent subnet for private scenario
-  create_ai_agent_service                      = true
-  enable_telemetry                             = true
-  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
+  # Enable telemetry for the module
+  enable_telemetry             = var.enable_telemetry
+  existing_resource_group_name = azurerm_resource_group.this.name
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -325,6 +345,7 @@ module "ai_foundry" {
       ]
     }
   }
+  # Private endpoint configurations with created DNS zones
   storage_private_endpoints = {
     "blob" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -352,6 +373,7 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azurerm_application_insights.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_insights) (resource)
 - [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_private_dns_zone.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
@@ -381,17 +403,7 @@ No required inputs.
 
 ## Optional Inputs
 
-The following input variables are optional (have default values):
-
-### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
-
-Description: This variable controls whether or not telemetry is enabled for the module.  
-For more information see <https://aka.ms/avm/telemetryinfo>.  
-If it is set to false, then no telemetry will be collected.
-
-Type: `bool`
-
-Default: `true`
+No optional inputs.
 
 ## Outputs
 
@@ -503,31 +515,25 @@ Version:
 
 Source: Azure/avm-res-network-bastionhost/azurerm
 
-Version: 0.7.2
+Version: ~> 0.3
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
 
-Version: 0.4.2
+Version: ~> 0.3
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.5.2
+Version: ~> 0.1
 
 ### <a name="module_virtual_machine"></a> [virtual\_machine](#module\_virtual\_machine)
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.19.3
-
-### <a name="module_vm_sku"></a> [vm\_sku](#module\_vm\_sku)
-
-Source: Azure/avm-utl-sku-finder/azapi
-
-Version: 0.3.0
+Version: ~> 0.15
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

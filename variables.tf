@@ -1,3 +1,13 @@
+# Resource Naming Configuration
+
+# Core Configuration Variables
+
+# Required Networking Resources (External Dependencies)
+
+# Cosmos DB Configuration
+
+# Original Variables (keeping existing structure)
+
 variable "location" {
   type        = string
   description = "Azure region where the resource should be deployed."
@@ -12,12 +22,6 @@ variable "name" {
     condition     = can(regex("^[a-z0-9][a-z0-9-]{1,60}[a-z0-9]$", var.name))
     error_message = "The name must be between 3 and 62 characters long, start and end with alphanumeric characters, and can only contain lowercase letters, numbers, and hyphens."
   }
-}
-
-variable "resource_group_name" {
-  type        = string
-  description = "The name of the resource group where all resources will be deployed."
-  nullable    = false
 }
 
 variable "agent_subnet_resource_id" {
@@ -246,8 +250,15 @@ variable "cosmos_db_private_endpoints" {
 # AI Agent Service Configuration
 variable "create_ai_agent_service" {
   type        = bool
-  default     = false
-  description = "Whether to create an AI agent service using AzAPI capability hosts. Only enabled when agent_subnet_resource_id is provided and ai_foundry_project_private_endpoints is not null."
+  default     = true
+  description = "Whether to create an AI agent service using AzAPI capability hosts."
+}
+
+# AI Foundry Configuration
+variable "create_ai_foundry_project" {
+  type        = bool
+  default     = true
+  description = "Whether to create an AI Foundry project workspace."
 }
 
 variable "enable_telemetry" {
@@ -279,11 +290,17 @@ variable "existing_key_vault_resource_id" {
   description = "(Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created."
 }
 
-# Log Analytics Workspace Configuration
-variable "existing_log_analytics_workspace_resource_id" {
+variable "existing_resource_group_id" {
   type        = string
   default     = null
-  description = "The resource ID of an existing Log Analytics Workspace to use for diagnostic settings. If not provided, Log Analytics Workspace will not be attached to AVM modules."
+  description = "The resource ID of an existing resource group to use. If not provided, a new resource group will be created."
+}
+
+# BYO Resource Group Configuration
+variable "existing_resource_group_name" {
+  type        = string
+  default     = null
+  description = "The name of an existing resource group to use. If not provided, a new resource group will be created."
 }
 
 # Bring Your Own Resource IDs
@@ -348,6 +365,13 @@ DESCRIPTION
   }
 }
 
+# This is required when creating a new resource group
+variable "resource_group_name" {
+  type        = string
+  default     = null
+  description = "The name for a new resource group. Required only if existing_resource_group_name and existing_resource_group_id are not provided."
+}
+
 variable "resource_names" {
   type = object({
     storage_account    = optional(string)
@@ -357,9 +381,39 @@ variable "resource_names" {
     ai_services        = optional(string)
     ai_foundry_project = optional(string)
     ai_agent_host      = optional(string)
+    resource_group     = optional(string)
   })
   default     = {}
   description = "Custom names for each resource. If not provided, names will be generated using base_name or random names."
+}
+
+variable "role_assignments" {
+  type = map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
+- `principal_id` - The ID of the principal to assign the role to.
+- `description` - The description of the role assignment.
+- `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
+- `condition` - The condition which will be used to scope the role assignment.
+- `condition_version` - The version of the condition syntax. Valid values are '2.0'.
+- `delegated_managed_identity_resource_id` - The delegated Azure Resource Id which contains a Managed Identity. Changing this forces a new resource to be created.
+- `principal_type` - The type of the principal_id. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
+
+> Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
+DESCRIPTION
+  nullable    = false
 }
 
 # Private Endpoint Configurations

@@ -9,18 +9,18 @@ output "ai_agent_environment_id" {
 
 output "ai_agent_service_fqdn" {
   description = "The FQDN of the AI agent service (if available from capability host)."
-  value       = local.deploy_ai_agent_service ? try(azapi_resource.ai_agent_capability_host[0].output.properties.fqdn, null) : null
+  value       = var.create_ai_agent_service ? try(azapi_resource.ai_agent_capability_host[0].output.properties.fqdn, null) : null
 }
 
 # AI Agent Service Outputs
 output "ai_agent_service_id" {
   description = "The resource ID of the AI agent capability host."
-  value       = local.deploy_ai_agent_service ? azapi_resource.ai_agent_capability_host[0].id : null
+  value       = var.create_ai_agent_service ? azapi_resource.ai_agent_capability_host[0].id : null
 }
 
 output "ai_agent_service_name" {
   description = "The name of the AI agent capability host."
-  value       = local.deploy_ai_agent_service ? azapi_resource.ai_agent_capability_host[0].name : null
+  value       = var.create_ai_agent_service ? azapi_resource.ai_agent_capability_host[0].name : null
 }
 
 # AI Foundry Outputs
@@ -48,12 +48,12 @@ output "ai_foundry_hub_workspace_url" {
 
 output "ai_foundry_project_id" {
   description = "The resource ID of the AI Foundry Project."
-  value       = azapi_resource.ai_foundry_project.id
+  value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].id : null
 }
 
 output "ai_foundry_project_name" {
   description = "The name of the AI Foundry Project."
-  value       = azapi_resource.ai_foundry_project.name
+  value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].name : null
 }
 
 output "ai_foundry_project_private_endpoints" {
@@ -70,7 +70,7 @@ output "ai_foundry_project_private_endpoints" {
 
 output "ai_foundry_project_workspace_url" {
   description = "The project URL of the AI Foundry Project."
-  value       = try(azapi_resource.ai_foundry_project.output.properties.projectUrl, null)
+  value       = var.create_ai_foundry_project ? try(azapi_resource.ai_foundry_project[0].output.properties.projectUrl, null) : null
 }
 
 # AI Search Outputs
@@ -124,12 +124,12 @@ output "ai_services_private_endpoints" {
 
 output "azure_ai_project_name" {
   description = "Name of the deployed Azure AI Project."
-  value       = azapi_resource.ai_foundry_project.name
+  value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].name : ""
 }
 
 output "azure_ai_search_name" {
   description = "Name of the deployed Azure AI Search service."
-  value       = var.existing_ai_search_resource_id == null ? module.ai_search[0].resource.name : (var.existing_ai_search_resource_id != null ? split("/", var.existing_ai_search_resource_id)[8] : "")
+  value       = local.deploy_ai_search ? module.ai_search[0].resource.name : (var.existing_ai_search_resource_id != null ? split("/", var.existing_ai_search_resource_id)[8] : "")
 }
 
 output "azure_ai_services_name" {
@@ -144,7 +144,7 @@ output "azure_container_registry_name" {
 
 output "azure_key_vault_name" {
   description = "Name of the deployed Azure Key Vault."
-  value       = var.existing_key_vault_resource_id == null ? module.key_vault[0].name : (var.existing_key_vault_resource_id != null ? data.azurerm_key_vault.existing[0].name : "")
+  value       = local.deploy_key_vault ? module.key_vault[0].resource.name : (var.existing_key_vault_resource_id != null ? data.azurerm_key_vault.existing[0].name : "")
 }
 
 output "azure_virtual_network_name" {
@@ -252,17 +252,17 @@ output "key_vault" {
 # Key Vault Outputs (for examples)
 output "key_vault_id" {
   description = "The resource ID of the Key Vault."
-  value       = var.existing_key_vault_resource_id != null ? var.existing_key_vault_resource_id : (var.existing_key_vault_resource_id == null ? module.key_vault[0].resource_id : null)
+  value       = var.existing_key_vault_resource_id != null ? var.existing_key_vault_resource_id : (local.deploy_key_vault ? module.key_vault[0].resource_id : null)
 }
 
 output "key_vault_name" {
   description = "The name of the Key Vault."
-  value       = var.existing_key_vault_resource_id != null ? data.azurerm_key_vault.existing[0].name : (var.existing_key_vault_resource_id == null ? module.key_vault[0].name : null)
+  value       = var.existing_key_vault_resource_id != null ? data.azurerm_key_vault.existing[0].name : (local.deploy_key_vault ? module.key_vault[0].name : null)
 }
 
 output "key_vault_uri" {
   description = "The URI of the Key Vault."
-  value       = var.existing_key_vault_resource_id != null ? data.azurerm_key_vault.existing[0].vault_uri : (var.existing_key_vault_resource_id == null ? module.key_vault[0].uri : null)
+  value       = var.existing_key_vault_resource_id != null ? data.azurerm_key_vault.existing[0].vault_uri : (local.deploy_key_vault ? module.key_vault[0].vault_uri : null)
 }
 
 # Managed Identity Outputs
@@ -301,8 +301,8 @@ output "resource_group" {
   description = "The resource group containing all AI Foundry resources."
   value = {
     id       = local.resource_group_id
-    name     = var.resource_group_name
-    location = var.location
+    name     = local.resource_group_name
+    location = local.location
   }
 }
 
@@ -314,13 +314,13 @@ output "resource_group_id" {
 
 output "resource_group_name" {
   description = "Name of the deployed Azure Resource Group."
-  value       = var.resource_group_name
+  value       = local.resource_group_name
 }
 
 # Required AVM Outputs
 output "resource_id" {
   description = "The resource ID of the primary AI Foundry project resource."
-  value       = azapi_resource.ai_foundry_project.id
+  value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].id : null
 }
 
 # Storage Account Outputs
@@ -342,12 +342,12 @@ output "storage_account" {
 # Storage Account Outputs (for examples)
 output "storage_account_id" {
   description = "The resource ID of the storage account."
-  value       = var.existing_storage_account_resource_id != null ? var.existing_storage_account_resource_id : (var.existing_storage_account_resource_id == null ? module.storage_account[0].resource_id : null)
+  value       = var.existing_storage_account_resource_id != null ? var.existing_storage_account_resource_id : (local.deploy_storage_account ? module.storage_account[0].resource_id : null)
 }
 
 output "storage_account_name" {
   description = "The name of the storage account."
-  value       = var.existing_storage_account_resource_id != null ? data.azurerm_storage_account.existing[0].name : (var.existing_storage_account_resource_id == null ? module.storage_account[0].name : null)
+  value       = var.existing_storage_account_resource_id != null ? data.azurerm_storage_account.existing[0].name : (local.deploy_storage_account ? module.storage_account[0].name : null)
 }
 
 output "subnet_id" {

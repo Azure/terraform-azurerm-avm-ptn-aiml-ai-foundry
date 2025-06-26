@@ -1,3 +1,10 @@
+# Data sources for existing resources
+data "azurerm_resource_group" "existing" {
+  count = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? 1 : 0
+
+  name = var.existing_resource_group_name != null ? var.existing_resource_group_name : split("/", var.existing_resource_group_id)[4]
+}
+
 # Data sources for existing resources and client config
 data "azurerm_client_config" "current" {}
 

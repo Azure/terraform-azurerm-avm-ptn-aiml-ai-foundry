@@ -68,6 +68,20 @@ output "ai_services" {
   value       = module.ai_foundry.ai_services
 }
 
+# ========================================
+# Application Insights Output
+# ========================================
+output "application_insights" {
+  description = "The Application Insights instance used for monitoring."
+  sensitive   = true
+  value = {
+    id                  = azurerm_application_insights.this.id
+    name                = azurerm_application_insights.this.name
+    instrumentation_key = azurerm_application_insights.this.instrumentation_key
+    connection_string   = azurerm_application_insights.this.connection_string
+  }
+}
+
 output "bastion_host" {
   description = "The Azure Bastion Host for secure VM access."
   value = {
@@ -96,18 +110,6 @@ output "key_vault" {
 output "location" {
   description = "The Azure region where resources are deployed."
   value       = azurerm_resource_group.this.location
-}
-
-# ========================================
-# Log Analytics Workspace Output
-# ========================================
-output "log_analytics_workspace" {
-  description = "The Log Analytics Workspace used for monitoring and diagnostics."
-  value = {
-    id           = azurerm_log_analytics_workspace.this.id
-    name         = azurerm_log_analytics_workspace.this.name
-    workspace_id = azurerm_log_analytics_workspace.this.workspace_id
-  }
 }
 
 output "private_dns_zones" {
@@ -160,7 +162,7 @@ output "virtual_machine" {
   description = "The Virtual Machine for AI development and testing."
   value = {
     id             = module.virtual_machine.resource_id
-    name           = try(module.virtual_machine.virtual_machine_azurerm.computer_name, module.virtual_machine.resource_id)
+    name           = module.virtual_machine.virtual_machine_azurerm.name
     admin_username = "azureadmin"
   }
 }

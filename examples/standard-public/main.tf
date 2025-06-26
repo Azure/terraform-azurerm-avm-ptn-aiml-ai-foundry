@@ -21,7 +21,7 @@ provider "azurerm" {
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.5.2"
+  version = "~> 0.1"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -34,7 +34,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "0.4.2"
+  version = "~> 0.3"
 }
 
 # This is required for resource modules
@@ -43,7 +43,15 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-# Log Analytics Workspace for Container App Environment and AVM modules
+# Application Insights for AI Foundry (required)
+resource "azurerm_application_insights" "this" {
+  application_type    = "web"
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.application_insights.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+}
+
+# Log Analytics Workspace for Container App Environment
 resource "azurerm_log_analytics_workspace" "this" {
   location            = azurerm_resource_group.this.location
   name                = module.naming.log_analytics_workspace.name_unique
@@ -56,12 +64,12 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  location                       = azurerm_resource_group.this.location
-  name                           = "ai-foundry-std-pub"
-  resource_group_name            = azurerm_resource_group.this.name
-  ai_foundry_project_description = "Standard AI Foundry project with agent services (public endpoints)"
-  ai_foundry_project_name        = "AI-Foundry-Standard-Public"
-  # Standard AI model deployment
+  location                             = azurerm_resource_group.this.location
+  name                                 = "ai-foundry-std-pub"
+  ai_foundry_project_description       = "Standard AI Foundry project with agent services (public endpoints)"
+  ai_foundry_project_name              = "AI-Foundry-Standard-Public"
+  ai_foundry_project_private_endpoints = {}
+  # Standard AI model deployment (single model)
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4o"
@@ -75,8 +83,12 @@ module "ai_foundry" {
       }
     }
   }
-  # Enable agent service (no agent subnet required for public scenarios)
-  create_ai_agent_service                      = true
-  enable_telemetry                             = true
-  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
+  ai_search_private_endpoints   = {}
+  ai_services_private_endpoints = {}
+  cosmos_db_private_endpoints   = {}
+  # Enable telemetry for the module
+  enable_telemetry             = var.enable_telemetry
+  existing_resource_group_name = azurerm_resource_group.this.name
+  key_vault_private_endpoints  = {}
+  storage_private_endpoints    = {}
 }
