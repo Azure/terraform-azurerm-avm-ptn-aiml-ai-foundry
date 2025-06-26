@@ -112,19 +112,11 @@ data "azurerm_client_config" "current" {}
 module "ai_foundry" {
   source = "../../"
 
-  location            = azurerm_resource_group.this.location
-  name                = "ai-foundry-byor"
-  resource_group_name = azurerm_resource_group.this.name
-
-  # Use existing resources created above
-  existing_storage_account_resource_id = module.storage_account.resource_id
-  existing_key_vault_resource_id       = module.key_vault.resource_id
-  existing_cosmos_db_resource_id       = module.cosmos_db.resource_id
-  existing_ai_search_resource_id       = module.ai_search.resource_id
-
+  location                       = azurerm_resource_group.this.location
+  name                           = "ai-foundry-byor"
+  resource_group_name            = azurerm_resource_group.this.name
   ai_foundry_project_description = "AI Foundry project demonstrating Bring Your Own Resources (BYOR)"
   ai_foundry_project_name        = "AI-Foundry-BYOR"
-
   # Standard AI model deployment
   ai_model_deployments = {
     "gpt-4o" = {
@@ -139,10 +131,13 @@ module "ai_foundry" {
       }
     }
   }
-
   # Enable agent service (no agent subnet required for BYOR public scenario)
-  create_ai_agent_service = true
-
+  create_ai_agent_service                      = true
   enable_telemetry                             = true
+  existing_ai_search_resource_id               = module.ai_search.resource_id
+  existing_cosmos_db_resource_id               = module.cosmos_db.resource_id
+  existing_key_vault_resource_id               = module.key_vault.resource_id
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
+  # Use existing resources created above
+  existing_storage_account_resource_id = module.storage_account.resource_id
 }

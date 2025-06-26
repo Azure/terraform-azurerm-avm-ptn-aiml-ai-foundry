@@ -249,14 +249,22 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  location                 = azurerm_resource_group.this.location
-  name                     = "ai-foundry-std-prv"
-  resource_group_name      = azurerm_resource_group.this.name
-  agent_subnet_resource_id = azurerm_subnet.agent_services.id
-
+  location                       = azurerm_resource_group.this.location
+  name                           = "ai-foundry-std-prv"
+  resource_group_name            = azurerm_resource_group.this.name
+  agent_subnet_resource_id       = azurerm_subnet.agent_services.id
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
   ai_foundry_project_name        = "AI-Foundry-Standard-Private"
-
+  # Private endpoint configurations
+  ai_foundry_project_private_endpoints = {
+    "amlworkspace" = {
+      subnet_resource_id = azurerm_subnet.private_endpoints.id
+      subresource_name   = "amlworkspace"
+      private_dns_zone_resource_ids = [
+        azurerm_private_dns_zone.ml_workspace.id
+      ]
+    }
+  }
   # Standard AI model deployment
   ai_model_deployments = {
     "gpt-4o" = {
@@ -269,17 +277,6 @@ module "ai_foundry" {
       scale = {
         type = "Standard"
       }
-    }
-  }
-
-  # Private endpoint configurations
-  ai_foundry_project_private_endpoints = {
-    "amlworkspace" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "amlworkspace"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.ml_workspace.id
-      ]
     }
   }
   ai_search_private_endpoints = {
@@ -309,6 +306,10 @@ module "ai_foundry" {
       ]
     }
   }
+  # Enable agent service with agent subnet for private scenario
+  create_ai_agent_service                      = true
+  enable_telemetry                             = true
+  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -327,10 +328,4 @@ module "ai_foundry" {
       ]
     }
   }
-
-  # Enable agent service with agent subnet for private scenario
-  create_ai_agent_service = true
-
-  enable_telemetry                             = true
-  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
 }

@@ -62,13 +62,12 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  location                             = azurerm_resource_group.this.location
-  name                                 = "ai-foundry-std-pub"
-  resource_group_name                  = azurerm_resource_group.this.name
-  ai_foundry_project_description       = "Standard AI Foundry project with agent services (public endpoints)"
-  ai_foundry_project_name              = "AI-Foundry-Standard-Public"
-  ai_foundry_project_private_endpoints = {}
-  # Standard AI model deployment (single model)
+  location                       = azurerm_resource_group.this.location
+  name                           = "ai-foundry-std-pub"
+  resource_group_name            = azurerm_resource_group.this.name
+  ai_foundry_project_description = "Standard AI Foundry project with agent services (public endpoints)"
+  ai_foundry_project_name        = "AI-Foundry-Standard-Public"
+  # Standard AI model deployment
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4o"
@@ -82,14 +81,10 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_private_endpoints   = {}
-  ai_services_private_endpoints = {}
-  cosmos_db_private_endpoints   = {}
-  # Enable telemetry for the module
-  enable_telemetry                             = var.enable_telemetry
+  # Enable agent service (no agent subnet required for public scenarios)
+  create_ai_agent_service                      = true
+  enable_telemetry                             = true
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
-  key_vault_private_endpoints                  = {}
-  storage_private_endpoints                    = {}
 }
 ```
 

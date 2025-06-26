@@ -10,9 +10,9 @@ module "storage_account" {
   diagnostic_settings_storage_account = {
     workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
       "default" = {
-        name                                = "diag"
-        log_analytics_workspace_resource_id = var.existing_log_analytics_workspace_resource_id
-        log_categories                      = ["audit", "alllogs"]
+        name                  = "diag"
+        workspace_resource_id = var.existing_log_analytics_workspace_resource_id
+        log_categories        = ["audit", "alllogs"]
       }
     } : {}
   }
@@ -33,9 +33,9 @@ module "key_vault" {
   diagnostic_settings = {
     workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
       "default" = {
-        name                                = "diag"
-        log_analytics_workspace_resource_id = var.existing_log_analytics_workspace_resource_id
-        log_categories                      = ["audit", "alllogs"]
+        name                  = "diag"
+        workspace_resource_id = var.existing_log_analytics_workspace_resource_id
+        log_categories        = ["audit", "alllogs"]
       }
     } : {}
   }
@@ -56,9 +56,9 @@ module "cosmos_db" {
   diagnostic_settings = {
     workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
       "default" = {
-        name                                = "diag"
-        log_analytics_workspace_resource_id = var.existing_log_analytics_workspace_resource_id
-        log_categories                      = ["audit", "alllogs"]
+        name                  = "diag"
+        workspace_resource_id = var.existing_log_analytics_workspace_resource_id
+        log_categories        = ["audit", "alllogs"]
       }
     } : {}
   }
@@ -79,9 +79,9 @@ module "ai_search" {
   diagnostic_settings = {
     workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
       "default" = {
-        name                                = "diag"
-        log_analytics_workspace_resource_id = var.existing_log_analytics_workspace_resource_id
-        log_categories                      = ["audit", "alllogs"]
+        name                  = "diag"
+        workspace_resource_id = var.existing_log_analytics_workspace_resource_id
+        log_categories        = ["audit", "alllogs"]
       }
     } : {}
   }

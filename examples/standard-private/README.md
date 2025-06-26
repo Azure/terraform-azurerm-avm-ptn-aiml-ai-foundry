@@ -261,6 +261,7 @@ module "ai_foundry" {
   agent_subnet_resource_id       = azurerm_subnet.agent_services.id
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
   ai_foundry_project_name        = "AI-Foundry-Standard-Private"
+  # Private endpoint configurations
   ai_foundry_project_private_endpoints = {
     "amlworkspace" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -270,7 +271,7 @@ module "ai_foundry" {
       ]
     }
   }
-  # Standard AI model deployment (single model)
+  # Standard AI model deployment
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4o"
@@ -311,8 +312,9 @@ module "ai_foundry" {
       ]
     }
   }
-  # Enable telemetry for the module
-  enable_telemetry                             = var.enable_telemetry
+  # Enable agent service with agent subnet for private scenario
+  create_ai_agent_service                      = true
+  enable_telemetry                             = true
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
   key_vault_private_endpoints = {
     "vault" = {
@@ -323,7 +325,6 @@ module "ai_foundry" {
       ]
     }
   }
-  # Private endpoint configurations with created DNS zones
   storage_private_endpoints = {
     "blob" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id

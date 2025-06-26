@@ -59,25 +59,22 @@ module "ai_foundry" {
   location            = azurerm_resource_group.this.location
   name                = "ai-foundry-basic"
   resource_group_name = azurerm_resource_group.this.name
-
   # Basic AI model deployment (single model)
   ai_model_deployments = {
-    "gpt-35-turbo" = {
-      name = "gpt-35-turbo"
+    "gpt-4o" = {
+      name = "gpt-4o"
       model = {
         format  = "OpenAI"
-        name    = "gpt-35-turbo"
-        version = "0613"
+        name    = "gpt-4o"
+        version = "2024-08-06"
       }
       scale = {
         type = "Standard"
       }
     }
   }
-
   # Enable agent service (no agent subnet required for basic/public scenarios)
-  create_ai_agent_service = true
-
+  create_ai_agent_service                      = true
   enable_telemetry                             = true
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
 }
