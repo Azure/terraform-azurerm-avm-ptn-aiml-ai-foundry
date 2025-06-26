@@ -91,9 +91,9 @@ output "ai_search" {
 output "ai_services" {
   description = "The AI Services account with OpenAI and other AI models."
   value = {
-    id          = module.ai_services.resource_id
-    name        = module.ai_services.name
-    endpoint    = module.ai_services.endpoint
+    id          = azapi_resource.ai_services.id
+    name        = azapi_resource.ai_services.name
+    endpoint    = azapi_resource.ai_services.output.properties.endpoint
     deployments = var.ai_model_deployments
   }
 }
@@ -101,18 +101,25 @@ output "ai_services" {
 # AI Services Endpoint and Keys (for examples)
 output "ai_services_endpoint" {
   description = "The endpoint of the AI Services account."
-  value       = module.ai_services.endpoint
+  value       = azapi_resource.ai_services.output.properties.endpoint
 }
 
 output "ai_services_name" {
   description = "The name of the AI Services account."
-  value       = module.ai_services.name
+  value       = azapi_resource.ai_services.name
 }
 
-output "ai_services_primary_access_key" {
-  description = "The primary access key for the AI Services account."
-  sensitive   = true
-  value       = module.ai_services.primary_access_key
+# AI Services Private Endpoints
+output "ai_services_private_endpoints" {
+  description = "A map of private endpoints created for the AI Services account."
+  value = {
+    for k, v in azurerm_private_endpoint.ai_services : k => {
+      id           = v.id
+      name         = v.name
+      fqdn         = try(v.private_dns_zone_group[0].private_dns_zone_configs[0].record_sets[0].fqdn, null)
+      ip_addresses = v.private_service_connection[0].private_ip_address
+    }
+  }
 }
 
 output "azure_ai_project_name" {
@@ -127,12 +134,7 @@ output "azure_ai_search_name" {
 
 output "azure_ai_services_name" {
   description = "Name of the deployed Azure AI Services account."
-  value       = module.ai_services.resource.name
-}
-
-output "azure_bastion_name" {
-  description = "Name of the external Azure Bastion host (provided by user)."
-  value       = var.bastion_host_resource_id != null ? split("/", var.bastion_host_resource_id)[8] : ""
+  value       = azapi_resource.ai_services.name
 }
 
 output "azure_container_registry_name" {
@@ -146,37 +148,22 @@ output "azure_key_vault_name" {
 }
 
 output "azure_virtual_network_name" {
-  description = "Name of the external Azure Virtual Network (provided by user)."
-  value       = local.virtual_network_id != null ? split("/", local.virtual_network_id)[8] : ""
+  description = "Name of the external Azure Virtual Network (provided by user via agent_subnet_resource_id)."
+  value       = var.agent_subnet_resource_id != null ? split("/", var.agent_subnet_resource_id)[8] : ""
 }
 
 output "azure_virtual_network_subnet_name" {
-  description = "Name of the external Azure Virtual Network Subnet (provided by user)."
-  value       = local.subnet_id != null ? split("/", local.subnet_id)[10] : ""
-}
-
-output "azure_vm_resource_id" {
-  description = "Resource ID of the external Azure VM (provided by user)."
-  value       = var.virtual_machine_resource_id != null ? var.virtual_machine_resource_id : ""
-}
-
-output "azure_vm_username" {
-  description = "Username for the external Azure VM (not managed by this module)."
-  value       = "" # VM is external - username not managed by this module
-}
-
-output "bastion_host_id" {
-  description = "The resource ID of the Bastion host (external resource)."
-  value       = var.bastion_host_resource_id
+  description = "Name of the external Azure Virtual Network Subnet (provided by user via agent_subnet_resource_id)."
+  value       = var.agent_subnet_resource_id != null ? split("/", var.agent_subnet_resource_id)[10] : ""
 }
 
 # Legacy output for backward compatibility
 output "cognitive_services" {
   description = "The AI Services account (legacy name for backward compatibility)."
   value = {
-    id          = module.ai_services.resource_id
-    name        = module.ai_services.name
-    endpoint    = module.ai_services.endpoint
+    id          = azapi_resource.ai_services.id
+    name        = azapi_resource.ai_services.name
+    endpoint    = azapi_resource.ai_services.output.properties.endpoint
     deployments = var.ai_model_deployments
   }
 }
@@ -223,8 +210,8 @@ output "connection_info" {
     }
 
     openai_connection = {
-      endpoint     = module.ai_services.endpoint
-      account_name = module.ai_services.name
+      endpoint     = azapi_resource.ai_services.output.properties.endpoint
+      account_name = azapi_resource.ai_services.name
       deployments  = var.ai_model_deployments
     }
   }
@@ -286,7 +273,7 @@ output "managed_identities" {
     key_vault       = var.existing_key_vault_resource_id == null ? try(module.key_vault[0].system_assigned_mi_principal_id, null) : null
     cosmos_db       = var.existing_cosmos_db_resource_id == null ? try(module.cosmos_db[0].system_assigned_mi_principal_id, null) : null
     ai_search       = var.existing_ai_search_resource_id == null ? try(module.ai_search[0].system_assigned_mi_principal_id, null) : null
-    ai_services     = try(module.ai_services.system_assigned_mi_principal_id, null)
+    ai_services     = try(azapi_resource.ai_services.identity[0].principal_id, null)
   }
 }
 
@@ -298,7 +285,14 @@ output "private_endpoints" {
     key_vault       = var.existing_key_vault_resource_id == null ? try(module.key_vault[0].private_endpoints, {}) : {}
     cosmos_db       = var.existing_cosmos_db_resource_id == null ? try(module.cosmos_db[0].private_endpoints, {}) : {}
     ai_search       = var.existing_ai_search_resource_id == null ? try(module.ai_search[0].private_endpoints, {}) : {}
-    ai_services     = try(module.ai_services.private_endpoints, {})
+    ai_services = {
+      for k, v in azurerm_private_endpoint.ai_services : k => {
+        id           = v.id
+        name         = v.name
+        fqdn         = try(v.private_dns_zone_group[0].private_dns_zone_configs[0].record_sets[0].fqdn, null)
+        ip_addresses = v.private_service_connection[0].private_ip_address
+      }
+    }
   }
 }
 
@@ -357,17 +351,12 @@ output "storage_account_name" {
 }
 
 output "subnet_id" {
-  description = "The resource ID of the subnet (external resource)."
-  value       = local.subnet_id
-}
-
-output "virtual_machine_id" {
-  description = "The resource ID of the virtual machine (external resource)."
-  value       = var.virtual_machine_resource_id
+  description = "The resource ID of the agent subnet (external resource provided by user)."
+  value       = var.agent_subnet_resource_id
 }
 
 # External Networking Resource References
 output "virtual_network_id" {
-  description = "The resource ID of the virtual network (external resource)."
-  value       = local.virtual_network_id
+  description = "The resource ID of the virtual network (external resource, derived from agent_subnet_resource_id)."
+  value       = var.agent_subnet_resource_id != null ? join("/", slice(split("/", var.agent_subnet_resource_id), 0, 9)) : null
 }

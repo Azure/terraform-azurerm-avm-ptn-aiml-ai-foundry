@@ -58,23 +58,57 @@ module "ai_search" {
   private_endpoints   = var.ai_search_private_endpoints
 }
 
-# Azure AI Services (AIServices kind includes OpenAI)
-module "ai_services" {
-  source  = "Azure/avm-res-cognitiveservices-account/azurerm"
-  version = "~> 0.7.1"
-
-  kind                = "AIServices"
-  location            = local.location
-  name                = local.resource_names.ai_services
-  resource_group_name = local.resource_group_name
-  sku_name            = "S0"
-  # Deploy AI models including OpenAI
-  cognitive_deployments = var.ai_model_deployments
-  managed_identities = {
-    system_assigned = true
+# Azure AI Services (Using AzAPI - AIServices kind includes OpenAI)
+resource "azapi_resource" "ai_services" {
+  location  = local.location
+  name      = local.resource_names.ai_services
+  parent_id = local.resource_group_id
+  type      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
+  body = {
+    kind = "AIServices"
+    sku = {
+      name = "S0"
+    }
+    properties = {
+      publicNetworkAccess = length(var.ai_services_private_endpoints) == 0 ? "Enabled" : "Disabled"
+    }
   }
-  private_endpoints             = var.ai_services_private_endpoints
-  public_network_access_enabled = length(var.ai_services_private_endpoints) == 0 ? true : false
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  depends_on = [
+    azurerm_resource_group.this
+  ]
+}
+
+# AI Model Deployments (Using AzAPI)
+resource "azapi_resource" "ai_model_deployment" {
+  for_each = var.ai_model_deployments
+
+  name      = each.value.name
+  parent_id = azapi_resource.ai_services.id
+  type      = "Microsoft.CognitiveServices/accounts/deployments@2025-04-01-preview"
+  body = {
+    properties = {
+      model = {
+        format  = each.value.model.format
+        name    = each.value.model.name
+        version = each.value.model.version
+      }
+      raiPolicyName        = each.value.rai_policy_name
+      versionUpgradeOption = each.value.version_upgrade_option
+    }
+    sku = {
+      name     = each.value.scale.type
+      capacity = each.value.scale.capacity
+    }
+  }
+
+  depends_on = [
+    azapi_resource.ai_services
+  ]
 }
 
 # Required AVM interfaces
@@ -107,7 +141,7 @@ resource "azapi_resource" "ai_foundry_project" {
 
   location  = local.location
   name      = local.resource_names.ai_foundry_project
-  parent_id = module.ai_services.resource_id
+  parent_id = azapi_resource.ai_services.id
   type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
   body = {
     properties = {
@@ -122,7 +156,7 @@ resource "azapi_resource" "ai_foundry_project" {
   }
 
   depends_on = [
-    module.ai_services,
+    azapi_resource.ai_services,
     module.storage_account,
     module.key_vault
   ]
@@ -149,7 +183,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
 
       # AI Services connections for model access
       aiServicesConnections = [
-        module.ai_services.resource_id
+        azapi_resource.ai_services.id
       ]
 
       # Optional: Thread storage connections
@@ -167,7 +201,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
       )
 
       # Customer subnet for private networking - use external subnet
-      customerSubnet = local.subnet_id
+      customerSubnet = var.agent_subnet_resource_id
     }
   }
 
@@ -188,7 +222,7 @@ resource "azurerm_private_endpoint" "ai_foundry_project" {
   private_service_connection {
     is_manual_connection           = false
     name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "psc-${azapi_resource.ai_foundry_project[0].name}-${each.key}"
-    private_connection_resource_id = module.ai_services.resource_id # Connect to the AI Services account
+    private_connection_resource_id = azapi_resource.ai_services.id # Connect to the AI Services account
     subresource_names              = [each.value.subresource_name]
   }
   dynamic "private_dns_zone_group" {
@@ -199,4 +233,33 @@ resource "azurerm_private_endpoint" "ai_foundry_project" {
       private_dns_zone_ids = each.value.private_dns_zone_resource_ids
     }
   }
+}
+
+# Private Endpoints for AI Services
+resource "azurerm_private_endpoint" "ai_services" {
+  for_each = var.ai_services_private_endpoints
+
+  location            = each.value.location != null ? each.value.location : var.location
+  name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_services.name}-${each.key}"
+  resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : local.resource_group_name
+  subnet_id           = each.value.subnet_resource_id
+
+  private_service_connection {
+    is_manual_connection           = false
+    name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "psc-${azapi_resource.ai_services.name}-${each.key}"
+    private_connection_resource_id = azapi_resource.ai_services.id
+    subresource_names              = [each.value.subresource_name]
+  }
+  dynamic "private_dns_zone_group" {
+    for_each = length(each.value.private_dns_zone_resource_ids) > 0 ? [each.value.private_dns_zone_group_name] : []
+
+    content {
+      name                 = private_dns_zone_group.value
+      private_dns_zone_ids = each.value.private_dns_zone_resource_ids
+    }
+  }
+
+  depends_on = [
+    azapi_resource.ai_services
+  ]
 }

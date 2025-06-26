@@ -24,8 +24,11 @@ The following resources are used by this module:
 
 - [azapi_resource.ai_agent_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_foundry_project](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.ai_model_deployment](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.ai_services](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_private_endpoint.ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
+- [azurerm_private_endpoint.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
@@ -272,14 +275,6 @@ Type: `string`
 
 Default: `null`
 
-### <a name="input_bastion_host_resource_id"></a> [bastion\_host\_resource\_id](#input\_bastion\_host\_resource\_id)
-
-Description: The resource ID of an existing Azure Bastion Host for secure VM access. Optional - only needed for private network deployments.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_cosmos_db_private_endpoints"></a> [cosmos\_db\_private\_endpoints](#input\_cosmos\_db\_private\_endpoints)
 
 Description: Private endpoint configuration for the Cosmos DB account.
@@ -336,30 +331,6 @@ Description: Whether to create an AI Foundry project workspace.
 Type: `bool`
 
 Default: `true`
-
-### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
-
-Description: A map describing customer-managed keys to associate with the resource. This includes the following properties:
-- `key_vault_resource_id` - The resource ID of the Key Vault where the key is stored.
-- `key_name` - The name of the key.
-- `key_version` - (Optional) The version of the key. If not specified, the latest version is used.
-- `user_assigned_identity` - (Optional) An object representing a user-assigned identity with the following properties:
-  - `resource_id` - The resource ID of the user-assigned identity.
-
-Type:
-
-```hcl
-object({
-    key_vault_resource_id = string
-    key_name              = string
-    key_version           = optional(string, null)
-    user_assigned_identity = optional(object({
-      resource_id = string
-    }), null)
-  })
-```
-
-Default: `null`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
@@ -435,22 +406,6 @@ Type: `string`
 
 Default: `null`
 
-### <a name="input_existing_subnet_id"></a> [existing\_subnet\_id](#input\_existing\_subnet\_id)
-
-Description: (Deprecated) Use subnet\_resource\_id instead. The resource ID of an existing subnet to use for private endpoints.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_existing_virtual_network_id"></a> [existing\_virtual\_network\_id](#input\_existing\_virtual\_network\_id)
-
-Description: (Deprecated) Use virtual\_network\_resource\_id instead. The resource ID of an existing virtual network to use.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_key_vault_private_endpoints"></a> [key\_vault\_private\_endpoints](#input\_key\_vault\_private\_endpoints)
 
 Description: Private endpoint configuration for the Key Vault.
@@ -507,32 +462,6 @@ object({
     name = optional(string, null)
   })
 ```
-
-Default: `null`
-
-### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
-
-Description: Controls the Managed Identity configuration on this resource. The following properties can be specified:
-
-- `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
-- `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
-
-Type:
-
-```hcl
-object({
-    system_assigned            = optional(bool, false)
-    user_assigned_resource_ids = optional(set(string), [])
-  })
-```
-
-Default: `{}`
-
-### <a name="input_project_name"></a> [project\_name](#input\_project\_name)
-
-Description: Name of the AI Foundry project. If not provided, defaults to name with 'proj' suffix.
-
-Type: `string`
 
 Default: `null`
 
@@ -638,30 +567,6 @@ map(object({
 
 Default: `{}`
 
-### <a name="input_subnet_resource_id"></a> [subnet\_resource\_id](#input\_subnet\_resource\_id)
-
-Description: The resource ID of an existing subnet for private endpoints. Optional - only needed for private network deployments.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_virtual_machine_resource_id"></a> [virtual\_machine\_resource\_id](#input\_virtual\_machine\_resource\_id)
-
-Description: The resource ID of an existing Virtual Machine for jump-box access. Optional - only needed for private network deployments when VM access is needed.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_virtual_network_resource_id"></a> [virtual\_network\_resource\_id](#input\_virtual\_network\_resource\_id)
-
-Description: The resource ID of an existing virtual network to use for private endpoints and networking. Optional - only needed for private network deployments.
-
-Type: `string`
-
-Default: `null`
-
 ## Outputs
 
 The following outputs are exported:
@@ -730,9 +635,9 @@ Description: The endpoint of the AI Services account.
 
 Description: The name of the AI Services account.
 
-### <a name="output_ai_services_primary_access_key"></a> [ai\_services\_primary\_access\_key](#output\_ai\_services\_primary\_access\_key)
+### <a name="output_ai_services_private_endpoints"></a> [ai\_services\_private\_endpoints](#output\_ai\_services\_private\_endpoints)
 
-Description: The primary access key for the AI Services account.
+Description: A map of private endpoints created for the AI Services account.
 
 ### <a name="output_azure_ai_project_name"></a> [azure\_ai\_project\_name](#output\_azure\_ai\_project\_name)
 
@@ -746,10 +651,6 @@ Description: Name of the deployed Azure AI Search service.
 
 Description: Name of the deployed Azure AI Services account.
 
-### <a name="output_azure_bastion_name"></a> [azure\_bastion\_name](#output\_azure\_bastion\_name)
-
-Description: Name of the external Azure Bastion host (provided by user).
-
 ### <a name="output_azure_container_registry_name"></a> [azure\_container\_registry\_name](#output\_azure\_container\_registry\_name)
 
 Description: DEPRECATED: Container Registry has been moved to examples. Provide external container registry if needed.
@@ -760,23 +661,11 @@ Description: Name of the deployed Azure Key Vault.
 
 ### <a name="output_azure_virtual_network_name"></a> [azure\_virtual\_network\_name](#output\_azure\_virtual\_network\_name)
 
-Description: Name of the external Azure Virtual Network (provided by user).
+Description: Name of the external Azure Virtual Network (provided by user via agent\_subnet\_resource\_id).
 
 ### <a name="output_azure_virtual_network_subnet_name"></a> [azure\_virtual\_network\_subnet\_name](#output\_azure\_virtual\_network\_subnet\_name)
 
-Description: Name of the external Azure Virtual Network Subnet (provided by user).
-
-### <a name="output_azure_vm_resource_id"></a> [azure\_vm\_resource\_id](#output\_azure\_vm\_resource\_id)
-
-Description: Resource ID of the external Azure VM (provided by user).
-
-### <a name="output_azure_vm_username"></a> [azure\_vm\_username](#output\_azure\_vm\_username)
-
-Description: Username for the external Azure VM (not managed by this module).
-
-### <a name="output_bastion_host_id"></a> [bastion\_host\_id](#output\_bastion\_host\_id)
-
-Description: The resource ID of the Bastion host (external resource).
+Description: Name of the external Azure Virtual Network Subnet (provided by user via agent\_subnet\_resource\_id).
 
 ### <a name="output_cognitive_services"></a> [cognitive\_services](#output\_cognitive\_services)
 
@@ -844,15 +733,11 @@ Description: The name of the storage account.
 
 ### <a name="output_subnet_id"></a> [subnet\_id](#output\_subnet\_id)
 
-Description: The resource ID of the subnet (external resource).
-
-### <a name="output_virtual_machine_id"></a> [virtual\_machine\_id](#output\_virtual\_machine\_id)
-
-Description: The resource ID of the virtual machine (external resource).
+Description: The resource ID of the agent subnet (external resource provided by user).
 
 ### <a name="output_virtual_network_id"></a> [virtual\_network\_id](#output\_virtual\_network\_id)
 
-Description: The resource ID of the virtual network (external resource).
+Description: The resource ID of the virtual network (external resource, derived from agent\_subnet\_resource\_id).
 
 ## Modules
 
@@ -863,12 +748,6 @@ The following Modules are called:
 Source: Azure/avm-res-search-searchservice/azurerm
 
 Version: ~> 0.1.5
-
-### <a name="module_ai_services"></a> [ai\_services](#module\_ai\_services)
-
-Source: Azure/avm-res-cognitiveservices-account/azurerm
-
-Version: ~> 0.7.1
 
 ### <a name="module_cosmos_db"></a> [cosmos\_db](#module\_cosmos\_db)
 

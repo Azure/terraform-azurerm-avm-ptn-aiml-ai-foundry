@@ -8,9 +8,7 @@ locals {
   # Determine if standard resources should be deployed (when BYO resources are not provided)
   deploy_storage_account = var.existing_storage_account_resource_id == null
   # Resource group and location references
-  location = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].location : var.location
-  # Project naming
-  project_name        = var.project_name != null ? var.project_name : "${var.name}proj"
+  location            = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].location : var.location
   resource_group_id   = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.this[0].id
   resource_group_name = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].name : azurerm_resource_group.this[0].name
   # Advanced resource naming logic
@@ -45,7 +43,7 @@ locals {
       var.resource_names.ai_foundry_project,
       var.ai_foundry_project_name,
       var.base_name != null ? "${var.base_name}proj" : null,
-      local.project_name
+      "${var.name}proj"
     )
     ai_agent_host = coalesce(
       var.resource_names.ai_agent_host,
@@ -57,13 +55,11 @@ locals {
       var.resource_names.resource_group,
       var.resource_group_name,
       var.base_name != null ? "rg-${var.base_name}" : null,
-      var.resource_group_name
+      "rg-${var.name}"
     )
   }
   # Resource token for unique naming
   resource_token = substr(sha256("${data.azurerm_client_config.current.subscription_id}-${local.location}-${var.name}"), 0, 5)
   # Role definition resource substring for role assignments
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
-  subnet_id                          = coalesce(var.subnet_resource_id, var.existing_subnet_id)
-  virtual_network_id                 = coalesce(var.virtual_network_resource_id, var.existing_virtual_network_id)
 }

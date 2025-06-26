@@ -211,17 +211,6 @@ variable "base_name" {
   description = "Base name to use as prefix/suffix for resource names when custom names are not provided. If null, random names will be generated."
 }
 
-variable "bastion_host_resource_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing Azure Bastion Host for secure VM access. Optional - only needed for private network deployments."
-
-  validation {
-    condition     = var.bastion_host_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/bastionHosts/[^/]+$", var.bastion_host_resource_id))
-    error_message = "The bastion_host_resource_id must be a valid Azure Bastion Host resource ID."
-  }
-}
-
 variable "cosmos_db_private_endpoints" {
   type = map(object({
     name = optional(string, null)
@@ -270,29 +259,6 @@ variable "create_ai_foundry_project" {
   type        = bool
   default     = true
   description = "Whether to create an AI Foundry project workspace."
-}
-
-# required AVM interfaces
-# remove only if not supported by the resource
-# tflint-ignore: terraform_unused_declarations
-variable "customer_managed_key" {
-  type = object({
-    key_vault_resource_id = string
-    key_name              = string
-    key_version           = optional(string, null)
-    user_assigned_identity = optional(object({
-      resource_id = string
-    }), null)
-  })
-  default     = null
-  description = <<DESCRIPTION
-A map describing customer-managed keys to associate with the resource. This includes the following properties:
-- `key_vault_resource_id` - The resource ID of the Key Vault where the key is stored.
-- `key_name` - The name of the key.
-- `key_version` - (Optional) The version of the key. If not specified, the latest version is used.
-- `user_assigned_identity` - (Optional) An object representing a user-assigned identity with the following properties:
-  - `resource_id` - The resource ID of the user-assigned identity.
-DESCRIPTION
 }
 
 variable "enable_telemetry" {
@@ -358,20 +324,6 @@ variable "existing_storage_account_resource_id" {
   description = "(Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created."
 }
 
-# BYO Subnet Configuration (Deprecated - use subnet_resource_id instead)
-variable "existing_subnet_id" {
-  type        = string
-  default     = null
-  description = "(Deprecated) Use subnet_resource_id instead. The resource ID of an existing subnet to use for private endpoints."
-}
-
-# BYO Virtual Network Configuration (Deprecated - use virtual_network_resource_id instead)
-variable "existing_virtual_network_id" {
-  type        = string
-  default     = null
-  description = "(Deprecated) Use virtual_network_resource_id instead. The resource ID of an existing virtual network to use."
-}
-
 variable "key_vault_private_endpoints" {
   type = map(object({
     name = optional(string, null)
@@ -425,28 +377,6 @@ DESCRIPTION
     condition     = var.lock != null ? contains(["CanNotDelete", "ReadOnly"], var.lock.kind) : true
     error_message = "The lock level must be one of: 'None', 'CanNotDelete', or 'ReadOnly'."
   }
-}
-
-# tflint-ignore: terraform_unused_declarations
-variable "managed_identities" {
-  type = object({
-    system_assigned            = optional(bool, false)
-    user_assigned_resource_ids = optional(set(string), [])
-  })
-  default     = {}
-  description = <<DESCRIPTION
-Controls the Managed Identity configuration on this resource. The following properties can be specified:
-
-- `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
-- `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
-DESCRIPTION
-  nullable    = false
-}
-
-variable "project_name" {
-  type        = string
-  default     = null
-  description = "Name of the AI Foundry project. If not provided, defaults to name with 'proj' suffix."
 }
 
 # This is required when creating a new resource group
@@ -535,37 +465,4 @@ variable "storage_private_endpoints" {
   default     = {}
   description = "Private endpoint configuration for the Storage Account."
   nullable    = false
-}
-
-variable "subnet_resource_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing subnet for private endpoints. Optional - only needed for private network deployments."
-
-  validation {
-    condition     = var.subnet_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+/subnets/[^/]+$", var.subnet_resource_id))
-    error_message = "The subnet_resource_id must be a valid Azure Subnet resource ID."
-  }
-}
-
-variable "virtual_machine_resource_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing Virtual Machine for jump-box access. Optional - only needed for private network deployments when VM access is needed."
-
-  validation {
-    condition     = var.virtual_machine_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Compute/virtualMachines/[^/]+$", var.virtual_machine_resource_id))
-    error_message = "The virtual_machine_resource_id must be a valid Azure Virtual Machine resource ID."
-  }
-}
-
-variable "virtual_network_resource_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing virtual network to use for private endpoints and networking. Optional - only needed for private network deployments."
-
-  validation {
-    condition     = var.virtual_network_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+$", var.virtual_network_resource_id))
-    error_message = "The virtual_network_resource_id must be a valid Azure Virtual Network resource ID."
-  }
 }
