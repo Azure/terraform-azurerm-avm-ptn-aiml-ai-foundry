@@ -67,12 +67,12 @@ module "ai_foundry" {
   resource_group_name = azurerm_resource_group.this.name
   # Basic AI model deployment (single model)
   ai_model_deployments = {
-    "gpt-35-turbo" = {
-      name = "gpt-35-turbo"
+    "gpt-4o" = {
+      name = "gpt-4o"
       model = {
         format  = "OpenAI"
-        name    = "gpt-35-turbo"
-        version = "0613"
+        name    = "gpt-4o"
+        version = "2024-08-06"
       }
       scale = {
         type = "Standard"
