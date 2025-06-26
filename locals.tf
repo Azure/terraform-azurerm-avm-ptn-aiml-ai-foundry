@@ -1,18 +1,11 @@
 # AI Foundry Pattern Module Locals
 locals {
-  # Resource deployment flags - determine if standard resources should be deployed (when BYO resources are not provided)
-  deploy_ai_search       = var.existing_ai_search_resource_id == null
-  deploy_cosmos_db       = var.existing_cosmos_db_resource_id == null
-  deploy_key_vault       = var.existing_key_vault_resource_id == null
-  deploy_storage_account = var.existing_storage_account_resource_id == null
-
-  # AI Agent Service deployment logic - only create when all conditions are met
-  deploy_ai_agent_service = var.create_ai_agent_service && var.agent_subnet_resource_id != null && var.ai_foundry_project_private_endpoints != null
+  # AI Agent Service deployment logic - simplified to avoid dependency issues
+  # Deploy when create_ai_agent_service is true (default is true)
+  deploy_ai_agent_service = var.create_ai_agent_service
 
   # Resource group and location references
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  resource_group_id   = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${var.resource_group_name}"
+  resource_group_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${var.resource_group_name}"
   # Advanced resource naming logic
   # Priority: 1. Custom name, 2. Base name + pattern, 3. var.name + pattern
   resource_names = {
@@ -55,7 +48,5 @@ locals {
     )
   }
   # Resource token for unique naming
-  resource_token = substr(sha256("${data.azurerm_client_config.current.subscription_id}-${local.location}-${var.name}"), 0, 5)
-  # Role definition resource substring for role assignments
-  role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
+  resource_token = substr(sha256("${data.azurerm_client_config.current.subscription_id}-${var.location}-${var.name}"), 0, 5)
 }

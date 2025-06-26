@@ -57,8 +57,8 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  location               = azurerm_resource_group.this.location
-  resource_group_name    = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
   name                = "ai-foundry-basic"
   # Basic AI model deployment (single model)
   ai_model_deployments = {
@@ -75,7 +75,7 @@ module "ai_foundry" {
     }
   }
   # No agent service in basic (requires storage/other dependencies)
-  create_ai_agent_service      = false
-  enable_telemetry             = var.enable_telemetry
+  create_ai_agent_service                      = false
+  enable_telemetry                             = var.enable_telemetry
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
 }

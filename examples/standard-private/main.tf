@@ -305,7 +305,7 @@ module "ai_foundry" {
     }
   }
   # Enable telemetry for the module
-  enable_telemetry             = var.enable_telemetry
+  enable_telemetry                             = var.enable_telemetry
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
   key_vault_private_endpoints = {
     "vault" = {

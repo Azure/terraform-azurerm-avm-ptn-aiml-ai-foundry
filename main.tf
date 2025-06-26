@@ -2,11 +2,11 @@
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "0.6.3"
-  count   = local.deploy_storage_account ? 1 : 0
+  count   = var.existing_storage_account_resource_id == null ? 1 : 0
 
-  location            = local.location
+  location            = var.location
   name                = local.resource_names.storage_account
-  resource_group_name = local.resource_group_name
+  resource_group_name = var.resource_group_name
   private_endpoints   = var.storage_private_endpoints
   tags                = var.tags
 
@@ -25,11 +25,11 @@ module "storage_account" {
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "0.10.0"
-  count   = local.deploy_key_vault ? 1 : 0
+  count   = var.existing_key_vault_resource_id == null ? 1 : 0
 
-  location            = local.location
+  location            = var.location
   name                = local.resource_names.key_vault
-  resource_group_name = local.resource_group_name
+  resource_group_name = var.resource_group_name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   private_endpoints   = var.key_vault_private_endpoints
   tags                = var.tags
@@ -49,11 +49,11 @@ module "key_vault" {
 module "cosmos_db" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
   version = "0.8.0"
-  count   = local.deploy_cosmos_db ? 1 : 0
+  count   = var.existing_cosmos_db_resource_id == null ? 1 : 0
 
-  location            = local.location
+  location            = var.location
   name                = local.resource_names.cosmos_db
-  resource_group_name = local.resource_group_name
+  resource_group_name = var.resource_group_name
   private_endpoints   = var.cosmos_db_private_endpoints
   tags                = var.tags
 
@@ -73,11 +73,11 @@ module "cosmos_db" {
 module "ai_search" {
   source  = "Azure/avm-res-search-searchservice/azurerm"
   version = "0.1.5"
-  count   = local.deploy_ai_search ? 1 : 0
+  count   = var.existing_ai_search_resource_id == null ? 1 : 0
 
-  location            = local.location
+  location            = var.location
   name                = local.resource_names.ai_search
-  resource_group_name = local.resource_group_name
+  resource_group_name = var.resource_group_name
   private_endpoints   = var.ai_search_private_endpoints
   tags                = var.tags
 
@@ -95,7 +95,7 @@ module "ai_search" {
 
 # Azure AI Services (Using AzAPI - AIServices kind includes OpenAI)
 resource "azapi_resource" "ai_services" {
-  location  = local.location
+  location  = var.location
   name      = local.resource_names.ai_services
   parent_id = local.resource_group_id
   type      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
@@ -153,23 +153,9 @@ resource "azurerm_management_lock" "this" {
   notes      = var.lock.kind == "CanNotDelete" ? "Cannot delete the resource or its child resources." : "Cannot delete or modify the resource or its child resources."
 }
 
-resource "azurerm_role_assignment" "this" {
-  for_each = var.role_assignments
-
-  principal_id                           = each.value.principal_id
-  scope                                  = local.resource_group_id
-  condition                              = each.value.condition
-  condition_version                      = each.value.condition_version
-  delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
-  principal_type                         = each.value.principal_type
-  role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
-  role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
-  skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
-}
-
 # AI Foundry Project (Using AzAPI) - Always created
 resource "azapi_resource" "ai_foundry_project" {
-  location  = local.location
+  location  = var.location
   name      = local.resource_names.ai_foundry_project
   parent_id = azapi_resource.ai_services.id
   type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
@@ -193,15 +179,15 @@ resource "azapi_resource" "ai_foundry_project" {
   ]
 }
 
-# AI Agent Service (Using AzAPI) - Only created when agent_subnet_resource_id is provided and ai_foundry_project_private_endpoints is not null
+# AI Agent Service (Using AzAPI) - Deploy based on configuration
 resource "azapi_resource" "ai_agent_capability_host" {
   count = local.deploy_ai_agent_service ? 1 : 0
 
   name      = local.resource_names.ai_agent_host
   parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
-  body = {
-    properties = {
+  body = jsonencode({
+    properties = merge({
       capabilityHostKind = "Agents"
       description        = "AI Agent capability host for ${var.name}"
 
@@ -230,11 +216,11 @@ resource "azapi_resource" "ai_agent_capability_host" {
         ] : (
         length(module.ai_search) > 0 ? [module.ai_search[0].resource_id] : []
       )
-
-      # Customer subnet for private networking - use external subnet
+      }, var.agent_subnet_resource_id != null ? {
+      # Customer subnet for private networking - only set when provided
       customerSubnet = var.agent_subnet_resource_id
-    }
-  }
+    } : {})
+  })
 
   depends_on = [
     azapi_resource.ai_foundry_project
@@ -247,7 +233,7 @@ resource "azurerm_private_endpoint" "ai_foundry_project" {
 
   location            = each.value.location != null ? each.value.location : var.location
   name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_foundry_project.name}-${each.key}"
-  resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : local.resource_group_name
+  resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : var.resource_group_name
   subnet_id           = each.value.subnet_resource_id
   tags                = merge(var.tags, each.value.tags)
 
@@ -273,7 +259,7 @@ resource "azurerm_private_endpoint" "ai_services" {
 
   location            = each.value.location != null ? each.value.location : var.location
   name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_services.name}-${each.key}"
-  resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : local.resource_group_name
+  resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : var.resource_group_name
   subnet_id           = each.value.subnet_resource_id
   tags                = merge(var.tags, each.value.tags)
 

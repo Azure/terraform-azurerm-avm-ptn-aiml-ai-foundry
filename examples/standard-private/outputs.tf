@@ -160,7 +160,7 @@ output "virtual_machine" {
   description = "The Virtual Machine for AI development and testing."
   value = {
     id             = module.virtual_machine.resource_id
-    name           = module.virtual_machine.virtual_machine_azurerm.name
+    name           = try(module.virtual_machine.virtual_machine_azurerm.computer_name, module.virtual_machine.resource_id)
     admin_username = "azureadmin"
   }
 }
