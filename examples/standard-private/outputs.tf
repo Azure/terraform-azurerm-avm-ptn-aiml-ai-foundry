@@ -2,14 +2,10 @@
 # AI Foundry Outputs
 # ========================================
 
-output "bastion_host" {
-  description = "The Azure Bastion Host for secure VM access."
-  value = {
-    id           = module.bastion_host.resource_id
-    name         = module.bastion_host.name
-    dns_name     = module.bastion_host.dns_name
-  }
-}
+# ========================================
+# ========================================
+# Bastion Host Outputs (removed duplicate)
+# ========================================
 
 output "ai_agent_environment_id" {
   description = "The resource ID of the Container App Environment for AI agent services."
@@ -86,10 +82,14 @@ output "application_insights" {
   }
 }
 
-# ========================================
-# ========================================
-# Bastion Host Outputs (removed duplicate)
-# ========================================
+output "bastion_host" {
+  description = "The Azure Bastion Host for secure VM access."
+  value = {
+    id       = module.bastion_host.resource_id
+    name     = module.bastion_host.name
+    dns_name = module.bastion_host.dns_name
+  }
+}
 
 # Legacy output for backward compatibility
 output "cognitive_services" {
@@ -158,6 +158,15 @@ output "storage_account" {
   value       = module.ai_foundry.storage_account
 }
 
+output "virtual_machine" {
+  description = "The Virtual Machine for AI development and testing."
+  value = {
+    id             = module.virtual_machine.resource_id
+    name           = module.virtual_machine.virtual_machine_azurerm.name
+    admin_username = "azureadmin"
+  }
+}
+
 # ========================================
 # Virtual Machine Outputs (using AVM module)
 # ========================================
@@ -173,15 +182,6 @@ output "virtual_network" {
       bastion           = azurerm_subnet.bastion.id
       vm                = azurerm_subnet.vm.id
     }
-  }
-}
-
-output "virtual_machine" {
-  description = "The Virtual Machine for AI development and testing."
-  value = {
-    id           = module.virtual_machine.resource_id
-    name         = module.virtual_machine.virtual_machine_azurerm.name
-    admin_username = "azureadmin"
   }
 }
 

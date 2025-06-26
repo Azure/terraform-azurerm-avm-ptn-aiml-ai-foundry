@@ -31,20 +31,12 @@ The following resources are used by this module:
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
-- [azurerm_application_insights.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/application_insights) (data source)
-- [azurerm_bastion_host.external](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/bastion_host) (data source)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 - [azurerm_cosmosdb_account.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/cosmosdb_account) (data source)
 - [azurerm_key_vault.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) (data source)
-- [azurerm_log_analytics_workspace.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/log_analytics_workspace) (data source)
 - [azurerm_resource_group.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) (data source)
 - [azurerm_search_service.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/search_service) (data source)
 - [azurerm_storage_account.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) (data source)
-- [azurerm_subnet.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subnet) (data source)
-- [azurerm_subnet.external](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subnet) (data source)
-- [azurerm_virtual_machine.external](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_machine) (data source)
-- [azurerm_virtual_network.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_network) (data source)
-- [azurerm_virtual_network.external](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_network) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -67,6 +59,14 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_agent_subnet_resource_id"></a> [agent\_subnet\_resource\_id](#input\_agent\_subnet\_resource\_id)
+
+Description: The resource ID of an existing subnet for AI agent services (Container Apps). Optional - only needed when deploying agent services.
+
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_ai_agent_host_name"></a> [ai\_agent\_host\_name](#input\_ai\_agent\_host\_name)
 
@@ -279,47 +279,6 @@ Description: The resource ID of an existing Azure Bastion Host for secure VM acc
 Type: `string`
 
 Default: `null`
-
-### <a name="input_content_safety_enabled"></a> [content\_safety\_enabled](#input\_content\_safety\_enabled)
-
-Description: Whether to include Azure AI Content Safety in the deployment.
-
-Type: `bool`
-
-Default: `true`
-
-### <a name="input_cosmos_databases"></a> [cosmos\_databases](#input\_cosmos\_databases)
-
-Description: List of Cosmos DB databases to create.
-
-Type:
-
-```hcl
-list(object({
-    name                              = string
-    throughput                        = optional(number, 400)
-    autoscale_settings_max_throughput = optional(number)
-    containers = optional(list(object({
-      name                              = string
-      partition_key_paths               = list(string)
-      analytical_storage_ttl            = optional(number, 0)
-      autoscale_settings_max_throughput = optional(number)
-      default_ttl                       = optional(number, -1)
-      indexing_policy = optional(object({
-        automatic     = optional(bool, true)
-        indexing_mode = optional(string, "consistent")
-        included_paths = optional(list(object({
-          path = string
-        })), [])
-        excluded_paths = optional(list(object({
-          path = string
-        })), [])
-      }))
-    })), [])
-  }))
-```
-
-Default: `[]`
 
 ### <a name="input_cosmos_db_private_endpoints"></a> [cosmos\_db\_private\_endpoints](#input\_cosmos\_db\_private\_endpoints)
 
@@ -681,27 +640,11 @@ Default: `{}`
 
 ### <a name="input_subnet_resource_id"></a> [subnet\_resource\_id](#input\_subnet\_resource\_id)
 
-Description: The resource ID of an existing subnet within the virtual network for VM and private endpoints. Optional - only needed for private network deployments.
+Description: The resource ID of an existing subnet for private endpoints. Optional - only needed for private network deployments.
 
 Type: `string`
 
 Default: `null`
-
-### <a name="input_tags"></a> [tags](#input\_tags)
-
-Description: (Optional) Tags of the resource.
-
-Type: `map(string)`
-
-Default: `null`
-
-### <a name="input_use_random_names"></a> [use\_random\_names](#input\_use\_random\_names)
-
-Description: Whether to use random names for resources when neither custom names nor base\_name are provided.
-
-Type: `bool`
-
-Default: `true`
 
 ### <a name="input_virtual_machine_resource_id"></a> [virtual\_machine\_resource\_id](#input\_virtual\_machine\_resource\_id)
 

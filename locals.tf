@@ -1,5 +1,7 @@
 # AI Foundry Pattern Module Locals
 locals {
+  # Networking resource references - prioritize new variables, fallback to deprecated ones
+  agent_subnet_id  = var.agent_subnet_resource_id
   deploy_ai_search = var.existing_ai_search_resource_id == null
   deploy_cosmos_db = var.existing_cosmos_db_resource_id == null
   deploy_key_vault = var.existing_key_vault_resource_id == null
@@ -62,8 +64,6 @@ locals {
   resource_token = substr(sha256("${data.azurerm_client_config.current.subscription_id}-${local.location}-${var.name}"), 0, 5)
   # Role definition resource substring for role assignments
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
-  # Networking resource references - prioritize new variables, fallback to deprecated ones
-  agent_subnet_id    = var.agent_subnet_resource_id
-  subnet_id          = coalesce(var.subnet_resource_id, var.existing_subnet_id)
-  virtual_network_id = coalesce(var.virtual_network_resource_id, var.existing_virtual_network_id)
+  subnet_id                          = coalesce(var.subnet_resource_id, var.existing_subnet_id)
+  virtual_network_id                 = coalesce(var.virtual_network_resource_id, var.existing_virtual_network_id)
 }

@@ -24,6 +24,17 @@ variable "name" {
   }
 }
 
+variable "agent_subnet_resource_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing subnet for AI agent services (Container Apps). Optional - only needed when deploying agent services."
+
+  validation {
+    condition     = var.agent_subnet_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+/subnets/[^/]+$", var.agent_subnet_resource_id))
+    error_message = "The agent_subnet_resource_id must be a valid Azure Subnet resource ID."
+  }
+}
+
 variable "ai_agent_host_name" {
   type        = string
   default     = null
@@ -524,17 +535,6 @@ variable "storage_private_endpoints" {
   default     = {}
   description = "Private endpoint configuration for the Storage Account."
   nullable    = false
-}
-
-variable "agent_subnet_resource_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing subnet for AI agent services (Container Apps). Optional - only needed when deploying agent services."
-
-  validation {
-    condition     = var.agent_subnet_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+/subnets/[^/]+$", var.agent_subnet_resource_id))
-    error_message = "The agent_subnet_resource_id must be a valid Azure Subnet resource ID."
-  }
 }
 
 variable "subnet_resource_id" {

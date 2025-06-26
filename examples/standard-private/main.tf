@@ -212,23 +212,21 @@ module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
   version = "~> 0.3"
 
+  location            = azurerm_resource_group.this.location
   name                = module.naming.bastion_host.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-
-  copy_paste_enabled     = true
-  file_copy_enabled      = true
-  ip_connect_enabled     = true
-  scale_units            = 2
-  shareable_link_enabled = true
-  sku                    = "Standard"
-  tunneling_enabled      = true
-
+  copy_paste_enabled  = true
+  file_copy_enabled   = true
   ip_configuration = {
     name                 = "IpConf"
     subnet_id            = azurerm_subnet.bastion.id
     public_ip_address_id = azurerm_public_ip.bastion.id
   }
+  ip_connect_enabled     = true
+  scale_units            = 2
+  shareable_link_enabled = true
+  sku                    = "Standard"
+  tunneling_enabled      = true
 }
 
 # ========================================
@@ -239,16 +237,8 @@ module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
   version = "~> 0.15"
 
-  admin_username                     = "azureadmin"
-  disable_password_authentication    = false
-  location                          = azurerm_resource_group.this.location
-  name                              = module.naming.virtual_machine.name_unique
-  resource_group_name               = azurerm_resource_group.this.name
-  sku_size                          = "Standard_D4s_v3"
-  zone                              = "1"
-
-  admin_password = "P@ssw0rd1234!"
-
+  location = azurerm_resource_group.this.location
+  name     = module.naming.virtual_machine.name_unique
   network_interfaces = {
     network_interface_1 = {
       name = "${module.naming.network_interface.name_unique}-vm"
@@ -260,12 +250,16 @@ module "virtual_machine" {
       }
     }
   }
-
+  resource_group_name             = azurerm_resource_group.this.name
+  zone                            = "1"
+  admin_password                  = "P@ssw0rd1234!"
+  admin_username                  = "azureadmin"
+  disable_password_authentication = false
   os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }
-
+  sku_size = "Standard_D4s_v3"
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
@@ -280,6 +274,7 @@ module "ai_foundry" {
 
   location                       = azurerm_resource_group.this.location
   name                           = "ai-foundry-std-prv"
+  agent_subnet_resource_id       = azurerm_subnet.agent_services.id
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
   ai_foundry_project_name        = "AI-Foundry-Standard-Private"
   ai_foundry_project_private_endpoints = {
@@ -338,7 +333,6 @@ module "ai_foundry" {
   existing_application_insights_id    = azurerm_application_insights.this.id
   existing_log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
   existing_resource_group_name        = azurerm_resource_group.this.name
-  agent_subnet_resource_id            = azurerm_subnet.agent_services.id
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
