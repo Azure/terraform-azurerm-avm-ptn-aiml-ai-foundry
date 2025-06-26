@@ -10,22 +10,20 @@ resource "azurerm_resource_group" "this" {
 # Storage Account (BYO or Create New)
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "~> 0.6.3"
+  version = "0.6.3"
   count   = local.deploy_storage_account ? 1 : 0
 
   location            = local.location
   name                = local.resource_names.storage_account
   resource_group_name = local.resource_group_name
-  managed_identities = {
-    system_assigned = true
-  }
-  private_endpoints = var.storage_private_endpoints
+  private_endpoints   = var.storage_private_endpoints
+  tags                = var.tags
 }
 
 # Key Vault (BYO or Create New)
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "~> 0.10.0"
+  version = "0.10.0"
   count   = local.deploy_key_vault ? 1 : 0
 
   location            = local.location
@@ -33,30 +31,33 @@ module "key_vault" {
   resource_group_name = local.resource_group_name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   private_endpoints   = var.key_vault_private_endpoints
+  tags                = var.tags
 }
 
 # Cosmos DB (BYO or Create New)
 module "cosmos_db" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "~> 0.8.0"
+  version = "0.8.0"
   count   = local.deploy_cosmos_db ? 1 : 0
 
   location            = local.location
   name                = local.resource_names.cosmos_db
   resource_group_name = local.resource_group_name
   private_endpoints   = var.cosmos_db_private_endpoints
+  tags                = var.tags
 }
 
 # AI Search (BYO or Create New)
 module "ai_search" {
   source  = "Azure/avm-res-search-searchservice/azurerm"
-  version = "~> 0.1.5"
+  version = "0.1.5"
   count   = local.deploy_ai_search ? 1 : 0
 
   location            = local.location
   name                = local.resource_names.ai_search
   resource_group_name = local.resource_group_name
   private_endpoints   = var.ai_search_private_endpoints
+  tags                = var.tags
 }
 
 # Azure AI Services (Using AzAPI - AIServices kind includes OpenAI)
@@ -74,6 +75,7 @@ resource "azapi_resource" "ai_services" {
       publicNetworkAccess = length(var.ai_services_private_endpoints) == 0 ? "Enabled" : "Disabled"
     }
   }
+  tags = var.tags
 
   identity {
     type = "SystemAssigned"
@@ -150,6 +152,7 @@ resource "azapi_resource" "ai_foundry_project" {
       description = var.ai_foundry_project_description != null ? var.ai_foundry_project_description : "AI Foundry project for agent services and AI workloads"
     }
   }
+  tags = var.tags
 
   # Optional identity block for managed identity support
   identity {

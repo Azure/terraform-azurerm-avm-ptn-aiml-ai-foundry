@@ -21,7 +21,7 @@ provider "azurerm" {
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "~> 0.1"
+  version = "0.5.2"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -34,7 +34,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "~> 0.3"
+  version = "0.4.2"
 }
 
 # This is required for resource modules
@@ -87,11 +87,8 @@ module "ai_foundry" {
   ai_services_private_endpoints = {}
   cosmos_db_private_endpoints   = {}
   # Enable telemetry for the module
-  enable_telemetry = var.enable_telemetry
-  # Application Insights and Log Analytics for AI Foundry workspaces
-  existing_application_insights_id    = azurerm_application_insights.this.id
-  existing_log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
-  existing_resource_group_name        = azurerm_resource_group.this.name
-  key_vault_private_endpoints         = {}
-  storage_private_endpoints           = {}
+  enable_telemetry             = var.enable_telemetry
+  existing_resource_group_name = azurerm_resource_group.this.name
+  key_vault_private_endpoints  = {}
+  storage_private_endpoints    = {}
 }

@@ -21,7 +21,7 @@ provider "azurerm" {
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "~> 0.1"
+  version = "0.5.2"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -34,7 +34,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "~> 0.3"
+  version = "0.4.2"
 }
 
 # This is required for resource modules
@@ -210,32 +210,30 @@ resource "azurerm_public_ip" "bastion" {
 
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
-  version = "~> 0.3"
+  version = "0.7.2"
 
   location            = azurerm_resource_group.this.location
   name                = module.naming.bastion_host.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  copy_paste_enabled  = true
-  file_copy_enabled   = true
   ip_configuration = {
     name                 = "IpConf"
     subnet_id            = azurerm_subnet.bastion.id
     public_ip_address_id = azurerm_public_ip.bastion.id
   }
-  ip_connect_enabled     = true
-  scale_units            = 2
-  shareable_link_enabled = true
-  sku                    = "Standard"
-  tunneling_enabled      = true
+  sku = "Standard"
 }
 
-# ========================================
-# Windows Virtual Machine (using AVM module)
-# ========================================
+module "vm_sku" {
+  source  = "Azure/avm-utl-sku-finder/azapi"
+  version = "0.3.0"
 
+  location = azurerm_resource_group.this.location
+}
+
+# Windows Virtual Machine (using AVM module)
 module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "~> 0.15"
+  version = "0.19.3"
 
   location = azurerm_resource_group.this.location
   name     = module.naming.virtual_machine.name_unique
@@ -250,22 +248,8 @@ module "virtual_machine" {
       }
     }
   }
-  resource_group_name             = azurerm_resource_group.this.name
-  zone                            = "1"
-  admin_password                  = "P@ssw0rd1234!"
-  admin_username                  = "azureadmin"
-  disable_password_authentication = false
-  os_disk = {
-    caching              = "ReadWrite"
-    storage_account_type = "Premium_LRS"
-  }
-  sku_size = "Standard_D4s_v3"
-  source_image_reference = {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2022-datacenter-g2"
-    version   = "latest"
-  }
+  resource_group_name = azurerm_resource_group.this.name
+  zone                = "1"
 }
 
 # This is the module call for AI Foundry Pattern - Standard Private Configuration
@@ -328,11 +312,8 @@ module "ai_foundry" {
     }
   }
   # Enable telemetry for the module
-  enable_telemetry = var.enable_telemetry
-  # Application Insights and Log Analytics for AI Foundry workspaces
-  existing_application_insights_id    = azurerm_application_insights.this.id
-  existing_log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
-  existing_resource_group_name        = azurerm_resource_group.this.name
+  enable_telemetry             = var.enable_telemetry
+  existing_resource_group_name = azurerm_resource_group.this.name
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
