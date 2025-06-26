@@ -204,6 +204,7 @@ resource "azurerm_public_ip" "bastion" {
   name                = module.naming.public_ip.name_unique
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 module "bastion_host" {
