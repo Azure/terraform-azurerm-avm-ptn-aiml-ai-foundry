@@ -350,14 +350,6 @@ Type: `string`
 
 Default: `null`
 
-### <a name="input_existing_application_insights_id"></a> [existing\_application\_insights\_id](#input\_existing\_application\_insights\_id)
-
-Description: The resource ID of an existing Application Insights instance to use. Optional for AI Foundry workspaces.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_existing_cosmos_db_resource_id"></a> [existing\_cosmos\_db\_resource\_id](#input\_existing\_cosmos\_db\_resource\_id)
 
 Description: (Optional) The resource ID of an existing Cosmos DB account to use. If not provided, a new Cosmos DB account will be created.
@@ -369,14 +361,6 @@ Default: `null`
 ### <a name="input_existing_key_vault_resource_id"></a> [existing\_key\_vault\_resource\_id](#input\_existing\_key\_vault\_resource\_id)
 
 Description: (Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_existing_log_analytics_workspace_id"></a> [existing\_log\_analytics\_workspace\_id](#input\_existing\_log\_analytics\_workspace\_id)
-
-Description: The resource ID of an existing Log Analytics workspace to use. Optional for monitoring and diagnostics.
 
 Type: `string`
 
@@ -566,6 +550,14 @@ map(object({
 ```
 
 Default: `{}`
+
+### <a name="input_tags"></a> [tags](#input\_tags)
+
+Description: (Optional) Tags to be applied to all resources.
+
+Type: `map(string)`
+
+Default: `null`
 
 ## Outputs
 

@@ -4,6 +4,7 @@ resource "azurerm_resource_group" "this" {
 
   location = var.location
   name     = local.resource_names.resource_group
+  tags     = var.tags
 }
 
 # Storage Account (BYO or Create New)
@@ -218,6 +219,7 @@ resource "azurerm_private_endpoint" "ai_foundry_project" {
   name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_foundry_project[0].name}-${each.key}"
   resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : local.resource_group_name
   subnet_id           = each.value.subnet_resource_id
+  tags                = merge(var.tags, each.value.tags)
 
   private_service_connection {
     is_manual_connection           = false
@@ -243,6 +245,7 @@ resource "azurerm_private_endpoint" "ai_services" {
   name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_services.name}-${each.key}"
   resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : local.resource_group_name
   subnet_id           = each.value.subnet_resource_id
+  tags                = merge(var.tags, each.value.tags)
 
   private_service_connection {
     is_manual_connection           = false

@@ -278,13 +278,6 @@ variable "existing_ai_search_resource_id" {
   description = "(Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created."
 }
 
-# BYO Application Insights Configuration
-variable "existing_application_insights_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing Application Insights instance to use. Optional for AI Foundry workspaces."
-}
-
 variable "existing_cosmos_db_resource_id" {
   type        = string
   default     = null
@@ -295,13 +288,6 @@ variable "existing_key_vault_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created."
-}
-
-# BYO Log Analytics Workspace Configuration
-variable "existing_log_analytics_workspace_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing Log Analytics workspace to use. Optional for monitoring and diagnostics."
 }
 
 variable "existing_resource_group_id" {
@@ -465,4 +451,10 @@ variable "storage_private_endpoints" {
   default     = {}
   description = "Private endpoint configuration for the Storage Account."
   nullable    = false
+}
+
+variable "tags" {
+  type        = map(string)
+  default     = null
+  description = "(Optional) Tags to be applied to all resources."
 }

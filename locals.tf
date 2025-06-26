@@ -1,11 +1,9 @@
 # AI Foundry Pattern Module Locals
 locals {
-  # Networking resource references - prioritize new variables, fallback to deprecated ones
-  agent_subnet_id  = var.agent_subnet_resource_id
-  deploy_ai_search = var.existing_ai_search_resource_id == null
-  deploy_cosmos_db = var.existing_cosmos_db_resource_id == null
-  deploy_key_vault = var.existing_key_vault_resource_id == null
-  # Determine if standard resources should be deployed (when BYO resources are not provided)
+  # Resource deployment flags - determine if standard resources should be deployed (when BYO resources are not provided)
+  deploy_ai_search       = var.existing_ai_search_resource_id == null
+  deploy_cosmos_db       = var.existing_cosmos_db_resource_id == null
+  deploy_key_vault       = var.existing_key_vault_resource_id == null
   deploy_storage_account = var.existing_storage_account_resource_id == null
   # Resource group and location references
   location            = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].location : var.location
