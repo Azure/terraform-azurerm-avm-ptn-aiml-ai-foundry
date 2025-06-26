@@ -453,6 +453,10 @@ Description: The Azure AI Search service used for intelligent search capabilitie
 
 Description: The AI Services account used for AI capabilities.
 
+### <a name="output_application_insights"></a> [application\_insights](#output\_application\_insights)
+
+Description: The Application Insights instance used for monitoring.
+
 ### <a name="output_bastion_host"></a> [bastion\_host](#output\_bastion\_host)
 
 Description: The Azure Bastion Host for secure VM access.
@@ -472,10 +476,6 @@ Description: The Key Vault used for AI Foundry secrets management.
 ### <a name="output_location"></a> [location](#output\_location)
 
 Description: The Azure region where resources are deployed.
-
-### <a name="output_log_analytics_workspace"></a> [log\_analytics\_workspace](#output\_log\_analytics\_workspace)
-
-Description: The Log Analytics Workspace used for monitoring and diagnostics.
 
 ### <a name="output_private_dns_zones"></a> [private\_dns\_zones](#output\_private\_dns\_zones)
 
