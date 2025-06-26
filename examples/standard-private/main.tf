@@ -43,15 +43,7 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-# Application Insights for AI Foundry (required)
-resource "azurerm_application_insights" "this" {
-  application_type    = "web"
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.application_insights.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-}
-
-# Log Analytics Workspace for Container App Environment
+# Log Analytics Workspace for Container App Environment and AVM modules
 resource "azurerm_log_analytics_workspace" "this" {
   location            = azurerm_resource_group.this.location
   name                = module.naming.log_analytics_workspace.name_unique
@@ -257,6 +249,7 @@ module "ai_foundry" {
   source = "../../"
 
   location                       = azurerm_resource_group.this.location
+  resource_group_name            = azurerm_resource_group.this.name
   name                           = "ai-foundry-std-prv"
   agent_subnet_resource_id       = azurerm_subnet.agent_services.id
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
@@ -313,7 +306,7 @@ module "ai_foundry" {
   }
   # Enable telemetry for the module
   enable_telemetry             = var.enable_telemetry
-  existing_resource_group_name = azurerm_resource_group.this.name
+  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id

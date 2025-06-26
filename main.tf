@@ -1,12 +1,3 @@
-# Resource Group - Create if not using existing
-resource "azurerm_resource_group" "this" {
-  count = var.existing_resource_group_name == null && var.existing_resource_group_id == null ? 1 : 0
-
-  location = var.location
-  name     = local.resource_names.resource_group
-  tags     = var.tags
-}
-
 # Storage Account (BYO or Create New)
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
@@ -18,6 +9,16 @@ module "storage_account" {
   resource_group_name = local.resource_group_name
   private_endpoints   = var.storage_private_endpoints
   tags                = var.tags
+
+  diagnostic_settings_storage_account = {
+    workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
+      "default" = {
+        name                                = "diag"
+        log_analytics_workspace_resource_id = var.existing_log_analytics_workspace_resource_id
+        log_categories                      = ["audit", "alllogs"]
+      }
+    } : {}
+  }
 }
 
 # Key Vault (BYO or Create New)
@@ -32,6 +33,16 @@ module "key_vault" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   private_endpoints   = var.key_vault_private_endpoints
   tags                = var.tags
+
+  diagnostic_settings = {
+    workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
+      "default" = {
+        name                                = "diag"
+        log_analytics_workspace_resource_id = var.existing_log_analytics_workspace_resource_id
+        log_categories                      = ["audit", "alllogs"]
+      }
+    } : {}
+  }
 }
 
 # Cosmos DB (BYO or Create New)
@@ -45,6 +56,17 @@ module "cosmos_db" {
   resource_group_name = local.resource_group_name
   private_endpoints   = var.cosmos_db_private_endpoints
   tags                = var.tags
+
+  # Optional Log Analytics Workspace for diagnostic settings
+  diagnostic_settings = {
+    workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
+      "default" = {
+        name                                = "diag"
+        log_analytics_workspace_resource_id = var.existing_log_analytics_workspace_resource_id
+        log_categories                      = ["audit", "alllogs"]
+      }
+    } : {}
+  }
 }
 
 # AI Search (BYO or Create New)
@@ -58,6 +80,17 @@ module "ai_search" {
   resource_group_name = local.resource_group_name
   private_endpoints   = var.ai_search_private_endpoints
   tags                = var.tags
+
+  # Optional Log Analytics Workspace for diagnostic settings
+  diagnostic_settings = {
+    workspace_resource_id = var.existing_log_analytics_workspace_resource_id != null ? {
+      "default" = {
+        name                                = "diag"
+        log_analytics_workspace_resource_id = var.existing_log_analytics_workspace_resource_id
+        log_categories                      = ["audit", "alllogs"]
+      }
+    } : {}
+  }
 }
 
 # Azure AI Services (Using AzAPI - AIServices kind includes OpenAI)
@@ -80,10 +113,6 @@ resource "azapi_resource" "ai_services" {
   identity {
     type = "SystemAssigned"
   }
-
-  depends_on = [
-    azurerm_resource_group.this
-  ]
 }
 
 # AI Model Deployments (Using AzAPI)
@@ -138,10 +167,8 @@ resource "azurerm_role_assignment" "this" {
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }
 
-# AI Foundry Project (Using AzAPI)
+# AI Foundry Project (Using AzAPI) - Always created
 resource "azapi_resource" "ai_foundry_project" {
-  count = var.create_ai_foundry_project ? 1 : 0
-
   location  = local.location
   name      = local.resource_names.ai_foundry_project
   parent_id = azapi_resource.ai_services.id
@@ -166,12 +193,12 @@ resource "azapi_resource" "ai_foundry_project" {
   ]
 }
 
-# AI Agent Service (Using AzAPI)
+# AI Agent Service (Using AzAPI) - Only created when agent_subnet_resource_id is provided and ai_foundry_project_private_endpoints is not null
 resource "azapi_resource" "ai_agent_capability_host" {
-  count = var.create_ai_agent_service ? 1 : 0
+  count = local.deploy_ai_agent_service ? 1 : 0
 
   name      = local.resource_names.ai_agent_host
-  parent_id = azapi_resource.ai_foundry_project[0].id
+  parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
   body = {
     properties = {
@@ -216,17 +243,17 @@ resource "azapi_resource" "ai_agent_capability_host" {
 
 # Private Endpoints for AI Foundry Project (via AI Services)
 resource "azurerm_private_endpoint" "ai_foundry_project" {
-  for_each = var.create_ai_foundry_project ? var.ai_foundry_project_private_endpoints : {}
+  for_each = var.ai_foundry_project_private_endpoints
 
   location            = each.value.location != null ? each.value.location : var.location
-  name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_foundry_project[0].name}-${each.key}"
+  name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_foundry_project.name}-${each.key}"
   resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : local.resource_group_name
   subnet_id           = each.value.subnet_resource_id
   tags                = merge(var.tags, each.value.tags)
 
   private_service_connection {
     is_manual_connection           = false
-    name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "psc-${azapi_resource.ai_foundry_project[0].name}-${each.key}"
+    name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "psc-${azapi_resource.ai_foundry_project.name}-${each.key}"
     private_connection_resource_id = azapi_resource.ai_services.id # Connect to the AI Services account
     subresource_names              = [each.value.subresource_name]
   }

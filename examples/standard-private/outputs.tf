@@ -69,16 +69,14 @@ output "ai_services" {
 }
 
 # ========================================
-# Application Insights Output
+# Log Analytics Workspace Output
 # ========================================
-output "application_insights" {
-  description = "The Application Insights instance used for monitoring."
-  sensitive   = true
+output "log_analytics_workspace" {
+  description = "The Log Analytics Workspace used for monitoring and diagnostics."
   value = {
-    id                  = azurerm_application_insights.this.id
-    name                = azurerm_application_insights.this.name
-    instrumentation_key = azurerm_application_insights.this.instrumentation_key
-    connection_string   = azurerm_application_insights.this.connection_string
+    id           = azurerm_log_analytics_workspace.this.id
+    name         = azurerm_log_analytics_workspace.this.name
+    workspace_id = azurerm_log_analytics_workspace.this.workspace_id
   }
 }
 

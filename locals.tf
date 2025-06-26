@@ -5,10 +5,14 @@ locals {
   deploy_cosmos_db       = var.existing_cosmos_db_resource_id == null
   deploy_key_vault       = var.existing_key_vault_resource_id == null
   deploy_storage_account = var.existing_storage_account_resource_id == null
+
+  # AI Agent Service deployment logic - only create when all conditions are met
+  deploy_ai_agent_service = var.create_ai_agent_service && var.agent_subnet_resource_id != null && var.ai_foundry_project_private_endpoints != null
+
   # Resource group and location references
-  location            = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].location : var.location
-  resource_group_id   = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.this[0].id
-  resource_group_name = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].name : azurerm_resource_group.this[0].name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  resource_group_id   = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${var.resource_group_name}"
   # Advanced resource naming logic
   # Priority: 1. Custom name, 2. Base name + pattern, 3. var.name + pattern
   resource_names = {
@@ -48,12 +52,6 @@ locals {
       var.ai_agent_host_name,
       var.base_name != null ? "${var.base_name}-agent-host-${local.resource_token}" : null,
       "${var.name}-agent-host-${local.resource_token}"
-    )
-    resource_group = coalesce(
-      var.resource_names.resource_group,
-      var.resource_group_name,
-      var.base_name != null ? "rg-${var.base_name}" : null,
-      "rg-${var.name}"
     )
   }
   # Resource token for unique naming
