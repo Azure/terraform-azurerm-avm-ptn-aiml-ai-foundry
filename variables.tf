@@ -1,120 +1,10 @@
 # Resource Naming Configuration
 
-variable "resource_names" {
-  type = object({
-    storage_account       = optional(string)
-    key_vault            = optional(string)
-    cosmos_db            = optional(string)
-    ai_search            = optional(string)
-    ai_services          = optional(string)
-    ai_foundry_project   = optional(string)
-    ai_agent_host        = optional(string)
-    resource_group       = optional(string)
-  })
-  description = "Custom names for each resource. If not provided, names will be generated using base_name or random names."
-  default     = {}
-}
-
-variable "base_name" {
-  type        = string
-  description = "Base name to use as prefix/suffix for resource names when custom names are not provided. If null, random names will be generated."
-  default     = null
-}
-
-variable "use_random_names" {
-  type        = bool
-  description = "Whether to use random names for resources when neither custom names nor base_name are provided."
-  default     = true
-}
-
 # Core Configuration Variables
-
-variable "content_safety_enabled" {
-  type        = bool
-  description = "Whether to include Azure AI Content Safety in the deployment."
-  default     = true
-}
-
-variable "project_name" {
-  type        = string
-  default     = null
-  description = "Name of the AI Foundry project. If not provided, defaults to name with 'proj' suffix."
-}
 
 # Required Networking Resources (External Dependencies)
 
-variable "virtual_network_resource_id" {
-  type        = string
-  description = "The resource ID of an existing virtual network to use for private endpoints and networking. Optional - only needed for private network deployments."
-  default     = null
-
-  validation {
-    condition = var.virtual_network_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+$", var.virtual_network_resource_id))
-    error_message = "The virtual_network_resource_id must be a valid Azure Virtual Network resource ID."
-  }
-}
-
-variable "subnet_resource_id" {
-  type        = string
-  description = "The resource ID of an existing subnet within the virtual network for VM and private endpoints. Optional - only needed for private network deployments."
-  default     = null
-
-  validation {
-    condition = var.subnet_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+/subnets/[^/]+$", var.subnet_resource_id))
-    error_message = "The subnet_resource_id must be a valid Azure Subnet resource ID."
-  }
-}
-
-variable "bastion_host_resource_id" {
-  type        = string
-  description = "The resource ID of an existing Azure Bastion Host for secure VM access. Optional - only needed for private network deployments."
-  default     = null
-
-  validation {
-    condition = var.bastion_host_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/bastionHosts/[^/]+$", var.bastion_host_resource_id))
-    error_message = "The bastion_host_resource_id must be a valid Azure Bastion Host resource ID."
-  }
-}
-
-variable "virtual_machine_resource_id" {
-  type        = string
-  description = "The resource ID of an existing Virtual Machine for jump-box access. Optional - only needed for private network deployments when VM access is needed."
-  default     = null
-
-  validation {
-    condition = var.virtual_machine_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Compute/virtualMachines/[^/]+$", var.virtual_machine_resource_id))
-    error_message = "The virtual_machine_resource_id must be a valid Azure Virtual Machine resource ID."
-  }
-}
-
 # Cosmos DB Configuration
-
-variable "cosmos_databases" {
-  type = list(object({
-    name                           = string
-    throughput                     = optional(number, 400)
-    autoscale_settings_max_throughput = optional(number)
-    containers = optional(list(object({
-      name                           = string
-      partition_key_paths            = list(string)
-      analytical_storage_ttl         = optional(number, 0)
-      autoscale_settings_max_throughput = optional(number)
-      default_ttl                    = optional(number, -1)
-      indexing_policy               = optional(object({
-        automatic     = optional(bool, true)
-        indexing_mode = optional(string, "consistent")
-        included_paths = optional(list(object({
-          path = string
-        })), [])
-        excluded_paths = optional(list(object({
-          path = string
-        })), [])
-      }))
-    })), [])
-  }))
-  description = "List of Cosmos DB databases to create."
-  default     = []
-}
 
 # Original Variables (keeping existing structure)
 
@@ -302,6 +192,56 @@ variable "ai_services_private_endpoints" {
   default     = {}
   description = "Private endpoint configuration for the AI Services account."
   nullable    = false
+}
+
+variable "base_name" {
+  type        = string
+  default     = null
+  description = "Base name to use as prefix/suffix for resource names when custom names are not provided. If null, random names will be generated."
+}
+
+variable "bastion_host_resource_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing Azure Bastion Host for secure VM access. Optional - only needed for private network deployments."
+
+  validation {
+    condition     = var.bastion_host_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/bastionHosts/[^/]+$", var.bastion_host_resource_id))
+    error_message = "The bastion_host_resource_id must be a valid Azure Bastion Host resource ID."
+  }
+}
+
+variable "content_safety_enabled" {
+  type        = bool
+  default     = true
+  description = "Whether to include Azure AI Content Safety in the deployment."
+}
+
+variable "cosmos_databases" {
+  type = list(object({
+    name                              = string
+    throughput                        = optional(number, 400)
+    autoscale_settings_max_throughput = optional(number)
+    containers = optional(list(object({
+      name                              = string
+      partition_key_paths               = list(string)
+      analytical_storage_ttl            = optional(number, 0)
+      autoscale_settings_max_throughput = optional(number)
+      default_ttl                       = optional(number, -1)
+      indexing_policy = optional(object({
+        automatic     = optional(bool, true)
+        indexing_mode = optional(string, "consistent")
+        included_paths = optional(list(object({
+          path = string
+        })), [])
+        excluded_paths = optional(list(object({
+          path = string
+        })), [])
+      }))
+    })), [])
+  }))
+  default     = []
+  description = "List of Cosmos DB databases to create."
 }
 
 variable "cosmos_db_private_endpoints" {
@@ -525,11 +465,32 @@ DESCRIPTION
   nullable    = false
 }
 
+variable "project_name" {
+  type        = string
+  default     = null
+  description = "Name of the AI Foundry project. If not provided, defaults to name with 'proj' suffix."
+}
+
 # This is required when creating a new resource group
 variable "resource_group_name" {
   type        = string
   default     = null
   description = "The name for a new resource group. Required only if existing_resource_group_name and existing_resource_group_id are not provided."
+}
+
+variable "resource_names" {
+  type = object({
+    storage_account    = optional(string)
+    key_vault          = optional(string)
+    cosmos_db          = optional(string)
+    ai_search          = optional(string)
+    ai_services        = optional(string)
+    ai_foundry_project = optional(string)
+    ai_agent_host      = optional(string)
+    resource_group     = optional(string)
+  })
+  default     = {}
+  description = "Custom names for each resource. If not provided, names will be generated using base_name or random names."
 }
 
 variable "role_assignments" {
@@ -598,9 +559,48 @@ variable "storage_private_endpoints" {
   nullable    = false
 }
 
+variable "subnet_resource_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing subnet within the virtual network for VM and private endpoints. Optional - only needed for private network deployments."
+
+  validation {
+    condition     = var.subnet_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+/subnets/[^/]+$", var.subnet_resource_id))
+    error_message = "The subnet_resource_id must be a valid Azure Subnet resource ID."
+  }
+}
+
 # tflint-ignore: terraform_unused_declarations
 variable "tags" {
   type        = map(string)
   default     = null
   description = "(Optional) Tags of the resource."
+}
+
+variable "use_random_names" {
+  type        = bool
+  default     = true
+  description = "Whether to use random names for resources when neither custom names nor base_name are provided."
+}
+
+variable "virtual_machine_resource_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing Virtual Machine for jump-box access. Optional - only needed for private network deployments when VM access is needed."
+
+  validation {
+    condition     = var.virtual_machine_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Compute/virtualMachines/[^/]+$", var.virtual_machine_resource_id))
+    error_message = "The virtual_machine_resource_id must be a valid Azure Virtual Machine resource ID."
+  }
+}
+
+variable "virtual_network_resource_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing virtual network to use for private endpoints and networking. Optional - only needed for private network deployments."
+
+  validation {
+    condition     = var.virtual_network_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+$", var.virtual_network_resource_id))
+    error_message = "The virtual_network_resource_id must be a valid Azure Virtual Network resource ID."
+  }
 }

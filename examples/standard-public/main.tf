@@ -118,7 +118,7 @@ module "ai_foundry" {
   existing_log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
   existing_resource_group_name        = azurerm_resource_group.this.name
   key_vault_private_endpoints         = {}
-  storage_private_endpoints = {}
+  storage_private_endpoints           = {}
   # Tags for all resources
   tags = local.tags
 }

@@ -1,19 +1,21 @@
 # AI Foundry Pattern Module Locals
 locals {
-  # Role definition resource substring for role assignments
-  role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
-
+  all_tags = merge(local.default_tags, var.tags != null ? var.tags : {})
+  # Tags with default azd-env-name
+  default_tags = {
+    "azd-env-name" = var.name
+  }
+  deploy_ai_search = var.existing_ai_search_resource_id == null
+  deploy_cosmos_db = var.existing_cosmos_db_resource_id == null
+  deploy_key_vault = var.existing_key_vault_resource_id == null
+  # Determine if standard resources should be deployed (when BYO resources are not provided)
+  deploy_storage_account = var.existing_storage_account_resource_id == null
   # Resource group and location references
-  location          = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].location : var.location
-  resource_group_id = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.this[0].id
-  resource_group_name = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].name : azurerm_resource_group.this[0].name
-
+  location = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].location : var.location
   # Project naming
-  project_name = var.project_name != null ? var.project_name : "${var.name}proj"
-
-  # Resource token for unique naming
-  resource_token = substr(sha256("${data.azurerm_client_config.current.subscription_id}-${local.location}-${var.name}"), 0, 5)
-
+  project_name        = var.project_name != null ? var.project_name : "${var.name}proj"
+  resource_group_id   = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.this[0].id
+  resource_group_name = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].name : azurerm_resource_group.this[0].name
   # Advanced resource naming logic
   # Priority: 1. Custom name, 2. Base name + pattern, 3. var.name + pattern
   resource_names = {
@@ -61,20 +63,11 @@ locals {
       var.resource_group_name
     )
   }
-
+  # Resource token for unique naming
+  resource_token = substr(sha256("${data.azurerm_client_config.current.subscription_id}-${local.location}-${var.name}"), 0, 5)
+  # Role definition resource substring for role assignments
+  role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
+  subnet_id                          = coalesce(var.subnet_resource_id, var.existing_subnet_id)
   # Networking resource references - prioritize new variables, fallback to deprecated ones
   virtual_network_id = coalesce(var.virtual_network_resource_id, var.existing_virtual_network_id)
-  subnet_id         = coalesce(var.subnet_resource_id, var.existing_subnet_id)
-
-  # Tags with default azd-env-name
-  default_tags = {
-    "azd-env-name" = var.name
-  }
-  all_tags = merge(local.default_tags, var.tags != null ? var.tags : {})
-
-  # Determine if standard resources should be deployed (when BYO resources are not provided)
-  deploy_storage_account = var.existing_storage_account_resource_id == null
-  deploy_key_vault      = var.existing_key_vault_resource_id == null
-  deploy_cosmos_db      = var.existing_cosmos_db_resource_id == null
-  deploy_ai_search      = var.existing_ai_search_resource_id == null
 }

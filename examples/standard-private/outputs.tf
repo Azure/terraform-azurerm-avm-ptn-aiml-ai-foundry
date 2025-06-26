@@ -77,6 +77,19 @@ output "application_insights" {
   }
 }
 
+# ========================================
+# ========================================
+# Bastion Host Outputs
+# ========================================
+output "bastion_host" {
+  description = "The Bastion Host for secure VM access."
+  value = {
+    id   = azurerm_bastion_host.this.id
+    name = azurerm_bastion_host.this.name
+    fqdn = azurerm_bastion_host.this.dns_name
+  }
+}
+
 # Legacy output for backward compatibility
 output "cognitive_services" {
   description = "The AI Services account (legacy name for backward compatibility)."
@@ -145,6 +158,19 @@ output "storage_account" {
 }
 
 # ========================================
+# Virtual Machine Outputs
+# ========================================
+output "virtual_machine" {
+  description = "The Virtual Machine for AI development and testing."
+  value = {
+    id                 = azurerm_linux_virtual_machine.this.id
+    name               = azurerm_linux_virtual_machine.this.name
+    private_ip_address = azurerm_network_interface.vm.private_ip_address
+    admin_username     = azurerm_linux_virtual_machine.this.admin_username
+  }
+}
+
+# ========================================
 # Networking Outputs
 # ========================================
 output "virtual_network" {
@@ -156,35 +182,9 @@ output "virtual_network" {
     subnet_ids = {
       private_endpoints = azurerm_subnet.private_endpoints.id
       agent_services    = azurerm_subnet.agent_services.id
-      bastion          = azurerm_subnet.bastion.id
-      vm               = azurerm_subnet.vm.id
+      bastion           = azurerm_subnet.bastion.id
+      vm                = azurerm_subnet.vm.id
     }
-  }
-}
-
-# ========================================
-# ========================================
-# Bastion Host Outputs
-# ========================================
-output "bastion_host" {
-  description = "The Bastion Host for secure VM access."
-  value = {
-    id   = azurerm_bastion_host.this.id
-    name = azurerm_bastion_host.this.name
-    fqdn = azurerm_bastion_host.this.dns_name
-  }
-}
-
-# ========================================
-# Virtual Machine Outputs
-# ========================================
-output "virtual_machine" {
-  description = "The Virtual Machine for AI development and testing."
-  value = {
-    id               = azurerm_linux_virtual_machine.this.id
-    name             = azurerm_linux_virtual_machine.this.name
-    private_ip_address = azurerm_network_interface.vm.private_ip_address
-    admin_username   = azurerm_linux_virtual_machine.this.admin_username
   }
 }
 

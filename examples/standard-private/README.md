@@ -104,6 +104,22 @@ resource "azurerm_subnet" "agent_services" {
   }
 }
 
+# Subnet for Bastion
+resource "azurerm_subnet" "bastion" {
+  address_prefixes     = ["10.0.3.0/26"]
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = azurerm_resource_group.this.name
+  virtual_network_name = azurerm_virtual_network.this.name
+}
+
+# Subnet for VM
+resource "azurerm_subnet" "vm" {
+  address_prefixes     = ["10.0.4.0/24"]
+  name                 = "snet-vm"
+  resource_group_name  = azurerm_resource_group.this.name
+  virtual_network_name = azurerm_virtual_network.this.name
+}
+
 # ========================================
 # Private DNS Zones and VNet Links
 # ========================================
@@ -196,6 +212,119 @@ resource "azurerm_private_dns_zone_virtual_network_link" "ml_workspace" {
   resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
   tags                  = local.tags
+}
+
+# ========================================
+# Bastion Host
+# ========================================
+
+# Public IP for Bastion
+resource "azurerm_public_ip" "bastion" {
+  allocation_method   = "Static"
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.public_ip.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+  sku                 = "Standard"
+  tags                = local.tags
+}
+
+# Bastion Host for secure VM access
+resource "azurerm_bastion_host" "this" {
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.bastion_host.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+  file_copy_enabled   = true
+  sku                 = "Standard"
+  tags                = local.tags
+  tunneling_enabled   = true
+
+  ip_configuration {
+    name                 = "configuration"
+    public_ip_address_id = azurerm_public_ip.bastion.id
+    subnet_id            = azurerm_subnet.bastion.id
+  }
+}
+
+# ========================================
+# Virtual Machine
+# ========================================
+
+# Network Security Group for VM
+resource "azurerm_network_security_group" "vm" {
+  location            = azurerm_resource_group.this.location
+  name                = "${module.naming.network_security_group.name_unique}-vm"
+  resource_group_name = azurerm_resource_group.this.name
+  tags                = local.tags
+}
+
+# Network Security Rule to allow internal traffic
+resource "azurerm_network_security_rule" "allow_internal" {
+  access                      = "Allow"
+  direction                   = "Inbound"
+  name                        = "AllowInternal"
+  network_security_group_name = azurerm_network_security_group.vm.name
+  priority                    = 1000
+  protocol                    = "*"
+  resource_group_name         = azurerm_resource_group.this.name
+  destination_address_prefix  = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "10.0.0.0/16"
+  source_port_range           = "*"
+}
+
+# Associate NSG with VM subnet
+resource "azurerm_subnet_network_security_group_association" "vm" {
+  network_security_group_id = azurerm_network_security_group.vm.id
+  subnet_id                 = azurerm_subnet.vm.id
+}
+
+# Network Interface for VM
+resource "azurerm_network_interface" "vm" {
+  location            = azurerm_resource_group.this.location
+  name                = "${module.naming.network_interface.name_unique}-vm"
+  resource_group_name = azurerm_resource_group.this.name
+  tags                = local.tags
+
+  ip_configuration {
+    name                          = "internal"
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.vm.id
+  }
+}
+
+# Virtual Machine for AI development and testing
+resource "azurerm_linux_virtual_machine" "this" {
+  admin_username = "adminuser"
+  location       = azurerm_resource_group.this.location
+  name           = module.naming.virtual_machine.name_unique
+  network_interface_ids = [
+    azurerm_network_interface.vm.id,
+  ]
+  resource_group_name             = azurerm_resource_group.this.name
+  size                            = "Standard_D4s_v3"
+  disable_password_authentication = true
+  tags                            = local.tags
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Premium_LRS"
+  }
+  admin_ssh_key {
+    public_key = tls_private_key.vm_ssh.public_key_openssh
+    username   = "adminuser"
+  }
+  source_image_reference {
+    offer     = "0001-com-ubuntu-server-jammy"
+    publisher = "Canonical"
+    sku       = "22_04-lts-gen2"
+    version   = "latest"
+  }
+}
+
+# SSH Key for VM access
+resource "tls_private_key" "vm_ssh" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
 }
 
 # Local values for common configuration
@@ -339,7 +468,12 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [azurerm_application_insights.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_insights) (resource)
+- [azurerm_bastion_host.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/bastion_host) (resource)
+- [azurerm_linux_virtual_machine.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine) (resource)
 - [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
+- [azurerm_network_interface.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface) (resource)
+- [azurerm_network_security_group.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_group) (resource)
+- [azurerm_network_security_rule.allow_internal](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_rule) (resource)
 - [azurerm_private_dns_zone.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.ml_workspace](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
@@ -352,11 +486,16 @@ The following resources are used by this module:
 - [azurerm_private_dns_zone_virtual_network_link.openai](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.search](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.storage_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
+- [azurerm_public_ip.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_subnet.agent_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
+- [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.private_endpoints](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
+- [azurerm_subnet.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
+- [azurerm_subnet_network_security_group_association.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_network_security_group_association) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [tls_private_key.vm_ssh](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -429,6 +568,10 @@ Description: The AI Services account used for AI capabilities.
 
 Description: The Application Insights instance used for monitoring.
 
+### <a name="output_bastion_host"></a> [bastion\_host](#output\_bastion\_host)
+
+Description: The Bastion Host for secure VM access.
+
 ### <a name="output_cognitive_services"></a> [cognitive\_services](#output\_cognitive\_services)
 
 Description: The AI Services account (legacy name for backward compatibility).
@@ -457,9 +600,21 @@ Description: The resource group containing all AI Foundry resources.
 
 Description: The storage account used for AI Foundry workloads.
 
+### <a name="output_virtual_machine"></a> [virtual\_machine](#output\_virtual\_machine)
+
+Description: The Virtual Machine for AI development and testing.
+
 ### <a name="output_virtual_network"></a> [virtual\_network](#output\_virtual\_network)
 
 Description: The virtual network created for private endpoint connectivity.
+
+### <a name="output_vm_ssh_private_key"></a> [vm\_ssh\_private\_key](#output\_vm\_ssh\_private\_key)
+
+Description: The private SSH key for VM access (sensitive).
+
+### <a name="output_vm_ssh_public_key"></a> [vm\_ssh\_public\_key](#output\_vm\_ssh\_public\_key)
+
+Description: The public SSH key for VM access.
 
 ## Modules
 
