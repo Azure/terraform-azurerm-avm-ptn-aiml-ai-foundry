@@ -1,9 +1,7 @@
-# Resource Group - Create if resource_group_name is provided
+# Resource Group - Always create since resource_group_name is always provided
 resource "azurerm_resource_group" "this" {
-  count = var.resource_group_name != null ? 1 : 0
-
   location = var.location
-  name     = local.resource_names.resource_group
+  name     = var.resource_group_name
   tags     = var.tags
 }
 

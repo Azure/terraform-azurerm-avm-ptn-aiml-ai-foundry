@@ -7,8 +7,8 @@ locals {
   deploy_storage_account = var.existing_storage_account_resource_id == null
   # Resource group and location references
   location            = var.location
-  resource_group_id   = azurerm_resource_group.this[0].id
-  resource_group_name = azurerm_resource_group.this[0].name
+  resource_group_id   = azurerm_resource_group.this.id
+  resource_group_name = var.resource_group_name
   # Advanced resource naming logic
   # Priority: 1. Custom name, 2. Base name + pattern, 3. var.name + pattern
   resource_names = {
@@ -48,12 +48,6 @@ locals {
       var.ai_agent_host_name,
       var.base_name != null ? "${var.base_name}-agent-host-${local.resource_token}" : null,
       "${var.name}-agent-host-${local.resource_token}"
-    )
-    resource_group = coalesce(
-      var.resource_names.resource_group,
-      var.resource_group_name,
-      var.base_name != null ? "rg-${var.base_name}" : null,
-      "rg-${var.name}"
     )
   }
   # Resource token for unique naming

@@ -355,8 +355,7 @@ DESCRIPTION
 # This is required when creating a new resource group
 variable "resource_group_name" {
   type        = string
-  default     = null
-  description = "The name for the resource group that will be created or used for the deployment."
+  description = "The name for the resource group that will be created for the deployment."
 }
 
 variable "resource_names" {

@@ -37,25 +37,19 @@ module "naming" {
   version = "~> 0.3"
 }
 
-# This is required for resource modules
-resource "azurerm_resource_group" "this" {
-  location = module.regions.regions[random_integer.region_index.result].name
-  name     = module.naming.resource_group.name_unique
-}
-
 # Application Insights for AI Foundry (required)
 resource "azurerm_application_insights" "this" {
   application_type    = "web"
-  location            = azurerm_resource_group.this.location
+  location            = module.regions.regions[random_integer.region_index.result].name
   name                = module.naming.application_insights.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = module.naming.resource_group.name_unique
 }
 
 # Log Analytics Workspace for monitoring
 resource "azurerm_log_analytics_workspace" "this" {
-  location            = azurerm_resource_group.this.location
+  location            = module.regions.regions[random_integer.region_index.result].name
   name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = module.naming.resource_group.name_unique
   retention_in_days   = 30
   sku                 = "PerGB2018"
 }
@@ -65,7 +59,7 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  location = azurerm_resource_group.this.location
+  location = module.regions.regions[random_integer.region_index.result].name
   name     = "ai-foundry-basic"
   # Basic AI model deployment (single model)
   ai_model_deployments = {
@@ -89,7 +83,7 @@ module "ai_foundry" {
   existing_ai_search_resource_id = "skip-deployment" # Skip AI search deployment
   existing_cosmos_db_resource_id = "skip-deployment" # Skip cosmos db deployment
   existing_key_vault_resource_id = "skip-deployment" # Skip key vault deployment
-  resource_group_name            = azurerm_resource_group.this.name
+  resource_group_name            = module.naming.resource_group.name_unique
   # Basic deployment - no additional resources
   # Skip deployment by providing non-null values (these won't be used, just prevent deployment)
   existing_storage_account_resource_id = "skip-deployment" # Skip storage deployment
