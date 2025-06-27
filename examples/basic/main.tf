@@ -63,14 +63,14 @@ module "ai_foundry" {
 
   location = module.regions.regions[random_integer.region_index.result].name
   name     = "ai-foundry-basic"
-  # Basic AI model deployment (single model)
+  # Basic AI model deployment (single model) - Available in Australia
   ai_model_deployments = {
-    "gpt-4o-mini" = {
-      name = "gpt-4o-mini"
+    "gpt-4o" = {
+      name = "gpt-4o"
       model = {
         format  = "OpenAI"
-        name    = "gpt-4o-mini"
-        version = "2024-07-18"
+        name    = "gpt-4o"
+        version = "2024-08-06"
       }
       scale = {
         type = "Standard"

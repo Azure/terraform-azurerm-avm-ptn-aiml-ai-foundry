@@ -63,7 +63,7 @@ module "ai_foundry" {
   ai_foundry_project_description       = "Standard AI Foundry project with agent services (public endpoints)"
   ai_foundry_project_name              = "AI-Foundry-Standard-Public"
   ai_foundry_project_private_endpoints = {}
-  # Standard AI model deployment (single model)
+  # Standard AI model deployment (single model) - Available in Australia
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4o"
