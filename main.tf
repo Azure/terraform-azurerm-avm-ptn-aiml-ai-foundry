@@ -73,7 +73,9 @@ resource "azapi_resource" "ai_services" {
       name = "S0"
     }
     properties = {
-      publicNetworkAccess = length(var.ai_services_private_endpoints) == 0 ? "Enabled" : "Disabled"
+      publicNetworkAccess      = length(var.ai_services_private_endpoints) == 0 ? "Enabled" : "Disabled"
+      allowProjectManagement   = true
+      customSubDomainName      = local.resource_names.ai_services
     }
   }
   tags = var.tags

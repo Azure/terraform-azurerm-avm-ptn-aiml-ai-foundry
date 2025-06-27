@@ -37,25 +37,19 @@ module "naming" {
   version = "~> 0.3"
 }
 
-# This is required for resource modules
-resource "azurerm_resource_group" "this" {
-  location = module.regions.regions[random_integer.region_index.result].name
-  name     = module.naming.resource_group.name_unique
-}
-
 # Application Insights for AI Foundry (required)
 resource "azurerm_application_insights" "this" {
   application_type    = "web"
-  location            = azurerm_resource_group.this.location
+  location            = module.regions.regions[random_integer.region_index.result].name
   name                = module.naming.application_insights.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = module.naming.resource_group.name_unique
 }
 
 # Log Analytics Workspace for Container App Environment
 resource "azurerm_log_analytics_workspace" "this" {
-  location            = azurerm_resource_group.this.location
+  location            = module.regions.regions[random_integer.region_index.result].name
   name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = module.naming.resource_group.name_unique
   retention_in_days   = 30
   sku                 = "PerGB2018"
 }
@@ -64,7 +58,7 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  location                             = azurerm_resource_group.this.location
+  location                             = module.regions.regions[random_integer.region_index.result].name
   name                                 = "ai-foundry-std-pub"
   ai_foundry_project_description       = "Standard AI Foundry project with agent services (public endpoints)"
   ai_foundry_project_name              = "AI-Foundry-Standard-Public"
@@ -88,7 +82,7 @@ module "ai_foundry" {
   cosmos_db_private_endpoints   = {}
   # Enable telemetry for the module
   enable_telemetry            = true
-  resource_group_name         = azurerm_resource_group.this.name
+  resource_group_name         = module.naming.resource_group.name_unique
   key_vault_private_endpoints = {}
   storage_private_endpoints   = {}
 }

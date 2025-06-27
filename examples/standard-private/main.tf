@@ -37,25 +37,19 @@ module "naming" {
   version = "~> 0.3"
 }
 
-# This is required for resource modules
-resource "azurerm_resource_group" "this" {
-  location = module.regions.regions[random_integer.region_index.result].name
-  name     = module.naming.resource_group.name_unique
-}
-
 # Application Insights for AI Foundry (required)
 resource "azurerm_application_insights" "this" {
   application_type    = "web"
-  location            = azurerm_resource_group.this.location
+  location            = module.regions.regions[random_integer.region_index.result].name
   name                = module.naming.application_insights.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = module.naming.resource_group.name_unique
 }
 
 # Log Analytics Workspace for Container App Environment
 resource "azurerm_log_analytics_workspace" "this" {
-  location            = azurerm_resource_group.this.location
+  location            = module.regions.regions[random_integer.region_index.result].name
   name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = module.naming.resource_group.name_unique
   retention_in_days   = 30
   sku                 = "PerGB2018"
 }
@@ -66,9 +60,9 @@ resource "azurerm_log_analytics_workspace" "this" {
 
 # Virtual Network for private endpoints and agent services
 resource "azurerm_virtual_network" "this" {
-  location            = azurerm_resource_group.this.location
+  location            = module.regions.regions[random_integer.region_index.result].name
   name                = module.naming.virtual_network.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = module.naming.resource_group.name_unique
   address_space       = ["10.0.0.0/16"]
 }
 
@@ -76,7 +70,7 @@ resource "azurerm_virtual_network" "this" {
 resource "azurerm_subnet" "private_endpoints" {
   address_prefixes     = ["10.0.1.0/24"]
   name                 = "snet-private-endpoints"
-  resource_group_name  = azurerm_resource_group.this.name
+  resource_group_name  = module.naming.resource_group.name_unique
   virtual_network_name = azurerm_virtual_network.this.name
 }
 
