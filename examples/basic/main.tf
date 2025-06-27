@@ -85,11 +85,11 @@ module "ai_foundry" {
   create_ai_agent_service   = false
   create_ai_foundry_project = true
   # Enable telemetry for the module
-  enable_telemetry               = var.enable_telemetry
+  enable_telemetry               = true
   existing_ai_search_resource_id = "skip-deployment" # Skip AI search deployment
   existing_cosmos_db_resource_id = "skip-deployment" # Skip cosmos db deployment
   existing_key_vault_resource_id = "skip-deployment" # Skip key vault deployment
-  existing_resource_group_name   = azurerm_resource_group.this.name
+  resource_group_name            = azurerm_resource_group.this.name
   # Basic deployment - no additional resources
   # Skip deployment by providing non-null values (these won't be used, just prevent deployment)
   existing_storage_account_resource_id = "skip-deployment" # Skip storage deployment

@@ -290,19 +290,6 @@ variable "existing_key_vault_resource_id" {
   description = "(Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created."
 }
 
-variable "existing_resource_group_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing resource group to use. If not provided, a new resource group will be created."
-}
-
-# BYO Resource Group Configuration
-variable "existing_resource_group_name" {
-  type        = string
-  default     = null
-  description = "The name of an existing resource group to use. If not provided, a new resource group will be created."
-}
-
 # Bring Your Own Resource IDs
 variable "existing_storage_account_resource_id" {
   type        = string
@@ -369,7 +356,7 @@ DESCRIPTION
 variable "resource_group_name" {
   type        = string
   default     = null
-  description = "The name for a new resource group. Required only if existing_resource_group_name and existing_resource_group_id are not provided."
+  description = "The name for the resource group that will be created or used for the deployment."
 }
 
 variable "resource_names" {

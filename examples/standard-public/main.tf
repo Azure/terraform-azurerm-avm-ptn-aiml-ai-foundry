@@ -87,8 +87,8 @@ module "ai_foundry" {
   ai_services_private_endpoints = {}
   cosmos_db_private_endpoints   = {}
   # Enable telemetry for the module
-  enable_telemetry             = var.enable_telemetry
-  existing_resource_group_name = azurerm_resource_group.this.name
-  key_vault_private_endpoints  = {}
-  storage_private_endpoints    = {}
+  enable_telemetry            = true
+  resource_group_name         = azurerm_resource_group.this.name
+  key_vault_private_endpoints = {}
+  storage_private_endpoints   = {}
 }

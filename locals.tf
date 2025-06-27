@@ -6,9 +6,9 @@ locals {
   deploy_key_vault       = var.existing_key_vault_resource_id == null
   deploy_storage_account = var.existing_storage_account_resource_id == null
   # Resource group and location references
-  location            = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].location : var.location
-  resource_group_id   = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.this[0].id
-  resource_group_name = var.existing_resource_group_name != null || var.existing_resource_group_id != null ? data.azurerm_resource_group.existing[0].name : azurerm_resource_group.this[0].name
+  location            = var.location
+  resource_group_id   = azurerm_resource_group.this[0].id
+  resource_group_name = azurerm_resource_group.this[0].name
   # Advanced resource naming logic
   # Priority: 1. Custom name, 2. Base name + pattern, 3. var.name + pattern
   resource_names = {

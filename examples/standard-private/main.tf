@@ -328,8 +328,8 @@ module "ai_foundry" {
     }
   }
   # Enable telemetry for the module
-  enable_telemetry             = var.enable_telemetry
-  existing_resource_group_name = azurerm_resource_group.this.name
+  enable_telemetry    = true
+  resource_group_name = azurerm_resource_group.this.name
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
