@@ -5,6 +5,15 @@ resource "azurerm_resource_group" "this" {
   tags     = var.tags
 }
 
+# Random string for unique resource naming
+resource "random_string" "resource_token" {
+  length  = 5
+  lower   = true
+  upper   = false
+  numeric = true
+  special = false
+}
+
 # Storage Account (BYO or Create New)
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
@@ -73,9 +82,9 @@ resource "azapi_resource" "ai_services" {
       name = "S0"
     }
     properties = {
-      publicNetworkAccess      = length(var.ai_services_private_endpoints) == 0 ? "Enabled" : "Disabled"
-      allowProjectManagement   = true
-      customSubDomainName      = local.resource_names.ai_services
+      publicNetworkAccess    = length(var.ai_services_private_endpoints) == 0 ? "Enabled" : "Disabled"
+      allowProjectManagement = true
+      customSubDomainName    = local.resource_names.ai_services
     }
   }
   tags = var.tags

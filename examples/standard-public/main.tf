@@ -66,14 +66,15 @@ module "ai_foundry" {
   # Standard AI model deployment (single model) - Available in Australia
   ai_model_deployments = {
     "gpt-4o" = {
-      name = "gpt-4o"
+      name = "gpt-4.1"
       model = {
         format  = "OpenAI"
-        name    = "gpt-4o"
-        version = "2024-08-06"
+        name    = "gpt-4.1"
+        version = "2025-04-14"
       }
       scale = {
-        type = "Standard"
+        type     = "GlobalStandard"
+        capacity = 1
       }
     }
   }

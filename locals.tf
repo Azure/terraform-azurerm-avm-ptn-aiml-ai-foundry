@@ -50,8 +50,8 @@ locals {
       "${var.name}-agent-host-${local.resource_token}"
     )
   }
-  # Resource token for unique naming
-  resource_token = substr(sha256("${data.azurerm_client_config.current.subscription_id}-${local.location}-${var.name}"), 0, 5)
+  # Resource token for unique naming - use random generator
+  resource_token = random_string.resource_token.result
   # Role definition resource substring for role assignments
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
 }
