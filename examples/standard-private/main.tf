@@ -1,10 +1,10 @@
 terraform {
-  required_version = "~> 1.5"
+  required_version = ">= 1.9, < 2.0"
 
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.21"
+      version = "~> 4.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -82,7 +82,7 @@ resource "azurerm_subnet" "private_endpoints" {
 
 # Subnet for AI agent services (Container Apps)
 resource "azurerm_subnet" "agent_services" {
-  address_prefixes     = ["10.0.2.0/23"]
+  address_prefixes     = ["10.0.2.0/24"]
   name                 = "snet-agent-services"
   resource_group_name  = module.naming.resource_group.name_unique
   virtual_network_name = azurerm_virtual_network.this.name
@@ -275,6 +275,8 @@ module "ai_foundry" {
   location                       = module.regions.regions[random_integer.region_index.result].name
   name                           = "ai-foundry-std-prv"
   agent_subnet_resource_id       = azurerm_subnet.agent_services.id
+  create_ai_agent_service        = true
+  create_ai_foundry_project      = true
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
   ai_foundry_project_name        = "AI-Foundry-Standard-Private"
   ai_foundry_project_private_endpoints = {

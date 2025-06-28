@@ -1,10 +1,10 @@
 terraform {
-  required_version = "~> 1.5"
+  required_version = ">= 1.9, < 2.0"
 
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.21"
+      version = "~> 4.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -58,6 +58,8 @@ module "ai_foundry" {
 
   ai_foundry_project_description       = "Standard AI Foundry project with agent services (public endpoints)"
   ai_foundry_project_name              = "AI-Foundry-Standard-Public"
+  create_ai_foundry_project            = true
+  create_ai_agent_service              = true
   ai_foundry_project_private_endpoints = {}
   ai_model_deployments = {
     "gpt-4o" = {
