@@ -14,14 +14,20 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 ## Section to provide a random Azure region for the resource group
 # This allows us to randomize the region for the resource group.
 module "regions" {
-  source  = "Azure/avm-utl-regions/azurerm"
-  version = "~> 0.1"
+  source                    = "Azure/avm-utl-regions/azurerm"
+  version                   = "~> 0.1"
+  availability_zones_filter = true
+  geography_filter          = "Australia"
 }
 
 # This allows us to randomize the region for the resource group.

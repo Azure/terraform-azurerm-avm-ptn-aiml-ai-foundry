@@ -28,6 +28,18 @@ module "storage_account" {
   }
   private_endpoints = var.storage_private_endpoints
   tags              = var.tags
+
+  # Configure for AI Foundry security requirements
+  shared_access_key_enabled = false  # Disable shared key access for security
+  public_network_access_enabled = length(var.storage_private_endpoints) == 0 ? true : false
+
+  # Configure network rules for private endpoint scenarios
+  network_rules = length(var.storage_private_endpoints) > 0 ? {
+    default_action = "Deny"
+    bypass         = ["AzureServices"]
+    ip_rules       = []
+    virtual_network_subnet_ids = []
+  } : null
 }
 
 # Key Vault (BYO or Create New)
@@ -178,6 +190,84 @@ resource "azapi_resource" "ai_foundry_project" {
   ]
 }
 
+# AI Foundry Project Connection to Storage Account (when not skipped)
+resource "azapi_resource" "ai_foundry_project_connection_storage" {
+  count = var.create_ai_foundry_project && local.deploy_storage_account ? 1 : 0
+
+  name      = local.resource_names.storage_account
+  parent_id = azapi_resource.ai_foundry_project[0].id
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  body = {
+    properties = {
+      category = "AzureStorageAccount"
+      target   = "https://${local.resource_names.storage_account}.blob.core.windows.net/"
+      authType = "AAD"
+      metadata = {
+        ApiType    = "Azure"
+        ResourceId = module.storage_account[0].resource_id
+        location   = local.location
+      }
+    }
+  }
+
+  depends_on = [
+    azapi_resource.ai_foundry_project,
+    module.storage_account
+  ]
+}
+
+# AI Foundry Project Connection to Cosmos DB (when not skipped)
+resource "azapi_resource" "ai_foundry_project_connection_cosmos" {
+  count = var.create_ai_foundry_project && local.deploy_cosmos_db ? 1 : 0
+
+  name      = local.resource_names.cosmos_db
+  parent_id = azapi_resource.ai_foundry_project[0].id
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  body = {
+    properties = {
+      category = "CosmosDB"
+      target   = "https://${local.resource_names.cosmos_db}.documents.azure.com:443/"
+      authType = "AAD"
+      metadata = {
+        ApiType    = "Azure"
+        ResourceId = module.cosmos_db[0].resource_id
+        location   = local.location
+      }
+    }
+  }
+
+  depends_on = [
+    azapi_resource.ai_foundry_project,
+    module.cosmos_db
+  ]
+}
+
+# AI Foundry Project Connection to AI Search (when not skipped)
+resource "azapi_resource" "ai_foundry_project_connection_search" {
+  count = var.create_ai_foundry_project && local.deploy_ai_search ? 1 : 0
+
+  name      = local.resource_names.ai_search
+  parent_id = azapi_resource.ai_foundry_project[0].id
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  body = {
+    properties = {
+      category = "CognitiveSearch"
+      target   = "https://${local.resource_names.ai_search}.search.windows.net"
+      authType = "AAD"
+      metadata = {
+        ApiType    = "Azure"
+        ResourceId = module.ai_search[0].resource_id
+        location   = local.location
+      }
+    }
+  }
+
+  depends_on = [
+    azapi_resource.ai_foundry_project,
+    module.ai_search
+  ]
+}
+
 # AI Agent Service (Using AzAPI)
 resource "azapi_resource" "ai_agent_capability_host" {
   count = var.create_ai_agent_service ? 1 : 0
@@ -190,31 +280,31 @@ resource "azapi_resource" "ai_agent_capability_host" {
       capabilityHostKind = "Agents"
       description        = "AI Agent capability host for ${var.name}"
 
-      # Storage connections for agent service data
-      storageConnections = var.existing_storage_account_resource_id != null ? [
+      # Storage connections for agent service data - use connection names
+      storageConnections = var.existing_storage_account_resource_id != null && var.existing_storage_account_resource_id != "skip-deployment" ? [
         var.existing_storage_account_resource_id
-        ] : [
-        module.storage_account[0].resource_id
-      ]
+        ] : local.deploy_storage_account ? [
+        local.resource_names.storage_account
+      ] : []
 
       # AI Services connections for model access
       aiServicesConnections = [
         azapi_resource.ai_services.id
       ]
 
-      # Optional: Thread storage connections
-      threadStorageConnections = var.existing_storage_account_resource_id != null ? [
+      # Thread storage connections - use connection names
+      threadStorageConnections = var.existing_storage_account_resource_id != null && var.existing_storage_account_resource_id != "skip-deployment" ? [
         var.existing_storage_account_resource_id
-        ] : [
-        module.storage_account[0].resource_id
-      ]
+        ] : local.deploy_storage_account ? [
+        local.resource_names.storage_account
+      ] : []
 
-      # Optional: Vector store connections (if AI Search is available)
-      vectorStoreConnections = var.existing_ai_search_resource_id != null ? [
+      # Vector store connections - use connection names
+      vectorStoreConnections = var.existing_ai_search_resource_id != null && var.existing_ai_search_resource_id != "skip-deployment" ? [
         var.existing_ai_search_resource_id
-        ] : (
-        length(module.ai_search) > 0 ? [module.ai_search[0].resource_id] : []
-      )
+        ] : local.deploy_ai_search ? [
+        local.resource_names.ai_search
+      ] : []
 
       # Customer subnet for private networking - use external subnet
       customerSubnet = var.agent_subnet_resource_id
@@ -222,7 +312,10 @@ resource "azapi_resource" "ai_agent_capability_host" {
   }
 
   depends_on = [
-    azapi_resource.ai_foundry_project
+    azapi_resource.ai_foundry_project,
+    azapi_resource.ai_foundry_project_connection_storage,
+    azapi_resource.ai_foundry_project_connection_cosmos,
+    azapi_resource.ai_foundry_project_connection_search
   ]
 }
 

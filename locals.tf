@@ -15,39 +15,39 @@ locals {
     storage_account = coalesce(
       var.resource_names.storage_account,
       var.base_name != null ? "st${var.base_name}${local.resource_token}" : null,
-      "st${var.name}${local.resource_token}"
+      "st${substr(replace(var.name, "-", ""), 0, 15)}${local.resource_token}"
     )
     key_vault = coalesce(
       var.resource_names.key_vault,
-      var.base_name != null ? "kv${var.base_name}${local.resource_token}" : null,
-      "kv${var.name}${local.resource_token}"
+      var.base_name != null ? "kv-${var.base_name}-${local.resource_token}" : null,
+      "kv-${substr(replace(var.name, "-", ""), 0, 13)}-${local.resource_token}"
     )
     cosmos_db = coalesce(
       var.resource_names.cosmos_db,
-      var.base_name != null ? "cos${var.base_name}${local.resource_token}" : null,
-      "cos${var.name}${local.resource_token}"
+      var.base_name != null ? "cos-${var.base_name}-${local.resource_token}" : null,
+      "cos-${substr(replace(var.name, "-", ""), 0, 10)}-${local.resource_token}"
     )
     ai_search = coalesce(
       var.resource_names.ai_search,
-      var.base_name != null ? "srch${var.base_name}${local.resource_token}" : null,
-      "srch${var.name}${local.resource_token}"
+      var.base_name != null ? "srch-${var.base_name}-${local.resource_token}" : null,
+      "srch-${substr(replace(var.name, "-", ""), 0, 10)}-${local.resource_token}"
     )
     ai_services = coalesce(
       var.resource_names.ai_services,
-      var.base_name != null ? "${var.base_name}-aiservices-${local.resource_token}" : null,
-      "${var.name}-aiservices-${local.resource_token}"
+      var.base_name != null ? "${var.base_name}-ai-${local.resource_token}" : null,
+      "${substr(replace(var.name, "-", ""), 0, 10)}-ai-${local.resource_token}"
     )
     ai_foundry_project = coalesce(
       var.resource_names.ai_foundry_project,
       var.ai_foundry_project_name,
-      var.base_name != null ? "${var.base_name}proj" : null,
-      "${var.name}proj"
+      var.base_name != null ? "${var.base_name}-proj" : null,
+      "${substr(replace(var.name, "-", ""), 0, 15)}-proj"
     )
     ai_agent_host = coalesce(
       var.resource_names.ai_agent_host,
       var.ai_agent_host_name,
-      var.base_name != null ? "${var.base_name}-agent-host-${local.resource_token}" : null,
-      "${var.name}-agent-host-${local.resource_token}"
+      var.base_name != null ? "${var.base_name}-agent-${local.resource_token}" : null,
+      "${substr(replace(var.name, "-", ""), 0, 10)}-agent-${local.resource_token}"
     )
   }
   # Resource token for unique naming - use random generator
