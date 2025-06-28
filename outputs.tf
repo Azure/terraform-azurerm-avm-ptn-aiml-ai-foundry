@@ -1,325 +1,84 @@
-# output "ai_agent_service_fqdn" {
-#   description = "The FQDN of the AI agent service (if available from capability host)."
-#   value       = var.create_ai_agent_service ? try(azapi_resource.ai_agent_capability_host[0].output.properties.fqdn, null) : null
-# }
+output "ai_agent_service_id" {
+  description = "The resource ID of the AI agent capability host."
+  value       = module.ai_foundry_project.ai_agent_capability_host_id
+}
 
-# # AI Agent Service Outputs
-# output "ai_agent_service_id" {
-#   description = "The resource ID of the AI agent capability host."
-#   value       = var.create_ai_agent_service ? azapi_resource.ai_agent_capability_host[0].id : null
-# }
+output "ai_foundry_id" {
+  description = "The resource ID of the AI Foundry account."
+  value       = module.ai_foundry.ai_foundry_id
+}
 
-# output "ai_agent_service_name" {
-#   description = "The name of the AI agent capability host."
-#   value       = var.create_ai_agent_service ? azapi_resource.ai_agent_capability_host[0].name : null
-# }
+output "ai_foundry_name" {
+  description = "The name of the AI Foundry account."
+  value       = module.ai_foundry.ai_foundry_name
+}
 
-# output "ai_foundry_project_id" {
-#   description = "The resource ID of the AI Foundry Project."
-#   value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].id : null
-# }
+output "ai_foundry_project_id" {
+  description = "The resource ID of the AI Foundry Project."
+  value       = module.ai_foundry_project.ai_foundry_project_id
+}
 
-# output "ai_foundry_project_name" {
-#   description = "The name of the AI Foundry Project."
-#   value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].name : null
-# }
+output "ai_foundry_project_name" {
+  description = "The name of the AI Foundry Project."
+  value       = module.ai_foundry_project.ai_foundry_project_name
+}
 
-# output "ai_foundry_project_private_endpoints" {
-#   description = "A map of private endpoints created for the AI Foundry Project (via AI Services)."
-#   value = {
-#     for k, v in azurerm_private_endpoint.ai_foundry_project : k => {
-#       id           = v.id
-#       name         = v.name
-#       fqdn         = try(v.private_dns_zone_group[0].private_dns_zone_configs[0].record_sets[0].fqdn, null)
-#       ip_addresses = v.private_service_connection[0].private_ip_address
-#     }
-#   }
-# }
+output "ai_model_deployment_ids" {
+  description = "The resource IDs of all AI model deployments."
+  value       = module.ai_foundry.ai_model_deployment_ids
+}
 
-# output "ai_foundry_project_workspace_url" {
-#   description = "The project URL of the AI Foundry Project."
-#   value       = var.create_ai_foundry_project ? try(azapi_resource.ai_foundry_project[0].output.properties.projectUrl, null) : null
-# }
+output "ai_search_id" {
+  description = "The resource ID of the AI Search service."
+  value       = module.dependent_resources.ai_search_id
+}
 
-# # AI Search Outputs
-# output "ai_search" {
-#   description = "The AI Search service used for vector search and retrieval."
-#   value = var.existing_ai_search_resource_id != null && var.existing_ai_search_resource_id != "skip-deployment" ? {
-#     id                  = var.existing_ai_search_resource_id
-#     name                = data.azurerm_search_service.existing[0].name
-#     search_service_name = data.azurerm_search_service.existing[0].name
-#     } : local.deploy_ai_search ? {
-#     id                  = module.ai_search[0].resource_id
-#     name                = module.ai_search[0].resource.name
-#     search_service_name = module.ai_search[0].resource.name
-#   } : null
-# }
+output "ai_search_name" {
+  description = "The name of the AI Search service."
+  value       = module.dependent_resources.ai_search_name
+}
 
-# # AI Services Outputs
-# output "ai_services" {
-#   description = "The AI Services account with OpenAI and other AI models."
-#   value = {
-#     id          = azapi_resource.ai_services.id
-#     name        = azapi_resource.ai_services.name
-#     endpoint    = azapi_resource.ai_services.output.properties.endpoint
-#     deployments = var.ai_model_deployments
-#   }
-# }
+output "cosmos_db_id" {
+  description = "The resource ID of the Cosmos DB account."
+  value       = module.dependent_resources.cosmos_db_id
+}
 
-# # AI Services Endpoint and Keys (for examples)
-# output "ai_services_endpoint" {
-#   description = "The endpoint of the AI Services account."
-#   value       = azapi_resource.ai_services.output.properties.endpoint
-# }
+output "cosmos_db_name" {
+  description = "The name of the Cosmos DB account."
+  value       = module.dependent_resources.cosmos_db_name
+}
 
-# output "ai_services_name" {
-#   description = "The name of the AI Services account."
-#   value       = azapi_resource.ai_services.name
-# }
+output "key_vault_id" {
+  description = "The resource ID of the Key Vault."
+  value       = module.dependent_resources.key_vault_id
+}
 
-# # AI Services Private Endpoints
-# output "ai_services_private_endpoints" {
-#   description = "A map of private endpoints created for the AI Services account."
-#   value = {
-#     for k, v in azurerm_private_endpoint.ai_services : k => {
-#       id           = v.id
-#       name         = v.name
-#       fqdn         = try(v.private_dns_zone_group[0].private_dns_zone_configs[0].record_sets[0].fqdn, null)
-#       ip_addresses = v.private_service_connection[0].private_ip_address
-#     }
-#   }
-# }
+output "key_vault_name" {
+  description = "The name of the Key Vault."
+  value       = module.dependent_resources.key_vault_name
+}
 
-# output "azure_ai_project_name" {
-#   description = "Name of the deployed Azure AI Project."
-#   value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].name : ""
-# }
+output "resource_group_id" {
+  description = "The resource ID of the resource group."
+  value       = azurerm_resource_group.this.id
+}
 
-# output "azure_ai_search_name" {
-#   description = "Name of the deployed Azure AI Search service."
-#   value       = local.deploy_ai_search ? module.ai_search[0].resource.name : (var.existing_ai_search_resource_id != null && var.existing_ai_search_resource_id != "skip-deployment" ? split("/", var.existing_ai_search_resource_id)[8] : null)
-# }
+output "resource_group_name" {
+  description = "The name of the resource group."
+  value       = azurerm_resource_group.this.name
+}
 
-# output "azure_ai_services_name" {
-#   description = "Name of the deployed Azure AI Services account."
-#   value       = azapi_resource.ai_services.name
-# }
+output "resource_id" {
+  description = "The resource ID of the primary AI Foundry project resource."
+  value       = module.ai_foundry_project.ai_foundry_project_id
+}
 
-# output "azure_key_vault_name" {
-#   description = "Name of the deployed Azure Key Vault."
-#   value       = local.deploy_key_vault ? module.key_vault[0].resource.name : (var.existing_key_vault_resource_id != null && var.existing_key_vault_resource_id != "skip-deployment" ? data.azurerm_key_vault.existing[0].name : null)
-# }
+output "storage_account_id" {
+  description = "The resource ID of the storage account."
+  value       = module.dependent_resources.storage_account_id
+}
 
-# output "azure_virtual_network_name" {
-#   description = "Name of the external Azure Virtual Network (provided by user via agent_subnet_resource_id)."
-#   value       = var.agent_subnet_resource_id != null ? split("/", var.agent_subnet_resource_id)[8] : ""
-# }
-
-# output "azure_virtual_network_subnet_name" {
-#   description = "Name of the external Azure Virtual Network Subnet (provided by user via agent_subnet_resource_id)."
-#   value       = var.agent_subnet_resource_id != null ? split("/", var.agent_subnet_resource_id)[10] : ""
-# }
-
-# # Legacy output for backward compatibility
-# output "cognitive_services" {
-#   description = "The AI Services account (legacy name for backward compatibility)."
-#   value = {
-#     id          = azapi_resource.ai_services.id
-#     name        = azapi_resource.ai_services.name
-#     endpoint    = azapi_resource.ai_services.output.properties.endpoint
-#     deployments = var.ai_model_deployments
-#   }
-# }
-
-# # Connection Information
-# output "connection_info" {
-#   description = "Connection information for integrating with the AI Foundry services."
-#   sensitive   = true
-#   value = {
-#     storage_account_connection = var.existing_storage_account_resource_id != null ? {
-#       account_name  = data.azurerm_storage_account.existing[0].name
-#       account_key   = data.azurerm_storage_account.existing[0].primary_access_key
-#       blob_endpoint = data.azurerm_storage_account.existing[0].primary_blob_endpoint
-#       dfs_endpoint  = data.azurerm_storage_account.existing[0].primary_dfs_endpoint
-#       } : {
-#       account_name  = module.storage_account[0].name
-#       account_key   = module.storage_account[0].resource.primary_access_key
-#       blob_endpoint = module.storage_account[0].resource.primary_blob_endpoint
-#       dfs_endpoint  = module.storage_account[0].resource.primary_dfs_endpoint
-#     }
-
-#     key_vault_connection = var.existing_key_vault_resource_id != null ? {
-#       vault_uri  = data.azurerm_key_vault.existing[0].vault_uri
-#       vault_name = data.azurerm_key_vault.existing[0].name
-#       } : {
-#       vault_uri  = module.key_vault[0].uri
-#       vault_name = module.key_vault[0].name
-#     }
-
-#     cosmos_db_connection = var.existing_cosmos_db_resource_id != null ? {
-#       endpoint     = data.azurerm_cosmosdb_account.existing[0].endpoint
-#       account_name = data.azurerm_cosmosdb_account.existing[0].name
-#       } : {
-#       endpoint     = "https://${module.cosmos_db[0].name}.documents.azure.com:443/"
-#       account_name = module.cosmos_db[0].name
-#     }
-
-#     ai_search_connection = var.existing_ai_search_resource_id != null ? {
-#       endpoint     = "https://${data.azurerm_search_service.existing[0].name}.search.windows.net"
-#       service_name = data.azurerm_search_service.existing[0].name
-#       } : {
-#       endpoint     = "https://${module.ai_search[0].resource.name}.search.windows.net"
-#       service_name = module.ai_search[0].resource.name
-#     }
-
-#     openai_connection = {
-#       endpoint     = azapi_resource.ai_services.output.properties.endpoint
-#       account_name = azapi_resource.ai_services.name
-#       deployments  = var.ai_model_deployments
-#     }
-#   }
-# }
-
-# # Cosmos DB Outputs
-# output "cosmos_db" {
-#   description = "The Cosmos DB account used for AI Foundry data storage."
-#   value = var.existing_cosmos_db_resource_id != null && var.existing_cosmos_db_resource_id != "skip-deployment" ? {
-#     id              = var.existing_cosmos_db_resource_id
-#     name            = data.azurerm_cosmosdb_account.existing[0].name
-#     endpoint        = data.azurerm_cosmosdb_account.existing[0].endpoint
-#     read_endpoints  = data.azurerm_cosmosdb_account.existing[0].read_endpoints
-#     write_endpoints = data.azurerm_cosmosdb_account.existing[0].write_endpoints
-#     } : local.deploy_cosmos_db ? {
-#     id              = module.cosmos_db[0].resource_id
-#     name            = module.cosmos_db[0].name
-#     endpoint        = "https://${module.cosmos_db[0].name}.documents.azure.com:443/"
-#     read_endpoints  = [] # This would need to be calculated based on geo-locations
-#     write_endpoints = [] # This would need to be calculated based on geo-locations
-#   } : null
-# }
-
-# # Key Vault Outputs
-# output "key_vault" {
-#   description = "The Key Vault used for secrets management."
-#   value = var.existing_key_vault_resource_id != null && var.existing_key_vault_resource_id != "skip-deployment" ? {
-#     id        = var.existing_key_vault_resource_id
-#     name      = data.azurerm_key_vault.existing[0].name
-#     vault_uri = data.azurerm_key_vault.existing[0].vault_uri
-#     } : local.deploy_key_vault ? {
-#     id        = module.key_vault[0].resource_id
-#     name      = module.key_vault[0].name
-#     vault_uri = module.key_vault[0].uri
-#   } : null
-# }
-
-# # Key Vault Outputs (for examples)
-# output "key_vault_id" {
-#   description = "The resource ID of the Key Vault."
-#   value       = var.existing_key_vault_resource_id != null ? var.existing_key_vault_resource_id : (local.deploy_key_vault ? module.key_vault[0].resource_id : null)
-# }
-
-# output "key_vault_name" {
-#   description = "The name of the Key Vault."
-#   value       = var.existing_key_vault_resource_id != null && var.existing_key_vault_resource_id != "skip-deployment" ? data.azurerm_key_vault.existing[0].name : (local.deploy_key_vault ? module.key_vault[0].name : null)
-# }
-
-# output "key_vault_uri" {
-#   description = "The URI of the Key Vault."
-#   value       = var.existing_key_vault_resource_id != null && var.existing_key_vault_resource_id != "skip-deployment" ? data.azurerm_key_vault.existing[0].vault_uri : (local.deploy_key_vault ? module.key_vault[0].vault_uri : null)
-# }
-
-# # Managed Identity Outputs
-# output "managed_identities" {
-#   description = "Managed identities created for the AI Foundry services."
-#   value = {
-#     storage_account = var.existing_storage_account_resource_id == null ? try(module.storage_account[0].system_assigned_mi_principal_id, null) : null
-#     key_vault       = var.existing_key_vault_resource_id == null ? try(module.key_vault[0].system_assigned_mi_principal_id, null) : null
-#     cosmos_db       = var.existing_cosmos_db_resource_id == null ? try(module.cosmos_db[0].system_assigned_mi_principal_id, null) : null
-#     ai_search       = var.existing_ai_search_resource_id == null ? try(module.ai_search[0].system_assigned_mi_principal_id, null) : null
-#     ai_services     = try(azapi_resource.ai_services.identity[0].principal_id, null)
-#   }
-# }
-
-# # Private Endpoints Outputs
-# output "private_endpoints" {
-#   description = "All private endpoints created for the AI Foundry services."
-#   value = {
-#     storage_account = var.existing_storage_account_resource_id == null ? try(module.storage_account[0].private_endpoints, {}) : {}
-#     key_vault       = var.existing_key_vault_resource_id == null ? try(module.key_vault[0].private_endpoints, {}) : {}
-#     cosmos_db       = var.existing_cosmos_db_resource_id == null ? try(module.cosmos_db[0].private_endpoints, {}) : {}
-#     ai_search       = var.existing_ai_search_resource_id == null ? try(module.ai_search[0].private_endpoints, {}) : {}
-#     ai_services = {
-#       for k, v in azurerm_private_endpoint.ai_services : k => {
-#         id           = v.id
-#         name         = v.name
-#         fqdn         = try(v.private_dns_zone_group[0].private_dns_zone_configs[0].record_sets[0].fqdn, null)
-#         ip_addresses = v.private_service_connection[0].private_ip_address
-#       }
-#     }
-#   }
-# }
-
-# # Resource Group Outputs
-# output "resource_group" {
-#   description = "The resource group containing all AI Foundry resources."
-#   value = {
-#     id       = local.resource_group_id
-#     name     = local.resource_group_name
-#     location = local.location
-#   }
-# }
-
-# # Resource Group Outputs (for examples)
-# output "resource_group_id" {
-#   description = "The resource ID of the resource group."
-#   value       = local.resource_group_id
-# }
-
-# output "resource_group_name" {
-#   description = "Name of the deployed Azure Resource Group."
-#   value       = local.resource_group_name
-# }
-
-# # Required AVM Outputs
-# output "resource_id" {
-#   description = "The resource ID of the primary AI Foundry project resource."
-#   value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].id : null
-# }
-
-# # Storage Account Outputs
-# output "storage_account" {
-#   description = "The storage account used for AI Foundry workloads."
-#   value = var.existing_storage_account_resource_id != null ? {
-#     id                    = var.existing_storage_account_resource_id
-#     name                  = data.azurerm_storage_account.existing[0].name
-#     primary_blob_endpoint = data.azurerm_storage_account.existing[0].primary_blob_endpoint
-#     primary_dfs_endpoint  = data.azurerm_storage_account.existing[0].primary_dfs_endpoint
-#     } : {
-#     id                    = module.storage_account[0].resource_id
-#     name                  = module.storage_account[0].name
-#     primary_blob_endpoint = module.storage_account[0].resource.primary_blob_endpoint
-#     primary_dfs_endpoint  = module.storage_account[0].resource.primary_dfs_endpoint
-#   }
-# }
-
-# # Storage Account Outputs (for examples)
-# output "storage_account_id" {
-#   description = "The resource ID of the storage account."
-#   value       = var.existing_storage_account_resource_id != null ? var.existing_storage_account_resource_id : (local.deploy_storage_account ? module.storage_account[0].resource_id : null)
-# }
-
-# output "storage_account_name" {
-#   description = "The name of the storage account."
-#   value       = var.existing_storage_account_resource_id != null ? data.azurerm_storage_account.existing[0].name : (local.deploy_storage_account ? module.storage_account[0].name : null)
-# }
-
-# output "subnet_id" {
-#   description = "The resource ID of the agent subnet (external resource provided by user)."
-#   value       = var.agent_subnet_resource_id
-# }
-
-# # External Networking Resource References
-# output "virtual_network_id" {
-#   description = "The resource ID of the virtual network (external resource, derived from agent_subnet_resource_id)."
-#   value       = var.agent_subnet_resource_id != null ? join("/", slice(split("/", var.agent_subnet_resource_id), 0, 9)) : null
-# }
+output "storage_account_name" {
+  description = "The name of the storage account."
+  value       = module.dependent_resources.storage_account_name
+}

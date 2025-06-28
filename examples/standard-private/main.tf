@@ -310,7 +310,7 @@ module "ai_foundry" {
       ]
     }
   }
-  ai_services_private_endpoints = {
+  ai_foundry_private_endpoints = {
     "account" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
       subresource_name   = "account"

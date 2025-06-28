@@ -1,13 +1,3 @@
-# Resource Naming Configuration
-
-# Core Configuration Variables
-
-# Required Networking Resources (External Dependencies)
-
-# Cosmos DB Configuration
-
-# Original Variables (keeping existing structure)
-
 variable "location" {
   type        = string
   description = "Azure region where the resource should be deployed."
@@ -169,7 +159,7 @@ variable "ai_search_private_endpoints" {
   nullable    = false
 }
 
-variable "ai_services_private_endpoints" {
+variable "ai_foundry_private_endpoints" {
   type = map(object({
     name = optional(string, null)
     role_assignments = optional(map(object({
@@ -364,7 +354,7 @@ variable "resource_names" {
     key_vault          = optional(string)
     cosmos_db          = optional(string)
     ai_search          = optional(string)
-    ai_services        = optional(string)
+    ai_foundry         = optional(string)
     ai_foundry_project = optional(string)
     ai_agent_host      = optional(string)
     resource_group     = optional(string)
