@@ -82,7 +82,6 @@ module "ai_foundry" {
   enable_telemetry             = true
   key_vault_private_endpoints  = {}
   location                     = module.regions.regions[random_integer.region_index.result].name
-  name                         = "ai-foundry-std-pub"
-  resource_group_name          = module.naming.resource_group.name_unique
+  name                         = "std-pub"
   storage_private_endpoints    = {}
 }

@@ -78,6 +78,5 @@ module "ai_foundry" {
   existing_key_vault_resource_id       = "skip-deployment"
   existing_storage_account_resource_id = "skip-deployment"
   location                             = module.regions.regions[random_integer.region_index.result].name
-  name                                 = "ai-foundry-basic"
-  resource_group_name                  = module.naming.resource_group.name_unique
+  name                                 = "basic"
 }

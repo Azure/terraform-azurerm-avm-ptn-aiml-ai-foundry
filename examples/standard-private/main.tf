@@ -274,22 +274,14 @@ module "ai_foundry" {
   source = "../../"
 
   location                       = module.regions.regions[random_integer.region_index.result].name
-  name                           = "ai-foundry-std-prv"
+  name                           = "std-prv"
   agent_subnet_resource_id       = azurerm_subnet.agent_services.id
   create_ai_agent_service        = true
   create_ai_foundry_project      = true
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
   ai_foundry_project_name        = "AI-Foundry-Standard-Private"
-  ai_foundry_project_private_endpoints = {
-    "amlworkspace" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "amlworkspace"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.ml_workspace.id
-      ]
-    }
-  }
-  # Standard AI model deployment (single model)
+  enable_telemetry               = true
+  resource_group_name            = module.naming.resource_group.name_unique
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -302,6 +294,15 @@ module "ai_foundry" {
         type     = "GlobalStandard"
         capacity = 1
       }
+    }
+  }
+  ai_foundry_project_private_endpoints = {
+    "amlworkspace" = {
+      subnet_resource_id = azurerm_subnet.private_endpoints.id
+      subresource_name   = "amlworkspace"
+      private_dns_zone_resource_ids = [
+        azurerm_private_dns_zone.ml_workspace.id
+      ]
     }
   }
   ai_search_private_endpoints = {
@@ -331,9 +332,6 @@ module "ai_foundry" {
       ]
     }
   }
-  # Enable telemetry for the module
-  enable_telemetry    = true
-  resource_group_name = module.naming.resource_group.name_unique
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -343,7 +341,6 @@ module "ai_foundry" {
       ]
     }
   }
-  # Private endpoint configurations with created DNS zones
   storage_private_endpoints = {
     "blob" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
