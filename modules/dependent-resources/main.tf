@@ -3,11 +3,12 @@ module "storage_account" {
   version = "~> 0.6.3"
   count   = var.deploy_storage_account ? 1 : 0
 
-  location                      = var.location
-  name                          = var.storage_account_name
-  resource_group_name           = var.resource_group_name
-  shared_access_key_enabled     = false
-  public_network_access_enabled = length(var.storage_private_endpoints) == 0 ? true : false
+  location                        = var.location
+  name                            = var.storage_account_name
+  resource_group_name             = var.resource_group_name
+  public_network_access_enabled   = length(var.storage_private_endpoints) == 0 ? true : false
+  default_to_oauth_authentication = true
+  shared_access_key_enabled       = false
 
   managed_identities = {
     system_assigned = true
