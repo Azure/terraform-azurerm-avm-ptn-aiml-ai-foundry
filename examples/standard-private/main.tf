@@ -296,15 +296,6 @@ module "ai_foundry" {
       }
     }
   }
-  ai_foundry_project_private_endpoints = {
-    "amlworkspace" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "amlworkspace"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.ml_workspace.id
-      ]
-    }
-  }
   ai_search_private_endpoints = {
     "searchService" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id

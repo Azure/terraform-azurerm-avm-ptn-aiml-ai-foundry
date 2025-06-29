@@ -4,13 +4,14 @@ locals {
   deploy_key_vault       = var.existing_key_vault_resource_id == null
   deploy_storage_account = var.existing_storage_account_resource_id == null
 
-  location            = var.location
-  resource_group_id   = azurerm_resource_group.this.id
-  resource_group_name = coalesce(var.resource_group_name, "rg-${local.base_name_clean}-${local.resource_token}")
-  resource_token      = random_string.resource_token.result
+  location       = var.location
+  resource_token = random_string.resource_token.result
 
   # Simplified resource naming with consistent prefixes and common random suffix
   base_name_clean = var.base_name != null ? var.base_name : substr(replace(var.name, "-", ""), 0, 10)
+
+  resource_group_id   = azurerm_resource_group.this.id
+  resource_group_name = coalesce(var.resource_group_name, "rg-${local.base_name_clean}-${local.resource_token}")
 
   resource_names = {
     ai_agent_host      = coalesce(var.resource_names.ai_agent_host, var.ai_agent_host_name, "${local.base_name_clean}-agent-${local.resource_token}")
