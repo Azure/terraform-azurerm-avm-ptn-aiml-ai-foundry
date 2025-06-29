@@ -10,7 +10,7 @@ locals {
   # Simplified resource naming with consistent prefixes and common random suffix
   base_name_clean = var.base_name != null ? var.base_name : substr(replace(var.name, "-", ""), 0, 10)
 
-  resource_group_id   = azurerm_resource_group.this.id
+  resource_group_id   = var.create_resource_group ? azurerm_resource_group.this[0].id : data.azurerm_resource_group.existing[0].id
   resource_group_name = coalesce(var.resource_group_name, "rg-${local.base_name_clean}-${local.resource_token}")
 
   resource_names = {

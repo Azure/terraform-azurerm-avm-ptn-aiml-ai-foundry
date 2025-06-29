@@ -37,7 +37,7 @@ variable "name" {
 
 variable "resource_group_name" {
   type        = string
-  description = "The name for the resource group that will be created for the deployment."
+  description = "The name for the resource group. When create_resource_group=true, this will be the name of the new resource group. When create_resource_group=false, this must be the name of an existing resource group."
   default     = null
 }
 
@@ -45,6 +45,12 @@ variable "tags" {
   type        = map(string)
   default     = null
   description = "(Optional) Tags to be applied to all resources."
+}
+
+variable "create_resource_group" {
+  type        = bool
+  default     = true
+  description = "Whether to create a new resource group. Set to false to use an existing resource group specified in resource_group_name."
 }
 
 # ========================================

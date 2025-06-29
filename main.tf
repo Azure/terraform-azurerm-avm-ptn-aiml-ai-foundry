@@ -1,4 +1,14 @@
+data "azurerm_client_config" "current" {}
+
+# Data source for existing resource group when not creating a new one
+data "azurerm_resource_group" "existing" {
+  count = var.create_resource_group ? 0 : 1
+  name  = var.resource_group_name
+}
+
 resource "azurerm_resource_group" "this" {
+  count = var.create_resource_group ? 1 : 0
+
   location = var.location
   name     = local.resource_group_name
   tags     = var.tags
@@ -44,7 +54,10 @@ module "ai_foundry" {
   resource_group_name          = local.resource_group_name
   tags                         = var.tags
 
-  depends_on = [azurerm_resource_group.this]
+  depends_on = [
+    azurerm_resource_group.this,
+    data.azurerm_resource_group.existing
+  ]
 }
 
 module "ai_foundry_project" {

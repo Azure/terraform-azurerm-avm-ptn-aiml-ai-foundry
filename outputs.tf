@@ -60,12 +60,12 @@ output "key_vault_name" {
 
 output "resource_group_id" {
   description = "The resource ID of the resource group."
-  value       = azurerm_resource_group.this.id
+  value       = local.resource_group_id
 }
 
 output "resource_group_name" {
   description = "The name of the resource group."
-  value       = azurerm_resource_group.this.name
+  value       = local.resource_group_name
 }
 
 output "resource_id" {
