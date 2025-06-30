@@ -75,7 +75,6 @@ module "ai_foundry" {
   }
   create_ai_agent_service              = false
   create_ai_foundry_project            = true
-  enable_telemetry                     = true
   existing_ai_search_resource_id       = "skip-deployment"
   existing_cosmos_db_resource_id       = "skip-deployment"
   existing_key_vault_resource_id       = "skip-deployment"
