@@ -16,6 +16,12 @@ module "storage_account" {
     ip_rules                   = []
     virtual_network_subnet_ids = []
   } : null
+  diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
+    diag = {
+      name                       = "diag-${var.storage_account_name}"
+      log_analytics_workspace_id = var.log_analytics_workspace_resource_id
+    }
+  } : {}
   private_endpoints             = var.storage_private_endpoints
   public_network_access_enabled = length(var.storage_private_endpoints) == 0 ? true : false
   shared_access_key_enabled     = false
@@ -31,6 +37,12 @@ module "key_vault" {
   name                          = var.key_vault_name
   resource_group_name           = var.resource_group_name
   tenant_id                     = var.tenant_id
+  diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
+    diag = {
+      name                       = "diag-${var.key_vault_name}"
+      log_analytics_workspace_id = var.log_analytics_workspace_resource_id
+    }
+  } : {}
   private_endpoints             = var.key_vault_private_endpoints
   public_network_access_enabled = length(var.key_vault_private_endpoints) == 0 ? true : false
   tags                          = var.tags
@@ -47,6 +59,12 @@ module "cosmos_db" {
   managed_identities = {
     system_assigned = true
   }
+  diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
+    diag = {
+      name                       = "diag-${var.cosmos_db_name}"
+      log_analytics_workspace_id = var.log_analytics_workspace_resource_id
+    }
+  } : {}
   private_endpoints             = var.cosmos_db_private_endpoints
   public_network_access_enabled = length(var.cosmos_db_private_endpoints) == 0 ? true : false
   tags                          = var.tags
@@ -63,6 +81,12 @@ module "ai_search" {
   managed_identities = {
     system_assigned = true
   }
+  diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
+    diag = {
+      name                       = "diag-${var.ai_search_name}"
+      log_analytics_workspace_id = var.log_analytics_workspace_resource_id
+    }
+  } : {}
   private_endpoints             = var.ai_search_private_endpoints
   public_network_access_enabled = length(var.ai_search_private_endpoints) == 0 ? true : false
   tags                          = var.tags

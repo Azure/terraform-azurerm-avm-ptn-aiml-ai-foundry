@@ -211,12 +211,6 @@ variable "existing_ai_search_resource_id" {
   description = "(Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created."
 }
 
-variable "existing_application_insights_resource_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of an existing Application Insights to use. If not provided, a new Application Insights will be created."
-}
-
 variable "existing_ai_services_resource_id" {
   type        = string
   default     = null

@@ -72,3 +72,24 @@ resource "azurerm_private_endpoint" "ai_foundry" {
 
   depends_on = [azapi_resource.ai_foundry]
 }
+
+resource "azurerm_monitor_diagnostic_setting" "ai_foundry" {
+  count = var.log_analytics_workspace_resource_id != null ? 1 : 0
+
+  name                       = "diag-${azapi_resource.ai_foundry.name}"
+  target_resource_id         = azapi_resource.ai_foundry.id
+  log_analytics_workspace_id = var.log_analytics_workspace_resource_id
+
+  enabled_log {
+    category = "Audit"
+  }
+
+  enabled_log {
+    category = "RequestResponse"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+  }
+}

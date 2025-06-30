@@ -53,13 +53,6 @@ resource "azurerm_resource_group" "example" {
   name     = "rg-standard-public-${random_string.example_suffix.result}"
 }
 
-resource "azurerm_application_insights" "this" {
-  application_type    = "web"
-  location            = azurerm_resource_group.example.location
-  name                = module.naming.application_insights.name_unique
-  resource_group_name = azurerm_resource_group.example.name
-}
-
 resource "azurerm_log_analytics_workspace" "this" {
   location            = azurerm_resource_group.example.location
   name                = module.naming.log_analytics_workspace.name_unique
@@ -94,7 +87,6 @@ module "ai_foundry" {
   create_ai_foundry_project                    = true
   create_resource_group                        = false
   existing_ai_search_resource_id               = null
-  existing_application_insights_resource_id    = azurerm_application_insights.this.id
   existing_cosmos_db_resource_id               = null
   existing_key_vault_resource_id               = null
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id

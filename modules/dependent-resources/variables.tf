@@ -39,6 +39,12 @@ variable "location" {
   nullable    = false
 }
 
+variable "log_analytics_workspace_resource_id" {
+  type        = string
+  default     = null
+  description = "Resource ID of the Log Analytics Workspace for diagnostic settings"
+}
+
 variable "resource_group_name" {
   type        = string
   description = "Resource group name"
