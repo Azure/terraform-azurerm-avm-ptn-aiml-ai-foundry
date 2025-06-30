@@ -57,8 +57,8 @@ module "ai_foundry_project" {
 
   ai_agent_host_name              = local.resource_names.ai_agent_host
   ai_foundry_id                   = module.ai_foundry.ai_foundry_id
-  ai_foundry_project_description  = var.ai_foundry_project_description != null ? var.ai_foundry_project_description : "AI Foundry project for agent services and AI workloads"
-  ai_foundry_project_display_name = var.ai_foundry_project_display_name != null ? var.ai_foundry_project_display_name : "AI Foundry Project for ${var.name}"
+  ai_foundry_project_description  = var.ai_foundry_project_description
+  ai_foundry_project_display_name = local.resource_names.ai_foundry_project_display_name
   ai_foundry_project_name         = local.resource_names.ai_foundry_project
   ai_search_id                    = try(module.dependent_resources.ai_search_id, null)
   ai_search_name                  = local.resource_names.ai_search

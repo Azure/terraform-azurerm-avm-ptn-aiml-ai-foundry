@@ -32,36 +32,38 @@ module "regions" {
   geography_filter          = "Australia"
 }
 
-# This allows us to randomize the region for the resource group.
 resource "random_integer" "region_index" {
   max = length(module.regions.regions) - 1
   min = 0
 }
-## End of section to provide a random Azure region for the resource group
 
-# This ensures we have unique CAF compliant names for our resources.
+resource "random_string" "example_suffix" {
+  length  = 5
+  lower   = true
+  numeric = true
+  special = false
+  upper   = false
+}
+
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = "~> 0.3"
 }
 
-# Create a resource group first (to be used by AI Foundry module)
 resource "azurerm_resource_group" "example" {
   location = module.regions.regions[random_integer.region_index.result].name
-  name     = module.naming.resource_group.name_unique
+  name     = "rg-standard-private-${random_string.example_suffix.result}"
 }
 
-# Application Insights for AI Foundry (required)
 resource "azurerm_application_insights" "this" {
   application_type    = "web"
-  location            = module.regions.regions[random_integer.region_index.result].name
+  location            = azurerm_resource_group.example.location
   name                = module.naming.application_insights.name_unique
   resource_group_name = azurerm_resource_group.example.name
 }
 
-# Log Analytics Workspace for Container App Environment
 resource "azurerm_log_analytics_workspace" "this" {
-  location            = module.regions.regions[random_integer.region_index.result].name
+  location            = azurerm_resource_group.example.location
   name                = module.naming.log_analytics_workspace.name_unique
   resource_group_name = azurerm_resource_group.example.name
   retention_in_days   = 30
@@ -267,9 +269,13 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  location                 = module.regions.regions[random_integer.region_index.result].name
-  name                     = "std-prv"
-  agent_subnet_resource_id = azurerm_subnet.agent_services.id
+  location                                     = azurerm_resource_group.example.location
+  name                                         = "std-prv"
+  create_resource_group                        = false
+  resource_group_name                          = azurerm_resource_group.example.name
+  existing_application_insights_resource_id    = azurerm_application_insights.this.id
+  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
+  agent_subnet_resource_id                     = azurerm_subnet.agent_services.id
   ai_foundry_private_endpoints = {
     "account" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -280,7 +286,6 @@ module "ai_foundry" {
     }
   }
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
-  ai_foundry_project_name        = "AI-Foundry-Standard-Private"
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -315,7 +320,6 @@ module "ai_foundry" {
   }
   create_ai_agent_service   = true
   create_ai_foundry_project = true
-  enable_telemetry          = true
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -325,7 +329,6 @@ module "ai_foundry" {
       ]
     }
   }
-  resource_group_name = azurerm_resource_group.example.name
   storage_private_endpoints = {
     "blob" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id

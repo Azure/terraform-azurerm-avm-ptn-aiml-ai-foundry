@@ -6,7 +6,7 @@ variable "location" {
 
 variable "name" {
   type        = string
-  description = "The name prefix for the AI Foundry resources."
+  description = "The name prefix for the AI Foundry resources. Will be used as base_name if base_name is not provided."
 
   validation {
     condition     = can(regex("^[a-z0-9][a-z0-9-]{1,60}[a-z0-9]$", var.name))
@@ -17,7 +17,7 @@ variable "name" {
 variable "base_name" {
   type        = string
   default     = null
-  description = "Base name to use as prefix/suffix for resource names when custom names are not provided. If null, random names will be generated."
+  description = "Base name to use as prefix/suffix for resource names when custom names are not provided. If null, var.name will be used."
 }
 
 variable "resource_group_name" {
@@ -34,17 +34,18 @@ variable "create_resource_group" {
 
 variable "resource_names" {
   type = object({
-    ai_agent_host      = optional(string)
-    ai_foundry         = optional(string)
-    ai_foundry_project = optional(string)
-    ai_search          = optional(string)
-    cosmos_db          = optional(string)
-    key_vault          = optional(string)
-    resource_group     = optional(string)
-    storage_account    = optional(string)
+    ai_agent_host                   = optional(string)
+    ai_foundry                      = optional(string)
+    ai_foundry_project              = optional(string)
+    ai_foundry_project_display_name = optional(string)
+    ai_search                       = optional(string)
+    cosmos_db                       = optional(string)
+    key_vault                       = optional(string)
+    resource_group                  = optional(string)
+    storage_account                 = optional(string)
   })
   default     = {}
-  description = "Custom names for each resource. If not provided, names will be generated using base_name or random names."
+  description = "Custom names for each resource. If not provided, names will be generated using base_name or name."
 }
 
 variable "create_ai_agent_service" {
@@ -68,17 +69,6 @@ For more information see <https://aka.ms/avm/telemetryinfo>.
 If it is set to false, then no telemetry will be collected.
 DESCRIPTION
   nullable    = false
-}
-
-variable "agent_subnet_resource_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing subnet for AI agent services (Container Apps). Optional - only needed when deploying agent services."
-
-  validation {
-    condition     = var.agent_subnet_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+/subnets/[^/]+$", var.agent_subnet_resource_id))
-    error_message = "The agent_subnet_resource_id must be a valid Azure Subnet resource ID."
-  }
 }
 
 variable "existing_ai_search_resource_id" {
@@ -105,28 +95,33 @@ variable "existing_storage_account_resource_id" {
   description = "(Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created."
 }
 
-variable "ai_agent_host_name" {
+variable "existing_application_insights_resource_id" {
   type        = string
   default     = null
-  description = "The name of the AI agent capability host. If not provided, will use pattern name with suffix."
+  description = "(Optional) The resource ID of an existing Application Insights to use. If not provided, a new Application Insights will be created."
+}
+
+variable "existing_log_analytics_workspace_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of an existing Log Analytics Workspace to use. If not provided, a new Log Analytics Workspace will be created."
+}
+
+variable "agent_subnet_resource_id" {
+  type        = string
+  default     = null
+  description = "The resource ID of an existing subnet for AI agent services (Container Apps). Optional - only needed when deploying agent services."
+
+  validation {
+    condition     = var.agent_subnet_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+/subnets/[^/]+$", var.agent_subnet_resource_id))
+    error_message = "The agent_subnet_resource_id must be a valid Azure Subnet resource ID."
+  }
 }
 
 variable "ai_foundry_project_description" {
   type        = string
   default     = "AI Foundry project for agent services and AI workloads"
   description = "Description for the AI Foundry project."
-}
-
-variable "ai_foundry_project_display_name" {
-  type        = string
-  default     = null
-  description = "The display/friendly name of the AI Foundry project. If not provided, will use a default name."
-}
-
-variable "ai_foundry_project_name" {
-  type        = string
-  default     = null
-  description = "The name of the AI Foundry project. If not provided, will use pattern name with suffix."
 }
 
 variable "ai_model_deployments" {

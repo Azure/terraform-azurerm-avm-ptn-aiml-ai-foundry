@@ -35,22 +35,35 @@ resource "random_integer" "region_index" {
   min = 0
 }
 
+resource "random_string" "example_suffix" {
+  length  = 5
+  lower   = true
+  numeric = true
+  special = false
+  upper   = false
+}
+
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = "~> 0.3"
 }
 
+resource "azurerm_resource_group" "example" {
+  location = module.regions.regions[random_integer.region_index.result].name
+  name     = "rg-standard-public-${random_string.example_suffix.result}"
+}
+
 resource "azurerm_application_insights" "this" {
   application_type    = "web"
-  location            = module.regions.regions[random_integer.region_index.result].name
+  location            = azurerm_resource_group.example.location
   name                = module.naming.application_insights.name_unique
-  resource_group_name = module.naming.resource_group.name_unique
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
-  location            = module.regions.regions[random_integer.region_index.result].name
+  location            = azurerm_resource_group.example.location
   name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = module.naming.resource_group.name_unique
+  resource_group_name = azurerm_resource_group.example.name
   retention_in_days   = 30
   sku                 = "PerGB2018"
 }
@@ -58,11 +71,14 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  location                       = module.regions.regions[random_integer.region_index.result].name
-  name                           = "std-pub"
-  ai_foundry_private_endpoints   = {}
-  ai_foundry_project_description = "Standard AI Foundry project with agent services (public endpoints)"
-  ai_foundry_project_name        = "AI-Foundry-Standard-Public"
+  location                                     = azurerm_resource_group.example.location
+  name                                         = "std-pub"
+  create_resource_group                        = false
+  resource_group_name                          = azurerm_resource_group.example.name
+  existing_application_insights_resource_id    = azurerm_application_insights.this.id
+  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
+  ai_foundry_private_endpoints                 = {}
+  ai_foundry_project_description               = "Standard AI Foundry project with agent services (public endpoints)"
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -77,11 +93,14 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_private_endpoints = {}
-  cosmos_db_private_endpoints = {}
-  create_ai_agent_service     = true
-  create_ai_foundry_project   = true
-  enable_telemetry            = true
-  key_vault_private_endpoints = {}
-  storage_private_endpoints   = {}
+  cosmos_db_private_endpoints          = {}
+  ai_search_private_endpoints          = {}
+  key_vault_private_endpoints          = {}
+  storage_private_endpoints            = {}
+  create_ai_agent_service              = true
+  create_ai_foundry_project            = true
+  existing_ai_search_resource_id       = null
+  existing_cosmos_db_resource_id       = null
+  existing_key_vault_resource_id       = null
+  existing_storage_account_resource_id = null
 }

@@ -34,22 +34,35 @@ resource "random_integer" "region_index" {
   min = 0
 }
 
+resource "random_string" "example_suffix" {
+  length  = 5
+  lower   = true
+  numeric = true
+  special = false
+  upper   = false
+}
+
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = "~> 0.3"
 }
 
+resource "azurerm_resource_group" "example" {
+  location = module.regions.regions[random_integer.region_index.result].name
+  name     = "rg-basic-${random_string.example_suffix.result}"
+}
+
 resource "azurerm_application_insights" "this" {
   application_type    = "web"
-  location            = module.regions.regions[random_integer.region_index.result].name
+  location            = azurerm_resource_group.example.location
   name                = module.naming.application_insights.name_unique
-  resource_group_name = module.naming.resource_group.name_unique
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
-  location            = module.regions.regions[random_integer.region_index.result].name
+  location            = azurerm_resource_group.example.location
   name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = module.naming.resource_group.name_unique
+  resource_group_name = azurerm_resource_group.example.name
   retention_in_days   = 30
   sku                 = "PerGB2018"
 }
@@ -57,8 +70,12 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  location = module.regions.regions[random_integer.region_index.result].name
-  name     = "basic"
+  location                                     = azurerm_resource_group.example.location
+  name                                         = "basic"
+  create_resource_group                        = false
+  resource_group_name                          = azurerm_resource_group.example.name
+  existing_application_insights_resource_id    = azurerm_application_insights.this.id
+  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
