@@ -86,8 +86,7 @@ resource "azurerm_monitor_diagnostic_setting" "ai_foundry" {
   enabled_log {
     category = "RequestResponse"
   }
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }

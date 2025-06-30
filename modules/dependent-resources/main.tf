@@ -9,8 +9,8 @@ module "storage_account" {
   default_to_oauth_authentication = true
   diagnostic_settings_blob = var.log_analytics_workspace_resource_id != null ? {
     diag = {
-      name         = "diag-${var.storage_account_name}"
-      workspace_id = var.log_analytics_workspace_resource_id
+      name                  = "diag-${var.storage_account_name}"
+      workspace_resource_id = var.log_analytics_workspace_resource_id
     }
   } : {}
   managed_identities = {
@@ -39,8 +39,8 @@ module "key_vault" {
   tenant_id           = var.tenant_id
   diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
     diag = {
-      name         = "diag-${var.key_vault_name}"
-      workspace_id = var.log_analytics_workspace_resource_id
+      name                  = "diag-${var.key_vault_name}"
+      workspace_resource_id = var.log_analytics_workspace_resource_id
     }
   } : {}
   private_endpoints             = var.key_vault_private_endpoints
@@ -58,8 +58,8 @@ module "cosmos_db" {
   resource_group_name = var.resource_group_name
   diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
     diag = {
-      name         = "diag-${var.cosmos_db_name}"
-      workspace_id = var.log_analytics_workspace_resource_id
+      name                  = "diag-${var.cosmos_db_name}"
+      workspace_resource_id = var.log_analytics_workspace_resource_id
     }
   } : {}
   managed_identities = {
@@ -80,8 +80,8 @@ module "ai_search" {
   resource_group_name = var.resource_group_name
   diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
     diag = {
-      name         = "diag-${var.ai_search_name}"
-      workspace_id = var.log_analytics_workspace_resource_id
+      name                  = "diag-${var.ai_search_name}"
+      workspace_resource_id = var.log_analytics_workspace_resource_id
     }
   } : {}
   managed_identities = {
