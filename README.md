@@ -42,15 +42,15 @@ The following resources are used by this module:
 
 The following input variables are required:
 
-### <a name="input_location"></a> [location](#input\_location)
+### <a name="input_base_name"></a> [base\_name](#input\_base\_name)
 
-Description: Azure region where the resource should be deployed.
+Description: The name prefix for the AI Foundry resources. Will be used as base\_name if base\_name is not provided.
 
 Type: `string`
 
-### <a name="input_name"></a> [name](#input\_name)
+### <a name="input_location"></a> [location](#input\_location)
 
-Description: The name prefix for the AI Foundry resources.
+Description: Azure region where the resource should be deployed.
 
 Type: `string`
 
@@ -61,14 +61,6 @@ The following input variables are optional (have default values):
 ### <a name="input_agent_subnet_resource_id"></a> [agent\_subnet\_resource\_id](#input\_agent\_subnet\_resource\_id)
 
 Description: The resource ID of an existing subnet for AI agent services (Container Apps). Optional - only needed when deploying agent services.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_ai_agent_host_name"></a> [ai\_agent\_host\_name](#input\_ai\_agent\_host\_name)
-
-Description: The name of the AI agent capability host. If not provided, will use pattern name with suffix.
 
 Type: `string`
 
@@ -122,63 +114,6 @@ Description: Description for the AI Foundry project.
 Type: `string`
 
 Default: `"AI Foundry project for agent services and AI workloads"`
-
-### <a name="input_ai_foundry_project_display_name"></a> [ai\_foundry\_project\_display\_name](#input\_ai\_foundry\_project\_display\_name)
-
-Description: The display/friendly name of the AI Foundry project. If not provided, will use a default name.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_ai_foundry_project_name"></a> [ai\_foundry\_project\_name](#input\_ai\_foundry\_project\_name)
-
-Description: The name of the AI Foundry project. If not provided, will use pattern name with suffix.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_ai_foundry_project_private_endpoints"></a> [ai\_foundry\_project\_private\_endpoints](#input\_ai\_foundry\_project\_private\_endpoints)
-
-Description: Private endpoint configuration for the AI Foundry Project.
-
-Type:
-
-```hcl
-map(object({
-    name = optional(string, null)
-    role_assignments = optional(map(object({
-      role_definition_id_or_name             = string
-      principal_id                           = string
-      description                            = optional(string, null)
-      skip_service_principal_aad_check       = optional(bool, false)
-      condition                              = optional(string, null)
-      condition_version                      = optional(string, null)
-      delegated_managed_identity_resource_id = optional(string, null)
-    })), {})
-    lock = optional(object({
-      kind = string
-      name = optional(string, null)
-    }), null)
-    tags                                    = optional(map(string), null)
-    subnet_resource_id                      = string
-    subresource_name                        = string
-    private_dns_zone_group_name             = optional(string, "default")
-    private_dns_zone_resource_ids           = optional(set(string), [])
-    application_security_group_associations = optional(map(string), {})
-    private_service_connection_name         = optional(string, null)
-    network_interface_name                  = optional(string, null)
-    location                                = optional(string, null)
-    resource_group_name                     = optional(string, null)
-    ip_configurations = optional(map(object({
-      name               = string
-      private_ip_address = string
-    })), {})
-  }))
-```
-
-Default: `{}`
 
 ### <a name="input_ai_model_deployments"></a> [ai\_model\_deployments](#input\_ai\_model\_deployments)
 
@@ -261,14 +196,6 @@ map(object({
 ```
 
 Default: `{}`
-
-### <a name="input_base_name"></a> [base\_name](#input\_base\_name)
-
-Description: Base name to use as prefix/suffix for resource names when custom names are not provided. If null, random names will be generated.
-
-Type: `string`
-
-Default: `null`
 
 ### <a name="input_cosmos_db_private_endpoints"></a> [cosmos\_db\_private\_endpoints](#input\_cosmos\_db\_private\_endpoints)
 
@@ -353,6 +280,14 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_existing_application_insights_resource_id"></a> [existing\_application\_insights\_resource\_id](#input\_existing\_application\_insights\_resource\_id)
+
+Description: (Optional) The resource ID of an existing Application Insights to use. If not provided, a new Application Insights will be created.
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_existing_cosmos_db_resource_id"></a> [existing\_cosmos\_db\_resource\_id](#input\_existing\_cosmos\_db\_resource\_id)
 
 Description: (Optional) The resource ID of an existing Cosmos DB account to use. If not provided, a new Cosmos DB account will be created.
@@ -364,6 +299,14 @@ Default: `null`
 ### <a name="input_existing_key_vault_resource_id"></a> [existing\_key\_vault\_resource\_id](#input\_existing\_key\_vault\_resource\_id)
 
 Description: (Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_existing_log_analytics_workspace_resource_id"></a> [existing\_log\_analytics\_workspace\_resource\_id](#input\_existing\_log\_analytics\_workspace\_resource\_id)
+
+Description: (Optional) The resource ID of an existing Log Analytics Workspace to use. If not provided, a new Log Analytics Workspace will be created.
 
 Type: `string`
 
@@ -446,20 +389,21 @@ Default: `null`
 
 ### <a name="input_resource_names"></a> [resource\_names](#input\_resource\_names)
 
-Description: Custom names for each resource. If not provided, names will be generated using base\_name or random names.
+Description: Custom names for each resource. If not provided, names will be generated using base\_name or name.
 
 Type:
 
 ```hcl
 object({
-    ai_agent_host      = optional(string)
-    ai_foundry         = optional(string)
-    ai_foundry_project = optional(string)
-    ai_search          = optional(string)
-    cosmos_db          = optional(string)
-    key_vault          = optional(string)
-    resource_group     = optional(string)
-    storage_account    = optional(string)
+    ai_agent_host                   = optional(string)
+    ai_foundry                      = optional(string)
+    ai_foundry_project              = optional(string)
+    ai_foundry_project_display_name = optional(string)
+    ai_search                       = optional(string)
+    cosmos_db                       = optional(string)
+    key_vault                       = optional(string)
+    resource_group                  = optional(string)
+    storage_account                 = optional(string)
   })
 ```
 

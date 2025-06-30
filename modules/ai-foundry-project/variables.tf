@@ -1,18 +1,17 @@
-variable "ai_agent_host_name" {
-  type        = string
-  description = "Name of the AI agent capability host"
-}
-
 # variable "ai_services_id" {
 #   type        = string
 #   description = "Resource ID of the AI services multi-services account"
 # }
 
+variable "ai_agent_host_name" {
+  type        = string
+  description = "Name of the AI agent capability host"
+}
+
 variable "ai_foundry_id" {
   type        = string
   description = "Resource ID of the AI Foundry account"
 }
-
 
 variable "ai_foundry_project_description" {
   type        = string

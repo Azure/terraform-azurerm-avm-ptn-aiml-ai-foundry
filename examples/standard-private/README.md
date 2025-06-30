@@ -28,8 +28,6 @@ provider "azurerm" {
   }
 }
 
-## Section to provide a random Azure region for the resource group
-# This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "~> 0.1"
@@ -38,45 +36,43 @@ module "regions" {
   geography_filter          = "Australia"
 }
 
-# This allows us to randomize the region for the resource group.
 resource "random_integer" "region_index" {
   max = length(module.regions.regions) - 1
   min = 0
 }
-## End of section to provide a random Azure region for the resource group
 
-# This ensures we have unique CAF compliant names for our resources.
+resource "random_string" "example_suffix" {
+  length  = 5
+  lower   = true
+  numeric = true
+  special = false
+  upper   = false
+}
+
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = "~> 0.3"
 }
 
-# Create a resource group first (to be used by AI Foundry module)
 resource "azurerm_resource_group" "example" {
   location = module.regions.regions[random_integer.region_index.result].name
-  name     = module.naming.resource_group.name_unique
+  name     = "rg-standard-private-${random_string.example_suffix.result}"
 }
 
-# Application Insights for AI Foundry (required)
 resource "azurerm_application_insights" "this" {
   application_type    = "web"
-  location            = module.regions.regions[random_integer.region_index.result].name
+  location            = azurerm_resource_group.example.location
   name                = module.naming.application_insights.name_unique
   resource_group_name = azurerm_resource_group.example.name
 }
 
-# Log Analytics Workspace for Container App Environment
 resource "azurerm_log_analytics_workspace" "this" {
-  location            = module.regions.regions[random_integer.region_index.result].name
+  location            = azurerm_resource_group.example.location
   name                = module.naming.log_analytics_workspace.name_unique
   resource_group_name = azurerm_resource_group.example.name
   retention_in_days   = 30
   sku                 = "PerGB2018"
 }
-
-# ========================================
-# Networking Infrastructure
-# ========================================
 
 # Virtual Network for private endpoints and agent services
 resource "azurerm_virtual_network" "this" {
@@ -126,10 +122,6 @@ resource "azurerm_subnet" "vm" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.this.name
 }
-
-# ========================================
-# Private DNS Zones and VNet Links
-# ========================================
 
 # Storage Account Private DNS Zone
 resource "azurerm_private_dns_zone" "storage_blob" {
@@ -196,23 +188,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "openai" {
   virtual_network_id    = azurerm_virtual_network.this.id
 }
 
-# Machine Learning Workspace Private DNS Zone
-resource "azurerm_private_dns_zone" "ml_workspace" {
-  name                = "privatelink.api.azureml.ms"
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "ml_workspace" {
-  name                  = "vnet-link-ml-workspace"
-  private_dns_zone_name = azurerm_private_dns_zone.ml_workspace.name
-  resource_group_name   = azurerm_resource_group.example.name
-  virtual_network_id    = azurerm_virtual_network.this.id
-}
-
-# ========================================
-# Bastion Host (using AVM module)
-# ========================================
-
 # Public IP for Bastion
 resource "azurerm_public_ip" "bastion" {
   allocation_method   = "Static"
@@ -243,10 +218,6 @@ module "bastion_host" {
   tunneling_enabled      = true
 }
 
-# ========================================
-# Windows Virtual Machine (using AVM module)
-# ========================================
-
 module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
   version = "~> 0.15"
@@ -266,7 +237,6 @@ module "virtual_machine" {
   }
   resource_group_name             = azurerm_resource_group.example.name
   zone                            = "1"
-  admin_password                  = "P@ssw0rd1234!"
   admin_username                  = "azureadmin"
   disable_password_authentication = false
   os_disk = {
@@ -286,8 +256,8 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  location                 = module.regions.regions[random_integer.region_index.result].name
-  name                     = "std-prv"
+  base_name                = "std-prv"
+  location                 = azurerm_resource_group.example.location
   agent_subnet_resource_id = azurerm_subnet.agent_services.id
   ai_foundry_private_endpoints = {
     "account" = {
@@ -295,17 +265,6 @@ module "ai_foundry" {
       subresource_name   = "account"
       private_dns_zone_resource_ids = [
         azurerm_private_dns_zone.openai.id
-      ]
-    }
-  }
-  ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
-  ai_foundry_project_name        = "AI-Foundry-Standard-Private"
-  ai_foundry_project_private_endpoints = {
-    "amlworkspace" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "amlworkspace"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.ml_workspace.id
       ]
     }
   }
@@ -341,9 +300,11 @@ module "ai_foundry" {
       ]
     }
   }
-  create_ai_agent_service   = true
-  create_ai_foundry_project = true
-  enable_telemetry          = true
+  create_ai_agent_service                      = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
+  create_ai_foundry_project                    = true
+  create_resource_group                        = false
+  existing_application_insights_resource_id    = azurerm_application_insights.this.id
+  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -385,13 +346,11 @@ The following resources are used by this module:
 - [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_private_dns_zone.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
-- [azurerm_private_dns_zone.ml_workspace](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.openai](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.search](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.storage_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
-- [azurerm_private_dns_zone_virtual_network_link.ml_workspace](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.openai](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.search](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.storage_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
@@ -403,6 +362,7 @@ The following resources are used by this module:
 - [azurerm_subnet.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [random_string.example_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs

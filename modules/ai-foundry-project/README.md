@@ -23,7 +23,6 @@ The following resources are used by this module:
 - [azapi_resource.ai_foundry_project_connection_cosmos](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_foundry_project_connection_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_foundry_project_connection_storage](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azurerm_private_endpoint.ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -137,28 +136,6 @@ Description: Subnet resource ID for the AI agent service
 Type: `string`
 
 Default: `null`
-
-### <a name="input_ai_foundry_project_private_endpoints"></a> [ai\_foundry\_project\_private\_endpoints](#input\_ai\_foundry\_project\_private\_endpoints)
-
-Description: Private endpoints for the AI Foundry project
-
-Type:
-
-```hcl
-map(object({
-    location                        = optional(string)
-    name                            = optional(string)
-    private_dns_zone_group_name     = optional(string, "default")
-    private_dns_zone_resource_ids   = optional(list(string), [])
-    private_service_connection_name = optional(string)
-    resource_group_name             = optional(string)
-    subresource_name                = string
-    subnet_resource_id              = string
-    tags                            = optional(map(string), {})
-  }))
-```
-
-Default: `{}`
 
 ### <a name="input_create_ai_agent_service"></a> [create\_ai\_agent\_service](#input\_create\_ai\_agent\_service)
 

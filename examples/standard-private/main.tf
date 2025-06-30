@@ -250,15 +250,18 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  location                                     = azurerm_resource_group.example.location
-  base_name                                    = "std-prv"
-  create_resource_group                        = false
-  create_ai_agent_service                      = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
-  create_ai_foundry_project                    = true
-  resource_group_name                          = azurerm_resource_group.example.name
-  existing_application_insights_resource_id    = azurerm_application_insights.this.id
-  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
-  agent_subnet_resource_id                     = azurerm_subnet.agent_services.id
+  base_name                = "std-prv"
+  location                 = azurerm_resource_group.example.location
+  agent_subnet_resource_id = azurerm_subnet.agent_services.id
+  ai_foundry_private_endpoints = {
+    "account" = {
+      subnet_resource_id = azurerm_subnet.private_endpoints.id
+      subresource_name   = "account"
+      private_dns_zone_resource_ids = [
+        azurerm_private_dns_zone.openai.id
+      ]
+    }
+  }
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -271,15 +274,6 @@ module "ai_foundry" {
         type     = "GlobalStandard"
         capacity = 1
       }
-    }
-  }
-  ai_foundry_private_endpoints = {
-    "account" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "account"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.openai.id
-      ]
     }
   }
   ai_search_private_endpoints = {
@@ -300,6 +294,11 @@ module "ai_foundry" {
       ]
     }
   }
+  create_ai_agent_service                      = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
+  create_ai_foundry_project                    = true
+  create_resource_group                        = false
+  existing_application_insights_resource_id    = azurerm_application_insights.this.id
+  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -309,6 +308,7 @@ module "ai_foundry" {
       ]
     }
   }
+  resource_group_name = azurerm_resource_group.example.name
   storage_private_endpoints = {
     "blob" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
