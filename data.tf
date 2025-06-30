@@ -1,5 +1,10 @@
-# Data sources for existing resources and client config
 data "azurerm_client_config" "current" {}
+
+data "azurerm_resource_group" "existing" {
+  count = var.create_resource_group ? 0 : 1
+
+  name = var.resource_group_name
+}
 
 data "azurerm_storage_account" "existing" {
   count = var.existing_storage_account_resource_id != null && var.existing_storage_account_resource_id != "skip-deployment" ? 1 : 0

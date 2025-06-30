@@ -190,19 +190,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "openai" {
   virtual_network_id    = azurerm_virtual_network.this.id
 }
 
-# Machine Learning Workspace Private DNS Zone
-resource "azurerm_private_dns_zone" "ml_workspace" {
-  name                = "privatelink.api.azureml.ms"
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "ml_workspace" {
-  name                  = "vnet-link-ml-workspace"
-  private_dns_zone_name = azurerm_private_dns_zone.ml_workspace.name
-  resource_group_name   = azurerm_resource_group.example.name
-  virtual_network_id    = azurerm_virtual_network.this.id
-}
-
 # ========================================
 # Bastion Host (using AVM module)
 # ========================================
@@ -294,15 +281,6 @@ module "ai_foundry" {
   }
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
   ai_foundry_project_name        = "AI-Foundry-Standard-Private"
-  ai_foundry_project_private_endpoints = {
-    "amlworkspace" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "amlworkspace"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.ml_workspace.id
-      ]
-    }
-  }
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"

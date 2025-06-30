@@ -109,28 +109,3 @@ resource "azapi_resource" "ai_agent_capability_host" {
     azapi_resource.ai_foundry_project_connection_search
   ]
 }
-
-resource "azurerm_private_endpoint" "ai_foundry_project" {
-  for_each = var.create_ai_foundry_project ? var.ai_foundry_project_private_endpoints : {}
-
-  location            = each.value.location != null ? each.value.location : var.location
-  name                = each.value.name != null ? each.value.name : "pe-${var.ai_foundry_project_name}-${each.key}"
-  resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : var.resource_group_name
-  subnet_id           = each.value.subnet_resource_id
-  tags                = merge(var.tags, each.value.tags)
-
-  private_service_connection {
-    is_manual_connection           = false
-    name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "psc-${var.ai_foundry_project_name}-${each.key}"
-    private_connection_resource_id = var.ai_foundry_id
-    subresource_names              = [each.value.subresource_name]
-  }
-  dynamic "private_dns_zone_group" {
-    for_each = length(each.value.private_dns_zone_resource_ids) > 0 ? [each.value.private_dns_zone_group_name] : []
-
-    content {
-      name                 = private_dns_zone_group.value
-      private_dns_zone_ids = each.value.private_dns_zone_resource_ids
-    }
-  }
-}

@@ -58,12 +58,11 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  location                             = module.regions.regions[random_integer.region_index.result].name
-  name                                 = "std-pub"
-  ai_foundry_private_endpoints         = {}
-  ai_foundry_project_description       = "Standard AI Foundry project with agent services (public endpoints)"
-  ai_foundry_project_name              = "AI-Foundry-Standard-Public"
-  ai_foundry_project_private_endpoints = {}
+  location                       = module.regions.regions[random_integer.region_index.result].name
+  name                           = "std-pub"
+  ai_foundry_private_endpoints   = {}
+  ai_foundry_project_description = "Standard AI Foundry project with agent services (public endpoints)"
+  ai_foundry_project_name        = "AI-Foundry-Standard-Public"
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"

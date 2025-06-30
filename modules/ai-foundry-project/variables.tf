@@ -84,22 +84,6 @@ variable "agent_subnet_resource_id" {
   description = "Subnet resource ID for the AI agent service"
 }
 
-variable "ai_foundry_project_private_endpoints" {
-  type = map(object({
-    location                        = optional(string)
-    name                            = optional(string)
-    private_dns_zone_group_name     = optional(string, "default")
-    private_dns_zone_resource_ids   = optional(list(string), [])
-    private_service_connection_name = optional(string)
-    resource_group_name             = optional(string)
-    subresource_name                = string
-    subnet_resource_id              = string
-    tags                            = optional(map(string), {})
-  }))
-  default     = {}
-  description = "Private endpoints for the AI Foundry project"
-}
-
 variable "create_ai_agent_service" {
   type        = bool
   default     = true

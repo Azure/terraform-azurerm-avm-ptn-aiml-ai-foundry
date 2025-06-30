@@ -1,12 +1,3 @@
-data "azurerm_client_config" "current" {}
-
-# Data source for existing resource group when not creating a new one
-data "azurerm_resource_group" "existing" {
-  count = var.create_resource_group ? 0 : 1
-
-  name = var.resource_group_name
-}
-
 resource "azurerm_resource_group" "this" {
   count = var.create_resource_group ? 1 : 0
 
@@ -64,30 +55,29 @@ module "ai_foundry" {
 module "ai_foundry_project" {
   source = "./modules/ai-foundry-project"
 
-  ai_agent_host_name                   = local.resource_names.ai_agent_host
-  ai_foundry_id                        = module.ai_foundry.ai_foundry_id
-  ai_foundry_project_description       = var.ai_foundry_project_description != null ? var.ai_foundry_project_description : "AI Foundry project for agent services and AI workloads"
-  ai_foundry_project_display_name      = var.ai_foundry_project_display_name != null ? var.ai_foundry_project_display_name : "AI Foundry Project for ${var.name}"
-  ai_foundry_project_name              = local.resource_names.ai_foundry_project
-  ai_search_id                         = try(module.dependent_resources.ai_search_id, null)
-  ai_search_name                       = local.resource_names.ai_search
-  cosmos_db_id                         = try(module.dependent_resources.cosmos_db_id, null)
-  cosmos_db_name                       = local.resource_names.cosmos_db
-  deploy_ai_search                     = local.deploy_ai_search
-  deploy_cosmos_db                     = local.deploy_cosmos_db
-  deploy_storage_account               = local.deploy_storage_account
-  location                             = local.location
-  resource_group_name                  = local.resource_group_name
-  storage_account_id                   = try(module.dependent_resources.storage_account_id, null)
-  storage_account_name                 = local.resource_names.storage_account
-  agent_subnet_resource_id             = var.agent_subnet_resource_id
-  ai_foundry_project_private_endpoints = var.ai_foundry_project_private_endpoints
-  create_ai_agent_service              = var.create_ai_agent_service
-  create_ai_foundry_project            = var.create_ai_foundry_project
-  storage_connections                  = local.storage_connections
-  tags                                 = var.tags
-  thread_storage_connections           = local.thread_storage_connections
-  vector_store_connections             = local.vector_store_connections
+  ai_agent_host_name              = local.resource_names.ai_agent_host
+  ai_foundry_id                   = module.ai_foundry.ai_foundry_id
+  ai_foundry_project_description  = var.ai_foundry_project_description != null ? var.ai_foundry_project_description : "AI Foundry project for agent services and AI workloads"
+  ai_foundry_project_display_name = var.ai_foundry_project_display_name != null ? var.ai_foundry_project_display_name : "AI Foundry Project for ${var.name}"
+  ai_foundry_project_name         = local.resource_names.ai_foundry_project
+  ai_search_id                    = try(module.dependent_resources.ai_search_id, null)
+  ai_search_name                  = local.resource_names.ai_search
+  cosmos_db_id                    = try(module.dependent_resources.cosmos_db_id, null)
+  cosmos_db_name                  = local.resource_names.cosmos_db
+  deploy_ai_search                = local.deploy_ai_search
+  deploy_cosmos_db                = local.deploy_cosmos_db
+  deploy_storage_account          = local.deploy_storage_account
+  location                        = local.location
+  resource_group_name             = local.resource_group_name
+  storage_account_id              = try(module.dependent_resources.storage_account_id, null)
+  storage_account_name            = local.resource_names.storage_account
+  agent_subnet_resource_id        = var.agent_subnet_resource_id
+  create_ai_agent_service         = var.create_ai_agent_service
+  create_ai_foundry_project       = var.create_ai_foundry_project
+  storage_connections             = local.storage_connections
+  tags                            = var.tags
+  thread_storage_connections      = local.thread_storage_connections
+  vector_store_connections        = local.vector_store_connections
 
   depends_on = [
     module.ai_foundry,
@@ -117,5 +107,3 @@ resource "azurerm_role_assignment" "this" {
   role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }
-
-
