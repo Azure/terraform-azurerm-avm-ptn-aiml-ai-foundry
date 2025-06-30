@@ -1,8 +1,3 @@
-# variable "ai_services_id" {
-#   type        = string
-#   description = "Resource ID of the AI services multi-services account"
-# }
-
 variable "ai_agent_host_name" {
   type        = string
   description = "Name of the AI agent capability host"
@@ -38,6 +33,11 @@ variable "ai_search_name" {
   description = "Name of the AI Search service"
 }
 
+variable "ai_services_id" {
+  type        = string
+  description = "Resource ID of the AI services multi-services account"
+}
+
 variable "cosmos_db_id" {
   type        = string
   description = "Resource ID of the Cosmos DB account"
@@ -66,11 +66,7 @@ variable "deploy_storage_account" {
 variable "location" {
   type        = string
   description = "Azure region for deployment"
-}
-
-variable "resource_group_name" {
-  type        = string
-  description = "Name of the resource group"
+  nullable    = false
 }
 
 variable "storage_account_id" {
@@ -109,7 +105,7 @@ variable "storage_connections" {
 
 variable "tags" {
   type        = map(string)
-  default     = {}
+  default     = null
   description = "Tags to apply to resources"
 }
 

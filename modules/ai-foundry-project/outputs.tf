@@ -12,3 +12,8 @@ output "ai_foundry_project_name" {
   description = "Name of the AI Foundry project"
   value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].name : null
 }
+
+output "resource_id" {
+  description = "Resource ID of the primary AI Foundry project"
+  value       = var.create_ai_foundry_project ? azapi_resource.ai_foundry_project[0].id : null
+}

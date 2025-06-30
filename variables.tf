@@ -217,6 +217,17 @@ variable "existing_application_insights_resource_id" {
   description = "(Optional) The resource ID of an existing Application Insights to use. If not provided, a new Application Insights will be created."
 }
 
+variable "existing_ai_services_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of an existing AI Services multi-service account (Microsoft.CognitiveServices/accounts with kind 'CognitiveServices') to use for AI agent capabilities. If not provided, the AI Foundry account will be used."
+
+  validation {
+    condition     = var.existing_ai_services_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.CognitiveServices/accounts/[^/]+$", var.existing_ai_services_resource_id))
+    error_message = "The existing_ai_services_resource_id must be a valid Azure Cognitive Services account resource ID."
+  }
+}
+
 variable "existing_cosmos_db_resource_id" {
   type        = string
   default     = null

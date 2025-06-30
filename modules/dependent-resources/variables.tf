@@ -36,6 +36,7 @@ variable "key_vault_name" {
 variable "location" {
   type        = string
   description = "Azure region"
+  nullable    = false
 }
 
 variable "resource_group_name" {
@@ -139,6 +140,6 @@ variable "storage_private_endpoints" {
 
 variable "tags" {
   type        = map(string)
-  default     = {}
+  default     = null
   description = "Tags to apply to resources"
 }

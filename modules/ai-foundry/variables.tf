@@ -6,6 +6,7 @@ variable "ai_foundry_name" {
 variable "location" {
   type        = string
   description = "Azure region for deployment"
+  nullable    = false
 }
 
 variable "resource_group_id" {
@@ -55,6 +56,6 @@ variable "ai_model_deployments" {
 
 variable "tags" {
   type        = map(string)
-  default     = {}
+  default     = null
   description = "Tags to apply to resources"
 }

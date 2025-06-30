@@ -1,12 +1,13 @@
 locals {
-  base_name_storage      = substr(replace(var.base_name, "-", ""), 0, 18)
-  deploy_ai_search       = var.existing_ai_search_resource_id == null
-  deploy_cosmos_db       = var.existing_cosmos_db_resource_id == null
-  deploy_key_vault       = var.existing_key_vault_resource_id == null
-  deploy_storage_account = var.existing_storage_account_resource_id == null
-  location               = var.location
-  resource_group_id      = var.create_resource_group ? azurerm_resource_group.this[0].id : data.azurerm_resource_group.existing[0].id
-  resource_group_name    = coalesce(var.resource_group_name, "rg-${var.base_name}-${local.resource_token}")
+  ai_services_resource_id = var.existing_ai_services_resource_id
+  base_name_storage       = substr(replace(var.base_name, "-", ""), 0, 18)
+  deploy_ai_search        = var.existing_ai_search_resource_id == null
+  deploy_cosmos_db        = var.existing_cosmos_db_resource_id == null
+  deploy_key_vault        = var.existing_key_vault_resource_id == null
+  deploy_storage_account  = var.existing_storage_account_resource_id == null
+  location                = var.location
+  resource_group_id       = var.create_resource_group ? azurerm_resource_group.this[0].id : data.azurerm_resource_group.existing[0].id
+  resource_group_name     = coalesce(var.resource_group_name, "rg-${var.base_name}-${local.resource_token}")
   resource_names = {
     ai_agent_host                   = coalesce(var.resource_names.ai_agent_host, "ah-${var.base_name}-agent-${local.resource_token}")
     ai_foundry_project              = coalesce(var.resource_names.ai_foundry_project, "aif-${var.base_name}-proj-${local.resource_token}")

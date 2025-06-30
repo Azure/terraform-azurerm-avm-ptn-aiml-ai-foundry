@@ -62,13 +62,13 @@ module "ai_foundry_project" {
   ai_foundry_project_name         = local.resource_names.ai_foundry_project
   ai_search_id                    = try(module.dependent_resources.ai_search_id, null)
   ai_search_name                  = local.resource_names.ai_search
+  ai_services_id                  = coalesce(local.ai_services_resource_id, module.ai_foundry.ai_foundry_id)
   cosmos_db_id                    = try(module.dependent_resources.cosmos_db_id, null)
   cosmos_db_name                  = local.resource_names.cosmos_db
   deploy_ai_search                = local.deploy_ai_search
   deploy_cosmos_db                = local.deploy_cosmos_db
   deploy_storage_account          = local.deploy_storage_account
   location                        = local.location
-  resource_group_name             = local.resource_group_name
   storage_account_id              = try(module.dependent_resources.storage_account_id, null)
   storage_account_name            = local.resource_names.storage_account
   agent_subnet_resource_id        = var.agent_subnet_resource_id
