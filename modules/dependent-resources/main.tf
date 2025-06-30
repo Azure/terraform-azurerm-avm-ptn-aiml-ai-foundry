@@ -1,6 +1,6 @@
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "~> 0.6.3"
+  version = "0.6.3"
   count   = var.deploy_storage_account ? 1 : 0
 
   location                        = var.location
@@ -30,7 +30,7 @@ module "storage_account" {
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "~> 0.10.0"
+  version = "0.10.0"
   count   = var.deploy_key_vault ? 1 : 0
 
   location            = var.location
@@ -50,7 +50,7 @@ module "key_vault" {
 
 module "cosmos_db" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "~> 0.8.0"
+  version = "0.8.0"
   count   = var.deploy_cosmos_db ? 1 : 0
 
   location            = var.location
@@ -72,7 +72,7 @@ module "cosmos_db" {
 
 module "ai_search" {
   source  = "Azure/avm-res-search-searchservice/azurerm"
-  version = "~> 0.1.5"
+  version = "0.1.5"
   count   = var.deploy_ai_search ? 1 : 0
 
   location            = var.location
