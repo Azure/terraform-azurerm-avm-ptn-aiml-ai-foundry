@@ -1,25 +1,21 @@
-variable "ai_model_deployments" {
-  type = map(object({
-    name = string
-    model = object({
-      format  = string
-      name    = string
-      version = string
-    })
-    rai_policy_name = optional(string)
-    scale = object({
-      type     = string
-      capacity = optional(number, 1)
-    })
-    version_upgrade_option = optional(string)
-  }))
-  default     = {}
-  description = "AI model deployments to create"
-}
-
 variable "ai_foundry_name" {
   type        = string
   description = "Name of the AI Foundry account"
+}
+
+variable "location" {
+  type        = string
+  description = "Azure region for deployment"
+}
+
+variable "resource_group_id" {
+  type        = string
+  description = "Resource group ID for the AI Foundry account"
+}
+
+variable "resource_group_name" {
+  type        = string
+  description = "Name of the resource group"
 }
 
 variable "ai_foundry_private_endpoints" {
@@ -38,19 +34,23 @@ variable "ai_foundry_private_endpoints" {
   description = "Private endpoints for the AI Foundry account"
 }
 
-variable "location" {
-  type        = string
-  description = "Azure region for deployment"
-}
-
-variable "resource_group_id" {
-  type        = string
-  description = "Resource group ID for the AI Foundry account"
-}
-
-variable "resource_group_name" {
-  type        = string
-  description = "Name of the resource group"
+variable "ai_model_deployments" {
+  type = map(object({
+    name = string
+    model = object({
+      format  = string
+      name    = string
+      version = string
+    })
+    rai_policy_name = optional(string)
+    scale = object({
+      type     = string
+      capacity = optional(number, 1)
+    })
+    version_upgrade_option = optional(string)
+  }))
+  default     = {}
+  description = "AI model deployments to create"
 }
 
 variable "tags" {

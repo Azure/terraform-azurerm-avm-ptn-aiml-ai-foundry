@@ -23,8 +23,9 @@ provider "azurerm" {
 }
 
 module "regions" {
-  source                    = "Azure/avm-utl-regions/azurerm"
-  version                   = "~> 0.1"
+  source  = "Azure/avm-utl-regions/azurerm"
+  version = "~> 0.1"
+
   availability_zones_filter = true
   geography_filter          = "Australia"
 }
@@ -57,10 +58,11 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
+  location                             = module.regions.regions[random_integer.region_index.result].name
+  name                                 = "std-pub"
+  ai_foundry_private_endpoints         = {}
   ai_foundry_project_description       = "Standard AI Foundry project with agent services (public endpoints)"
   ai_foundry_project_name              = "AI-Foundry-Standard-Public"
-  create_ai_foundry_project            = true
-  create_ai_agent_service              = true
   ai_foundry_project_private_endpoints = {}
   ai_model_deployments = {
     "gpt-4o" = {
@@ -76,12 +78,11 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_private_endpoints  = {}
-  ai_foundry_private_endpoints = {}
-  cosmos_db_private_endpoints  = {}
-  enable_telemetry             = true
-  key_vault_private_endpoints  = {}
-  location                     = module.regions.regions[random_integer.region_index.result].name
-  name                         = "std-pub"
-  storage_private_endpoints    = {}
+  ai_search_private_endpoints = {}
+  cosmos_db_private_endpoints = {}
+  create_ai_agent_service     = true
+  create_ai_foundry_project   = true
+  enable_telemetry            = true
+  key_vault_private_endpoints = {}
+  storage_private_endpoints   = {}
 }

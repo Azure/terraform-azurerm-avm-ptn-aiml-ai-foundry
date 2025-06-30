@@ -5,14 +5,12 @@ resource "azapi_resource" "ai_foundry_project" {
   name      = var.ai_foundry_project_name
   parent_id = var.ai_foundry_id
   type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
-
   body = {
     properties = {
       displayName = var.ai_foundry_project_display_name
       description = var.ai_foundry_project_description
     }
   }
-
   tags = var.tags
 
   identity {
@@ -26,7 +24,6 @@ resource "azapi_resource" "ai_foundry_project_connection_storage" {
   name      = var.storage_account_name
   parent_id = azapi_resource.ai_foundry_project[0].id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
-
   body = {
     properties = {
       category = "AzureStorageAccount"
@@ -49,7 +46,6 @@ resource "azapi_resource" "ai_foundry_project_connection_cosmos" {
   name      = var.cosmos_db_name
   parent_id = azapi_resource.ai_foundry_project[0].id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
-
   body = {
     properties = {
       category = "CosmosDB"
@@ -72,7 +68,6 @@ resource "azapi_resource" "ai_foundry_project_connection_search" {
   name      = var.ai_search_name
   parent_id = azapi_resource.ai_foundry_project[0].id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
-
   body = {
     properties = {
       category = "CognitiveSearch"
@@ -95,7 +90,6 @@ resource "azapi_resource" "ai_agent_capability_host" {
   name      = var.ai_agent_host_name
   parent_id = azapi_resource.ai_foundry_project[0].id
   type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
-
   body = {
     properties = {
       capabilityHostKind       = "Agents"
@@ -131,9 +125,9 @@ resource "azurerm_private_endpoint" "ai_foundry_project" {
     private_connection_resource_id = var.ai_foundry_id
     subresource_names              = [each.value.subresource_name]
   }
-
   dynamic "private_dns_zone_group" {
     for_each = length(each.value.private_dns_zone_resource_ids) > 0 ? [each.value.private_dns_zone_group_name] : []
+
     content {
       name                 = private_dns_zone_group.value
       private_dns_zone_ids = each.value.private_dns_zone_resource_ids

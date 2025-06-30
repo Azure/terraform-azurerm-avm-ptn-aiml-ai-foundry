@@ -3,6 +3,11 @@ variable "ai_agent_host_name" {
   description = "Name of the AI agent capability host"
 }
 
+variable "ai_foundry_id" {
+  type        = string
+  description = "Resource ID of the AI Foundry account"
+}
+
 variable "ai_foundry_project_description" {
   type        = string
   description = "Description for the AI Foundry project"
@@ -18,22 +23,6 @@ variable "ai_foundry_project_name" {
   description = "Name of the AI Foundry project"
 }
 
-variable "ai_foundry_project_private_endpoints" {
-  type = map(object({
-    location                        = optional(string)
-    name                            = optional(string)
-    private_dns_zone_group_name     = optional(string, "default")
-    private_dns_zone_resource_ids   = optional(list(string), [])
-    private_service_connection_name = optional(string)
-    resource_group_name             = optional(string)
-    subresource_name                = string
-    subnet_resource_id              = string
-    tags                            = optional(map(string), {})
-  }))
-  default     = {}
-  description = "Private endpoints for the AI Foundry project"
-}
-
 variable "ai_search_id" {
   type        = string
   description = "Resource ID of the AI Search service"
@@ -44,17 +33,6 @@ variable "ai_search_name" {
   description = "Name of the AI Search service"
 }
 
-variable "ai_foundry_id" {
-  type        = string
-  description = "Resource ID of the AI Foundry account"
-}
-
-variable "agent_subnet_resource_id" {
-  type        = string
-  default     = null
-  description = "Subnet resource ID for the AI agent service"
-}
-
 variable "cosmos_db_id" {
   type        = string
   description = "Resource ID of the Cosmos DB account"
@@ -63,18 +41,6 @@ variable "cosmos_db_id" {
 variable "cosmos_db_name" {
   type        = string
   description = "Name of the Cosmos DB account"
-}
-
-variable "create_ai_agent_service" {
-  type        = bool
-  default     = true
-  description = "Whether to create the AI agent service"
-}
-
-variable "create_ai_foundry_project" {
-  type        = bool
-  default     = true
-  description = "Whether to create the AI Foundry project"
 }
 
 variable "deploy_ai_search" {
@@ -110,6 +76,40 @@ variable "storage_account_id" {
 variable "storage_account_name" {
   type        = string
   description = "Name of the Storage Account"
+}
+
+variable "agent_subnet_resource_id" {
+  type        = string
+  default     = null
+  description = "Subnet resource ID for the AI agent service"
+}
+
+variable "ai_foundry_project_private_endpoints" {
+  type = map(object({
+    location                        = optional(string)
+    name                            = optional(string)
+    private_dns_zone_group_name     = optional(string, "default")
+    private_dns_zone_resource_ids   = optional(list(string), [])
+    private_service_connection_name = optional(string)
+    resource_group_name             = optional(string)
+    subresource_name                = string
+    subnet_resource_id              = string
+    tags                            = optional(map(string), {})
+  }))
+  default     = {}
+  description = "Private endpoints for the AI Foundry project"
+}
+
+variable "create_ai_agent_service" {
+  type        = bool
+  default     = true
+  description = "Whether to create the AI agent service"
+}
+
+variable "create_ai_foundry_project" {
+  type        = bool
+  default     = true
+  description = "Whether to create the AI Foundry project"
 }
 
 variable "storage_connections" {

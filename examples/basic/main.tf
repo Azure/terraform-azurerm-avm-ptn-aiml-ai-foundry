@@ -22,8 +22,9 @@ provider "azurerm" {
 }
 
 module "regions" {
-  source                    = "Azure/avm-utl-regions/azurerm"
-  version                   = "~> 0.1"
+  source  = "Azure/avm-utl-regions/azurerm"
+  version = "~> 0.1"
+
   availability_zones_filter = true
   geography_filter          = "Australia"
 }
@@ -56,6 +57,8 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
+  location = module.regions.regions[random_integer.region_index.result].name
+  name     = "basic"
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -77,6 +80,4 @@ module "ai_foundry" {
   existing_cosmos_db_resource_id       = "skip-deployment"
   existing_key_vault_resource_id       = "skip-deployment"
   existing_storage_account_resource_id = "skip-deployment"
-  location                             = module.regions.regions[random_integer.region_index.result].name
-  name                                 = "basic"
 }

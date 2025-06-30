@@ -25,8 +25,9 @@ provider "azurerm" {
 ## Section to provide a random Azure region for the resource group
 # This allows us to randomize the region for the resource group.
 module "regions" {
-  source                    = "Azure/avm-utl-regions/azurerm"
-  version                   = "~> 0.1"
+  source  = "Azure/avm-utl-regions/azurerm"
+  version = "~> 0.1"
+
   availability_zones_filter = true
   geography_filter          = "Australia"
 }
@@ -279,15 +280,29 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  location                       = module.regions.regions[random_integer.region_index.result].name
-  name                           = "std-prv"
-  resource_group_name            = azurerm_resource_group.example.name
-  agent_subnet_resource_id       = azurerm_subnet.agent_services.id
-  create_ai_agent_service        = true
-  create_ai_foundry_project      = true
+  location                 = module.regions.regions[random_integer.region_index.result].name
+  name                     = "std-prv"
+  agent_subnet_resource_id = azurerm_subnet.agent_services.id
+  ai_foundry_private_endpoints = {
+    "account" = {
+      subnet_resource_id = azurerm_subnet.private_endpoints.id
+      subresource_name   = "account"
+      private_dns_zone_resource_ids = [
+        azurerm_private_dns_zone.openai.id
+      ]
+    }
+  }
   ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
   ai_foundry_project_name        = "AI-Foundry-Standard-Private"
-  enable_telemetry               = true
+  ai_foundry_project_private_endpoints = {
+    "amlworkspace" = {
+      subnet_resource_id = azurerm_subnet.private_endpoints.id
+      subresource_name   = "amlworkspace"
+      private_dns_zone_resource_ids = [
+        azurerm_private_dns_zone.ml_workspace.id
+      ]
+    }
+  }
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -302,30 +317,12 @@ module "ai_foundry" {
       }
     }
   }
-  ai_foundry_project_private_endpoints = {
-    "amlworkspace" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "amlworkspace"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.ml_workspace.id
-      ]
-    }
-  }
   ai_search_private_endpoints = {
     "searchService" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
       subresource_name   = "searchService"
       private_dns_zone_resource_ids = [
         azurerm_private_dns_zone.search.id
-      ]
-    }
-  }
-  ai_foundry_private_endpoints = {
-    "account" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "account"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.openai.id
       ]
     }
   }
@@ -338,6 +335,9 @@ module "ai_foundry" {
       ]
     }
   }
+  create_ai_agent_service   = true
+  create_ai_foundry_project = true
+  enable_telemetry          = true
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -347,6 +347,7 @@ module "ai_foundry" {
       ]
     }
   }
+  resource_group_name = azurerm_resource_group.example.name
   storage_private_endpoints = {
     "blob" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
