@@ -188,11 +188,12 @@ resource "azurerm_public_ip" "bastion" {
   name                = module.naming.public_ip.name_unique
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
-  version = "~> 0.3"
+  version = "0.3"
 
   location            = module.regions.regions[random_integer.region_index.result].name
   name                = module.naming.bastion_host.name_unique
@@ -203,6 +204,7 @@ module "bastion_host" {
     name                 = "IpConf"
     subnet_id            = azurerm_subnet.bastion.id
     public_ip_address_id = azurerm_public_ip.bastion.id
+    create_public_ip     = false
   }
   ip_connect_enabled     = true
   scale_units            = 2
@@ -213,7 +215,7 @@ module "bastion_host" {
 
 module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "~> 0.15"
+  version = "0.15"
 
   location = module.regions.regions[random_integer.region_index.result].name
   name     = module.naming.virtual_machine.name_unique
@@ -382,7 +384,7 @@ Version:
 
 Source: Azure/avm-res-network-bastionhost/azurerm
 
-Version: ~> 0.3
+Version: 0.3
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
@@ -400,7 +402,7 @@ Version: ~> 0.1
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: ~> 0.15
+Version: 0.15
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

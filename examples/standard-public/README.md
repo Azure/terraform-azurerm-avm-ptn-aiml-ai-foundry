@@ -30,7 +30,7 @@ provider "azurerm" {
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "~> 0.1"
+  version = "0.1"
 
   availability_zones_filter = true
   geography_filter          = "Australia"
@@ -156,7 +156,7 @@ Version: ~> 0.3
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: ~> 0.1
+Version: 0.1
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
