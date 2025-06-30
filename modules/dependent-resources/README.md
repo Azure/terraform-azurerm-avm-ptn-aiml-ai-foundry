@@ -277,25 +277,25 @@ The following Modules are called:
 
 Source: Azure/avm-res-search-searchservice/azurerm
 
-Version: ~> 0.1.5
+Version: 0.1.5
 
 ### <a name="module_cosmos_db"></a> [cosmos\_db](#module\_cosmos\_db)
 
 Source: Azure/avm-res-documentdb-databaseaccount/azurerm
 
-Version: ~> 0.8.0
+Version: 0.8.0
 
 ### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
 
 Source: Azure/avm-res-keyvault-vault/azurerm
 
-Version: ~> 0.10.0
+Version: 0.10.0
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: ~> 0.6.3
+Version: 0.6.3
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

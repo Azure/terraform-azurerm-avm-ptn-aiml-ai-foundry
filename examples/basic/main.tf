@@ -21,6 +21,10 @@ provider "azurerm" {
   }
 }
 
+locals {
+  base_name = "basic"
+}
+
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.5.2"
@@ -34,28 +38,22 @@ resource "random_integer" "region_index" {
   min = 0
 }
 
-resource "random_string" "example_suffix" {
-  length  = 5
-  lower   = true
-  numeric = true
-  special = false
-  upper   = false
-}
-
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.2"
+  source        = "Azure/naming/azurerm"
+  version       = "0.4.2"
+  suffix        = [local.base_name]
+  unique-length = 5
 }
 
-resource "azurerm_resource_group" "example" {
+resource "azurerm_resource_group" "this" {
   location = module.regions.regions[random_integer.region_index.result].name
-  name     = "rg-basic-${random_string.example_suffix.result}"
+  name     = module.naming.resource_group.name_unique
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
-  location            = azurerm_resource_group.example.location
+  location            = azurerm_resource_group.this.location
   name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.this.name
   retention_in_days   = 30
   sku                 = "PerGB2018"
 }
@@ -63,8 +61,8 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name = "basic"
-  location  = azurerm_resource_group.example.location
+  base_name = local.base_name
+  location  = azurerm_resource_group.this.location
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -87,5 +85,5 @@ module "ai_foundry" {
   existing_key_vault_resource_id               = "skip-deployment"
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
   existing_storage_account_resource_id         = "skip-deployment"
-  resource_group_name                          = azurerm_resource_group.example.name
+  resource_group_name                          = azurerm_resource_group.this.name
 }
