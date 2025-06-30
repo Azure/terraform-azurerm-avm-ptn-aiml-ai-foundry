@@ -9,12 +9,6 @@ variable "location" {
   nullable    = false
 }
 
-variable "log_analytics_workspace_resource_id" {
-  type        = string
-  default     = null
-  description = "Resource ID of the Log Analytics Workspace for diagnostic settings"
-}
-
 variable "resource_group_id" {
   type        = string
   description = "Resource group ID for the AI Foundry account"
@@ -58,6 +52,12 @@ variable "ai_model_deployments" {
   }))
   default     = {}
   description = "AI model deployments to create"
+}
+
+variable "log_analytics_workspace_resource_id" {
+  type        = string
+  default     = null
+  description = "Resource ID of the Log Analytics Workspace for diagnostic settings"
 }
 
 variable "tags" {

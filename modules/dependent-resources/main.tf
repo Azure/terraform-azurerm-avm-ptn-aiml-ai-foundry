@@ -7,6 +7,12 @@ module "storage_account" {
   name                            = var.storage_account_name
   resource_group_name             = var.resource_group_name
   default_to_oauth_authentication = true
+  diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
+    diag = {
+      name                       = "diag-${var.storage_account_name}"
+      log_analytics_workspace_id = var.log_analytics_workspace_resource_id
+    }
+  } : {}
   managed_identities = {
     system_assigned = true
   }
@@ -16,12 +22,6 @@ module "storage_account" {
     ip_rules                   = []
     virtual_network_subnet_ids = []
   } : null
-  diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
-    diag = {
-      name                       = "diag-${var.storage_account_name}"
-      log_analytics_workspace_id = var.log_analytics_workspace_resource_id
-    }
-  } : {}
   private_endpoints             = var.storage_private_endpoints
   public_network_access_enabled = length(var.storage_private_endpoints) == 0 ? true : false
   shared_access_key_enabled     = false
@@ -33,10 +33,10 @@ module "key_vault" {
   version = "~> 0.10.0"
   count   = var.deploy_key_vault ? 1 : 0
 
-  location                      = var.location
-  name                          = var.key_vault_name
-  resource_group_name           = var.resource_group_name
-  tenant_id                     = var.tenant_id
+  location            = var.location
+  name                = var.key_vault_name
+  resource_group_name = var.resource_group_name
+  tenant_id           = var.tenant_id
   diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
     diag = {
       name                       = "diag-${var.key_vault_name}"
@@ -56,15 +56,15 @@ module "cosmos_db" {
   location            = var.location
   name                = var.cosmos_db_name
   resource_group_name = var.resource_group_name
-  managed_identities = {
-    system_assigned = true
-  }
   diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
     diag = {
       name                       = "diag-${var.cosmos_db_name}"
       log_analytics_workspace_id = var.log_analytics_workspace_resource_id
     }
   } : {}
+  managed_identities = {
+    system_assigned = true
+  }
   private_endpoints             = var.cosmos_db_private_endpoints
   public_network_access_enabled = length(var.cosmos_db_private_endpoints) == 0 ? true : false
   tags                          = var.tags
@@ -78,15 +78,15 @@ module "ai_search" {
   location            = var.location
   name                = var.ai_search_name
   resource_group_name = var.resource_group_name
-  managed_identities = {
-    system_assigned = true
-  }
   diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
     diag = {
       name                       = "diag-${var.ai_search_name}"
       log_analytics_workspace_id = var.log_analytics_workspace_resource_id
     }
   } : {}
+  managed_identities = {
+    system_assigned = true
+  }
   private_endpoints             = var.ai_search_private_endpoints
   public_network_access_enabled = length(var.ai_search_private_endpoints) == 0 ? true : false
   tags                          = var.tags

@@ -20,6 +20,7 @@ The following resources are used by this module:
 
 - [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_model_deployment](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azurerm_monitor_diagnostic_setting.ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 
 <!-- markdownlint-disable MD013 -->
@@ -102,13 +103,21 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_log_analytics_workspace_resource_id"></a> [log\_analytics\_workspace\_resource\_id](#input\_log\_analytics\_workspace\_resource\_id)
+
+Description: Resource ID of the Log Analytics Workspace for diagnostic settings
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
 Description: Tags to apply to resources
 
 Type: `map(string)`
 
-Default: `{}`
+Default: `null`
 
 ## Outputs
 
@@ -125,6 +134,10 @@ Description: Name of the AI Foundry account
 ### <a name="output_ai_model_deployment_ids"></a> [ai\_model\_deployment\_ids](#output\_ai\_model\_deployment\_ids)
 
 Description: Resource IDs of the AI model deployments
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: Resource ID of the primary AI Foundry account
 
 ## Modules
 

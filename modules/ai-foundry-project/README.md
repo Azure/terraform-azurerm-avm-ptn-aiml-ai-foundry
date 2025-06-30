@@ -12,8 +12,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
-
 ## Resources
 
 The following resources are used by this module:
@@ -71,6 +69,12 @@ Description: Name of the AI Search service
 
 Type: `string`
 
+### <a name="input_ai_services_id"></a> [ai\_services\_id](#input\_ai\_services\_id)
+
+Description: Resource ID of the AI services multi-services account
+
+Type: `string`
+
 ### <a name="input_cosmos_db_id"></a> [cosmos\_db\_id](#input\_cosmos\_db\_id)
 
 Description: Resource ID of the Cosmos DB account
@@ -104,12 +108,6 @@ Type: `bool`
 ### <a name="input_location"></a> [location](#input\_location)
 
 Description: Azure region for deployment
-
-Type: `string`
-
-### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
-
-Description: Name of the resource group
 
 Type: `string`
 
@@ -167,7 +165,7 @@ Description: Tags to apply to resources
 
 Type: `map(string)`
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_thread_storage_connections"></a> [thread\_storage\_connections](#input\_thread\_storage\_connections)
 
@@ -200,6 +198,10 @@ Description: Resource ID of the AI Foundry project
 ### <a name="output_ai_foundry_project_name"></a> [ai\_foundry\_project\_name](#output\_ai\_foundry\_project\_name)
 
 Description: Name of the AI Foundry project
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: Resource ID of the primary AI Foundry project
 
 ## Modules
 

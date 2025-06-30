@@ -30,11 +30,7 @@ The following resources are used by this module:
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
-- [azurerm_cosmosdb_account.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/cosmosdb_account) (data source)
-- [azurerm_key_vault.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) (data source)
 - [azurerm_resource_group.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) (data source)
-- [azurerm_search_service.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/search_service) (data source)
-- [azurerm_storage_account.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -280,9 +276,9 @@ Type: `string`
 
 Default: `null`
 
-### <a name="input_existing_application_insights_resource_id"></a> [existing\_application\_insights\_resource\_id](#input\_existing\_application\_insights\_resource\_id)
+### <a name="input_existing_ai_services_resource_id"></a> [existing\_ai\_services\_resource\_id](#input\_existing\_ai\_services\_resource\_id)
 
-Description: (Optional) The resource ID of an existing Application Insights to use. If not provided, a new Application Insights will be created.
+Description: (Optional) The resource ID of an existing AI Services multi-service account (Microsoft.CognitiveServices/accounts with kind 'CognitiveServices') to use for AI agent capabilities. If not provided, the AI Foundry account will be used.
 
 Type: `string`
 

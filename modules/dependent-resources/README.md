@@ -10,8 +10,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
-
 ## Resources
 
 No resources.
@@ -172,6 +170,14 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_log_analytics_workspace_resource_id"></a> [log\_analytics\_workspace\_resource\_id](#input\_log\_analytics\_workspace\_resource\_id)
+
+Description: Resource ID of the Log Analytics Workspace for diagnostic settings
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_storage_private_endpoints"></a> [storage\_private\_endpoints](#input\_storage\_private\_endpoints)
 
 Description: Private endpoint configuration for storage account
@@ -205,7 +211,7 @@ Description: Tags to apply to resources
 
 Type: `map(string)`
 
-Default: `{}`
+Default: `null`
 
 ## Outputs
 
@@ -213,51 +219,55 @@ The following outputs are exported:
 
 ### <a name="output_ai_search"></a> [ai\_search](#output\_ai\_search)
 
-Description: n/a
+Description: AI Search service resource object
 
 ### <a name="output_ai_search_id"></a> [ai\_search\_id](#output\_ai\_search\_id)
 
-Description: n/a
+Description: Resource ID of the AI Search service
 
 ### <a name="output_ai_search_name"></a> [ai\_search\_name](#output\_ai\_search\_name)
 
-Description: n/a
+Description: Name of the AI Search service
 
 ### <a name="output_cosmos_db"></a> [cosmos\_db](#output\_cosmos\_db)
 
-Description: n/a
+Description: Cosmos DB account resource object
 
 ### <a name="output_cosmos_db_id"></a> [cosmos\_db\_id](#output\_cosmos\_db\_id)
 
-Description: n/a
+Description: Resource ID of the Cosmos DB account
 
 ### <a name="output_cosmos_db_name"></a> [cosmos\_db\_name](#output\_cosmos\_db\_name)
 
-Description: n/a
+Description: Name of the Cosmos DB account
 
 ### <a name="output_key_vault"></a> [key\_vault](#output\_key\_vault)
 
-Description: n/a
+Description: Key Vault resource object
 
 ### <a name="output_key_vault_id"></a> [key\_vault\_id](#output\_key\_vault\_id)
 
-Description: n/a
+Description: Resource ID of the Key Vault
 
 ### <a name="output_key_vault_name"></a> [key\_vault\_name](#output\_key\_vault\_name)
 
-Description: n/a
+Description: Name of the Key Vault
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: Resource ID of the primary resource (storage account if deployed, otherwise first available resource)
 
 ### <a name="output_storage_account"></a> [storage\_account](#output\_storage\_account)
 
-Description: n/a
+Description: Storage account resource object
 
 ### <a name="output_storage_account_id"></a> [storage\_account\_id](#output\_storage\_account\_id)
 
-Description: n/a
+Description: Resource ID of the Storage Account
 
 ### <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name)
 
-Description: n/a
+Description: Name of the Storage Account
 
 ## Modules
 
