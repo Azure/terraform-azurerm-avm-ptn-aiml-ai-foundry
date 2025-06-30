@@ -30,7 +30,7 @@ provider "azurerm" {
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.1"
+  version = "0.5.2"
 
   availability_zones_filter = true
   geography_filter          = "Australia"
@@ -51,7 +51,7 @@ resource "random_string" "example_suffix" {
 
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "~> 0.3"
+  version = "0.4.2"
 }
 
 resource "azurerm_resource_group" "example" {
@@ -93,6 +93,7 @@ module "ai_foundry" {
   create_ai_foundry_project                    = true
   create_resource_group                        = false
   existing_ai_search_resource_id               = null
+  existing_application_insights_resource_id    = azurerm_application_insights.this.id
   existing_cosmos_db_resource_id               = null
   existing_key_vault_resource_id               = null
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
@@ -150,13 +151,13 @@ Version:
 
 Source: Azure/naming/azurerm
 
-Version: ~> 0.3
+Version: 0.4.2
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.1
+Version: 0.5.2
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

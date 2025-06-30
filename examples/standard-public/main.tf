@@ -24,7 +24,7 @@ provider "azurerm" {
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "~> 0.1"
+  version = "0.5.2"
 
   availability_zones_filter = true
   geography_filter          = "Australia"
@@ -45,7 +45,7 @@ resource "random_string" "example_suffix" {
 
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "~> 0.3"
+  version = "0.4.2"
 }
 
 resource "azurerm_resource_group" "example" {
