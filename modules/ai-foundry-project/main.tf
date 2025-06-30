@@ -92,10 +92,10 @@ resource "azapi_resource" "ai_agent_capability_host" {
   type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
   body = {
     properties = {
-      capabilityHostKind       = "Agents"
-      description              = "AI Agent capability host for ${var.ai_foundry_project_name}"
-      storageConnections       = var.storage_connections
-      aiServicesConnections    = [var.ai_services_id]
+      capabilityHostKind = "Agents"
+      description        = "AI Agent capability host for ${var.ai_foundry_project_name}"
+      storageConnections = var.storage_connections
+      # aiServicesConnections    = [var.ai_services_id] # TBD: AI Services Account to be added later
       threadStorageConnections = var.thread_storage_connections
       vectorStoreConnections   = var.vector_store_connections
       customerSubnet           = var.agent_subnet_resource_id

@@ -253,7 +253,7 @@ module "ai_foundry" {
   location                                     = azurerm_resource_group.example.location
   base_name                                    = "std-prv"
   create_resource_group                        = false
-  create_ai_agent_service                      = true
+  create_ai_agent_service                      = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
   create_ai_foundry_project                    = true
   resource_group_name                          = azurerm_resource_group.example.name
   existing_application_insights_resource_id    = azurerm_application_insights.this.id
