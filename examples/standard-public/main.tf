@@ -72,13 +72,13 @@ module "ai_foundry" {
   source = "../../"
 
   location                                     = azurerm_resource_group.example.location
-  name                                         = "std-pub"
+  base_name                                    = "std-pub"
   create_resource_group                        = false
+  create_ai_agent_service                      = true
+  create_ai_foundry_project                    = true
   resource_group_name                          = azurerm_resource_group.example.name
   existing_application_insights_resource_id    = azurerm_application_insights.this.id
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
-  ai_foundry_private_endpoints                 = {}
-  ai_foundry_project_description               = "Standard AI Foundry project with agent services (public endpoints)"
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -93,12 +93,11 @@ module "ai_foundry" {
       }
     }
   }
+  ai_foundry_private_endpoints         = {}
   cosmos_db_private_endpoints          = {}
   ai_search_private_endpoints          = {}
   key_vault_private_endpoints          = {}
   storage_private_endpoints            = {}
-  create_ai_agent_service              = true
-  create_ai_foundry_project            = true
   existing_ai_search_resource_id       = null
   existing_cosmos_db_resource_id       = null
   existing_key_vault_resource_id       = null

@@ -4,20 +4,14 @@ variable "location" {
   nullable    = false
 }
 
-variable "name" {
+variable "base_name" {
   type        = string
   description = "The name prefix for the AI Foundry resources. Will be used as base_name if base_name is not provided."
 
   validation {
-    condition     = can(regex("^[a-z0-9][a-z0-9-]{1,60}[a-z0-9]$", var.name))
-    error_message = "The name must be between 3 and 62 characters long, start and end with alphanumeric characters, and can only contain lowercase letters, numbers, and hyphens."
+    condition     = can(regex("^[a-z0-9][a-z0-9-]{1,7}[a-z0-9]$", var.base_name))
+    error_message = "Base name to use as affix for resource names when custom names are not provided. The base_name must be between 3 and 7 characters long, start and end with alphanumeric characters, and can only contain lowercase letters, numbers, and hyphens."
   }
-}
-
-variable "base_name" {
-  type        = string
-  default     = null
-  description = "Base name to use as prefix/suffix for resource names when custom names are not provided. If null, var.name will be used."
 }
 
 variable "resource_group_name" {

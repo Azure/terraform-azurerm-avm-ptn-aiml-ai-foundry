@@ -22,8 +22,6 @@ provider "azurerm" {
   }
 }
 
-## Section to provide a random Azure region for the resource group
-# This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "~> 0.1"
@@ -69,10 +67,6 @@ resource "azurerm_log_analytics_workspace" "this" {
   retention_in_days   = 30
   sku                 = "PerGB2018"
 }
-
-# ========================================
-# Networking Infrastructure
-# ========================================
 
 # Virtual Network for private endpoints and agent services
 resource "azurerm_virtual_network" "this" {
@@ -122,10 +116,6 @@ resource "azurerm_subnet" "vm" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.this.name
 }
-
-# ========================================
-# Private DNS Zones and VNet Links
-# ========================================
 
 # Storage Account Private DNS Zone
 resource "azurerm_private_dns_zone" "storage_blob" {
@@ -192,10 +182,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "openai" {
   virtual_network_id    = azurerm_virtual_network.this.id
 }
 
-# ========================================
-# Bastion Host (using AVM module)
-# ========================================
-
 # Public IP for Bastion
 resource "azurerm_public_ip" "bastion" {
   allocation_method   = "Static"
@@ -226,10 +212,6 @@ module "bastion_host" {
   tunneling_enabled      = true
 }
 
-# ========================================
-# Windows Virtual Machine (using AVM module)
-# ========================================
-
 module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
   version = "~> 0.15"
@@ -249,7 +231,6 @@ module "virtual_machine" {
   }
   resource_group_name             = azurerm_resource_group.example.name
   zone                            = "1"
-  admin_password                  = "P@ssw0rd1234!"
   admin_username                  = "azureadmin"
   disable_password_authentication = false
   os_disk = {
@@ -270,22 +251,14 @@ module "ai_foundry" {
   source = "../../"
 
   location                                     = azurerm_resource_group.example.location
-  name                                         = "std-prv"
+  base_name                                    = "std-prv"
   create_resource_group                        = false
+  create_ai_agent_service                      = true
+  create_ai_foundry_project                    = true
   resource_group_name                          = azurerm_resource_group.example.name
   existing_application_insights_resource_id    = azurerm_application_insights.this.id
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
   agent_subnet_resource_id                     = azurerm_subnet.agent_services.id
-  ai_foundry_private_endpoints = {
-    "account" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "account"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.openai.id
-      ]
-    }
-  }
-  ai_foundry_project_description = "Standard AI Foundry project with agent services (private endpoints)"
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -298,6 +271,15 @@ module "ai_foundry" {
         type     = "GlobalStandard"
         capacity = 1
       }
+    }
+  }
+  ai_foundry_private_endpoints = {
+    "account" = {
+      subnet_resource_id = azurerm_subnet.private_endpoints.id
+      subresource_name   = "account"
+      private_dns_zone_resource_ids = [
+        azurerm_private_dns_zone.openai.id
+      ]
     }
   }
   ai_search_private_endpoints = {
@@ -318,8 +300,6 @@ module "ai_foundry" {
       ]
     }
   }
-  create_ai_agent_service   = true
-  create_ai_foundry_project = true
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id

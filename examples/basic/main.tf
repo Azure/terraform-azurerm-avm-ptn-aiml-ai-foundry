@@ -71,7 +71,7 @@ module "ai_foundry" {
   source = "../../"
 
   location                                     = azurerm_resource_group.example.location
-  name                                         = "basic"
+  base_name                                    = "basic"
   create_resource_group                        = false
   resource_group_name                          = azurerm_resource_group.example.name
   existing_application_insights_resource_id    = azurerm_application_insights.this.id
