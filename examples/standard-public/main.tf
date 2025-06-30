@@ -87,7 +87,6 @@ module "ai_foundry" {
   create_ai_foundry_project                    = true
   create_resource_group                        = false
   existing_ai_search_resource_id               = null
-  existing_application_insights_resource_id    = azurerm_application_insights.this.id
   existing_cosmos_db_resource_id               = null
   existing_key_vault_resource_id               = null
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
