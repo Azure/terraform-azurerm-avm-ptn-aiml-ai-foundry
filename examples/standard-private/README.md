@@ -94,7 +94,8 @@ resource "azurerm_subnet" "agent_services" {
     name = "Microsoft.App.environments"
 
     service_delegation {
-      name = "Microsoft.App/environments"
+      name    = "Microsoft.App/environments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }

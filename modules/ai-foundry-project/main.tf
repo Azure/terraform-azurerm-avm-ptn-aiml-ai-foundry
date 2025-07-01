@@ -1,6 +1,4 @@
 resource "azapi_resource" "ai_foundry_project" {
-  count = var.create_ai_foundry_project ? 1 : 0
-
   location  = var.location
   name      = var.ai_foundry_project_name
   parent_id = var.ai_foundry_id
@@ -19,10 +17,10 @@ resource "azapi_resource" "ai_foundry_project" {
 }
 
 resource "azapi_resource" "ai_foundry_project_connection_storage" {
-  count = var.create_ai_foundry_project && var.deploy_storage_account ? 1 : 0
+  count = var.deploy_storage_account ? 1 : 0
 
   name      = var.storage_account_name
-  parent_id = azapi_resource.ai_foundry_project[0].id
+  parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
     properties = {
@@ -41,10 +39,10 @@ resource "azapi_resource" "ai_foundry_project_connection_storage" {
 }
 
 resource "azapi_resource" "ai_foundry_project_connection_cosmos" {
-  count = var.create_ai_foundry_project && var.deploy_cosmos_db ? 1 : 0
+  count = var.deploy_cosmos_db ? 1 : 0
 
   name      = var.cosmos_db_name
-  parent_id = azapi_resource.ai_foundry_project[0].id
+  parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
     properties = {
@@ -63,10 +61,10 @@ resource "azapi_resource" "ai_foundry_project_connection_cosmos" {
 }
 
 resource "azapi_resource" "ai_foundry_project_connection_search" {
-  count = var.create_ai_foundry_project && var.deploy_ai_search ? 1 : 0
+  count = var.deploy_ai_search ? 1 : 0
 
   name      = var.ai_search_name
-  parent_id = azapi_resource.ai_foundry_project[0].id
+  parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
     properties = {
@@ -88,7 +86,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
   count = var.create_ai_agent_service ? 1 : 0
 
   name      = var.ai_agent_host_name
-  parent_id = azapi_resource.ai_foundry_project[0].id
+  parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
   body = {
     properties = {

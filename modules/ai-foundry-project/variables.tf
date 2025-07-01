@@ -80,12 +80,6 @@ variable "create_ai_agent_service" {
   description = "Whether to create the AI agent service"
 }
 
-variable "create_ai_foundry_project" {
-  type        = bool
-  default     = true
-  description = "Whether to create the AI Foundry project"
-}
-
 variable "tags" {
   type        = map(string)
   default     = null

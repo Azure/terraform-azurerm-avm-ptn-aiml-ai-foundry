@@ -54,88 +54,34 @@ variable "tenant_id" {
   description = "Azure tenant ID"
 }
 
-variable "ai_search_private_endpoints" {
-  type = map(object({
-    name                            = optional(string, null)
-    subnet_resource_id              = string
-    subresource_name                = string
-    private_dns_zone_resource_ids   = optional(set(string), [])
-    private_dns_zone_group_name     = optional(string, "default")
-    private_service_connection_name = optional(string, null)
-    network_interface_name          = optional(string, null)
-    location                        = optional(string, null)
-    resource_group_name             = optional(string, null)
-    ip_configurations = optional(map(object({
-      name               = string
-      private_ip_address = string
-    })), {})
-    tags = optional(map(string), null)
-  }))
-  default     = {}
-  description = "Private endpoint configuration for AI search"
+variable "private_endpoint_subnet_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The subnet ID for private endpoints."
 }
 
-variable "cosmos_db_private_endpoints" {
-  type = map(object({
-    name                            = optional(string, null)
-    subnet_resource_id              = string
-    subresource_name                = string
-    private_dns_zone_resource_ids   = optional(set(string), [])
-    private_dns_zone_group_name     = optional(string, "default")
-    private_service_connection_name = optional(string, null)
-    network_interface_name          = optional(string, null)
-    location                        = optional(string, null)
-    resource_group_name             = optional(string, null)
-    ip_configurations = optional(map(object({
-      name               = string
-      private_ip_address = string
-    })), {})
-    tags = optional(map(string), null)
-  }))
-  default     = {}
-  description = "Private endpoint configuration for cosmos DB"
+variable "private_dns_zone_resource_id_search" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the private DNS zone for AI Search."
 }
 
-variable "key_vault_private_endpoints" {
-  type = map(object({
-    name                            = optional(string, null)
-    subnet_resource_id              = string
-    subresource_name                = string
-    private_dns_zone_resource_ids   = optional(set(string), [])
-    private_dns_zone_group_name     = optional(string, "default")
-    private_service_connection_name = optional(string, null)
-    network_interface_name          = optional(string, null)
-    location                        = optional(string, null)
-    resource_group_name             = optional(string, null)
-    ip_configurations = optional(map(object({
-      name               = string
-      private_ip_address = string
-    })), {})
-    tags = optional(map(string), null)
-  }))
-  default     = {}
-  description = "Private endpoint configuration for key vault"
+variable "private_dns_zone_resource_id_cosmosdb" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the private DNS zone for Cosmos DB."
 }
 
-variable "storage_private_endpoints" {
-  type = map(object({
-    name                            = optional(string, null)
-    subnet_resource_id              = string
-    subresource_name                = string
-    private_dns_zone_resource_ids   = optional(set(string), [])
-    private_dns_zone_group_name     = optional(string, "default")
-    private_service_connection_name = optional(string, null)
-    network_interface_name          = optional(string, null)
-    location                        = optional(string, null)
-    resource_group_name             = optional(string, null)
-    ip_configurations = optional(map(object({
-      name               = string
-      private_ip_address = string
-    })), {})
-    tags = optional(map(string), null)
-  }))
-  default     = {}
-  description = "Private endpoint configuration for storage account"
+variable "private_dns_zone_resource_id_keyvault" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the private DNS zone for Key Vault."
+}
+
+variable "private_dns_zone_resource_id_storage_blob" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the private DNS zone for Storage Blob."
 }
 
 variable "tags" {

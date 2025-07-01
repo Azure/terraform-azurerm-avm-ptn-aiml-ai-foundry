@@ -88,7 +88,8 @@ resource "azurerm_subnet" "agent_services" {
     name = "Microsoft.App.environments"
 
     service_delegation {
-      name = "Microsoft.App/environments"
+      name    = "Microsoft.App/environments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }
@@ -200,8 +201,16 @@ module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
   version = "0.19.3"
 
-  location = module.regions.regions[random_integer.region_index.result].name
-  name     = module.naming.virtual_machine.name_unique
+  location                                               = module.regions.regions[random_integer.region_index.result].name
+  name                                                   = module.naming.virtual_machine.name_unique
+  resource_group_name                                    = azurerm_resource_group.this.name
+  zone                                                   = "1"
+  admin_username                                         = "azureadmin"
+  disable_password_authentication                        = false
+  sku_size                                               = "Standard_D4s_v3"
+  patch_assessment_mode                                  = "AutomaticByPlatform"
+  patch_mode                                             = "AutomaticByPlatform"
+  bypass_platform_safety_checks_on_user_schedule_enabled = false
   network_interfaces = {
     network_interface_1 = {
       name = "${module.naming.network_interface.name_unique}-vm"
@@ -213,15 +222,10 @@ module "virtual_machine" {
       }
     }
   }
-  resource_group_name             = azurerm_resource_group.this.name
-  zone                            = "1"
-  admin_username                  = "azureadmin"
-  disable_password_authentication = false
   os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }
-  sku_size = "Standard_D4s_v3"
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
@@ -234,17 +238,12 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name = local.base_name
-  location  = azurerm_resource_group.this.location
-  ai_foundry_private_endpoints = {
-    "account" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "account"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.openai.id
-      ]
-    }
-  }
+  base_name               = local.base_name
+  location                = azurerm_resource_group.this.location
+  resource_group_name     = azurerm_resource_group.this.name
+  create_ai_agent_service = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
+  create_resource_group   = false
+
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -259,44 +258,16 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_private_endpoints = {
-    "searchService" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "searchService"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.search.id
-      ]
-    }
-  }
-  cosmos_db_private_endpoints = {
-    "sql" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "sql"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.cosmosdb.id
-      ]
-    }
-  }
-  create_ai_agent_service   = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
-  create_ai_foundry_project = true
-  create_resource_group     = false
-  key_vault_private_endpoints = {
-    "vault" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "vault"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.keyvault.id
-      ]
-    }
-  }
-  resource_group_name = azurerm_resource_group.this.name
-  storage_private_endpoints = {
-    "blob" = {
-      subnet_resource_id = azurerm_subnet.private_endpoints.id
-      subresource_name   = "blob"
-      private_dns_zone_resource_ids = [
-        azurerm_private_dns_zone.storage_blob.id
-      ]
-    }
-  }
+
+  existing_ai_search_resource_id       = true
+  existing_cosmos_db_resource_id       = true
+  existing_key_vault_resource_id       = true
+  existing_storage_account_resource_id = true
+
+  private_endpoint_subnet_id                = azurerm_subnet.private_endpoints.id
+  private_dns_zone_resource_id_search       = azurerm_private_dns_zone.search.id
+  private_dns_zone_resource_id_cosmosdb     = azurerm_private_dns_zone.cosmosdb.id
+  private_dns_zone_resource_id_keyvault     = azurerm_private_dns_zone.keyvault.id
+  private_dns_zone_resource_id_storage_blob = azurerm_private_dns_zone.storage_blob.id
+  private_dns_zone_resource_id_ai_foundry   = azurerm_private_dns_zone.openai.id
 }

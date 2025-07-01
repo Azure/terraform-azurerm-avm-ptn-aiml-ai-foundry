@@ -9,7 +9,7 @@ resource "azapi_resource" "ai_foundry" {
       name = "S0"
     }
     properties = {
-      publicNetworkAccess    = length(var.ai_foundry_private_endpoints) == 0 ? "Enabled" : "Disabled"
+      publicNetworkAccess    = var.private_endpoint_subnet_id == null ? "Enabled" : "Disabled"
       allowProjectManagement = true
       customSubDomainName    = var.ai_foundry_name
     }
@@ -47,27 +47,23 @@ resource "azapi_resource" "ai_model_deployment" {
 }
 
 resource "azurerm_private_endpoint" "ai_foundry" {
-  for_each = var.ai_foundry_private_endpoints
+  count = var.private_endpoint_subnet_id != null ? 1 : 0
 
-  location            = each.value.location != null ? each.value.location : var.location
-  name                = each.value.name != null ? each.value.name : "pe-${azapi_resource.ai_foundry.name}-${each.key}"
-  resource_group_name = each.value.resource_group_name != null ? each.value.resource_group_name : var.resource_group_name
-  subnet_id           = each.value.subnet_resource_id
-  tags                = merge(var.tags, each.value.tags)
+  location            = var.location
+  name                = "pe-${azapi_resource.ai_foundry.name}"
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoint_subnet_id
+  tags                = var.tags
 
   private_service_connection {
     is_manual_connection           = false
-    name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "psc-${azapi_resource.ai_foundry.name}-${each.key}"
+    name                           = "psc-${azapi_resource.ai_foundry.name}"
     private_connection_resource_id = azapi_resource.ai_foundry.id
-    subresource_names              = [each.value.subresource_name]
+    subresource_names              = ["account"]
   }
-  dynamic "private_dns_zone_group" {
-    for_each = length(each.value.private_dns_zone_resource_ids) > 0 ? [each.value.private_dns_zone_group_name] : []
-
-    content {
-      name                 = private_dns_zone_group.value
-      private_dns_zone_ids = each.value.private_dns_zone_resource_ids
-    }
+  private_dns_zone_group {
+    name                 = "pe-${azapi_resource.ai_foundry.name}-dns"
+    private_dns_zone_ids = [var.private_dns_zone_resource_id_ai_foundry]
   }
 
   depends_on = [azapi_resource.ai_foundry]
