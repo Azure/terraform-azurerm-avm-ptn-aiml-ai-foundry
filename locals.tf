@@ -26,19 +26,4 @@ locals {
   }
   resource_token                     = random_string.resource_token.result
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
-  storage_connections = var.existing_storage_account_resource_id != null && var.existing_storage_account_resource_id != "skip-deployment" ? [
-    var.existing_storage_account_resource_id
-    ] : local.deploy_storage_account ? [
-    local.resource_names.storage_account
-  ] : []
-  thread_storage_connections = var.existing_storage_account_resource_id != null && var.existing_storage_account_resource_id != "skip-deployment" ? [
-    var.existing_storage_account_resource_id
-    ] : local.deploy_storage_account ? [
-    local.resource_names.storage_account
-  ] : []
-  vector_store_connections = var.existing_ai_search_resource_id != null && var.existing_ai_search_resource_id != "skip-deployment" ? [
-    var.existing_ai_search_resource_id
-    ] : local.deploy_ai_search ? [
-    local.resource_names.ai_search
-  ] : []
 }
