@@ -240,9 +240,8 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name                = local.base_name
-  location                 = azurerm_resource_group.this.location
-  agent_subnet_resource_id = azurerm_subnet.agent_services.id
+  base_name = local.base_name
+  location  = azurerm_resource_group.this.location
   ai_foundry_private_endpoints = {
     "account" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -284,10 +283,9 @@ module "ai_foundry" {
       ]
     }
   }
-  create_ai_agent_service                      = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
-  create_ai_foundry_project                    = true
-  create_resource_group                        = false
-  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
+  create_ai_agent_service   = true
+  create_ai_foundry_project = true
+  create_resource_group     = false
   key_vault_private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id

@@ -102,14 +102,6 @@ map(object({
 
 Default: `{}`
 
-### <a name="input_log_analytics_workspace_resource_id"></a> [log\_analytics\_workspace\_resource\_id](#input\_log\_analytics\_workspace\_resource\_id)
-
-Description: Resource ID of the Log Analytics Workspace for diagnostic settings
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
 Description: Tags to apply to resources

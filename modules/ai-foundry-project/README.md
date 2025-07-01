@@ -69,12 +69,6 @@ Description: Name of the AI Search service
 
 Type: `string`
 
-### <a name="input_ai_services_id"></a> [ai\_services\_id](#input\_ai\_services\_id)
-
-Description: Resource ID of the AI services multi-services account
-
-Type: `string`
-
 ### <a name="input_cosmos_db_id"></a> [cosmos\_db\_id](#input\_cosmos\_db\_id)
 
 Description: Resource ID of the Cosmos DB account
@@ -126,14 +120,6 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
-
-### <a name="input_agent_subnet_resource_id"></a> [agent\_subnet\_resource\_id](#input\_agent\_subnet\_resource\_id)
-
-Description: Subnet resource ID for the AI agent service
-
-Type: `string`
-
-Default: `null`
 
 ### <a name="input_create_ai_agent_service"></a> [create\_ai\_agent\_service](#input\_create\_ai\_agent\_service)
 

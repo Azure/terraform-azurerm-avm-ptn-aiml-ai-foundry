@@ -53,14 +53,6 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_agent_subnet_resource_id"></a> [agent\_subnet\_resource\_id](#input\_agent\_subnet\_resource\_id)
-
-Description: The resource ID of an existing subnet for AI agent services (Container Apps). Optional - only needed when deploying agent services.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_ai_foundry_private_endpoints"></a> [ai\_foundry\_private\_endpoints](#input\_ai\_foundry\_private\_endpoints)
 
 Description: Private endpoint configuration for the AI Services account.
@@ -294,14 +286,6 @@ Default: `null`
 ### <a name="input_existing_key_vault_resource_id"></a> [existing\_key\_vault\_resource\_id](#input\_existing\_key\_vault\_resource\_id)
 
 Description: (Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_existing_log_analytics_workspace_resource_id"></a> [existing\_log\_analytics\_workspace\_resource\_id](#input\_existing\_log\_analytics\_workspace\_resource\_id)
-
-Description: (Optional) The resource ID of an existing Log Analytics Workspace to use. If not provided, a new Log Analytics Workspace will be created.
 
 Type: `string`
 
