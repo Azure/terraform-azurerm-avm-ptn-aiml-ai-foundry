@@ -267,14 +267,6 @@ Type: `string`
 
 Default: `null`
 
-### <a name="input_existing_ai_services_resource_id"></a> [existing\_ai\_services\_resource\_id](#input\_existing\_ai\_services\_resource\_id)
-
-Description: (Optional) The resource ID of an existing AI Services multi-service account (Microsoft.CognitiveServices/accounts with kind 'CognitiveServices') to use for AI agent capabilities. If not provided, the AI Foundry account will be used.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_existing_cosmos_db_resource_id"></a> [existing\_cosmos\_db\_resource\_id](#input\_existing\_cosmos\_db\_resource\_id)
 
 Description: (Optional) The resource ID of an existing Cosmos DB account to use. If not provided, a new Cosmos DB account will be created.

@@ -86,26 +86,8 @@ variable "create_ai_foundry_project" {
   description = "Whether to create the AI Foundry project"
 }
 
-variable "storage_connections" {
-  type        = list(string)
-  default     = []
-  description = "Storage connections for the agent service"
-}
-
 variable "tags" {
   type        = map(string)
   default     = null
   description = "Tags to apply to resources"
-}
-
-variable "thread_storage_connections" {
-  type        = list(string)
-  default     = []
-  description = "Thread storage connections for the agent service"
-}
-
-variable "vector_store_connections" {
-  type        = list(string)
-  default     = []
-  description = "Vector store connections for the agent service"
 }

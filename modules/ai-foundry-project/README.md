@@ -137,14 +137,6 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_storage_connections"></a> [storage\_connections](#input\_storage\_connections)
-
-Description: Storage connections for the agent service
-
-Type: `list(string)`
-
-Default: `[]`
-
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
 Description: Tags to apply to resources
@@ -152,22 +144,6 @@ Description: Tags to apply to resources
 Type: `map(string)`
 
 Default: `null`
-
-### <a name="input_thread_storage_connections"></a> [thread\_storage\_connections](#input\_thread\_storage\_connections)
-
-Description: Thread storage connections for the agent service
-
-Type: `list(string)`
-
-Default: `[]`
-
-### <a name="input_vector_store_connections"></a> [vector\_store\_connections](#input\_vector\_store\_connections)
-
-Description: Vector store connections for the agent service
-
-Type: `list(string)`
-
-Default: `[]`
 
 ## Outputs
 

@@ -1,11 +1,10 @@
 locals {
-  ai_services_resource_id = var.existing_ai_services_resource_id
-  base_name_storage       = substr(replace(var.base_name, "-", ""), 0, 18)
-  deploy_ai_search        = var.existing_ai_search_resource_id == null
-  deploy_cosmos_db        = var.existing_cosmos_db_resource_id == null
-  deploy_key_vault        = var.existing_key_vault_resource_id == null
-  deploy_storage_account  = var.existing_storage_account_resource_id == null
-  location                = var.location
+  base_name_storage      = substr(replace(var.base_name, "-", ""), 0, 18)
+  deploy_ai_search       = var.existing_ai_search_resource_id == null
+  deploy_cosmos_db       = var.existing_cosmos_db_resource_id == null
+  deploy_key_vault       = var.existing_key_vault_resource_id == null
+  deploy_storage_account = var.existing_storage_account_resource_id == null
+  location               = var.location
   # Resource Group ID priority:
   # 1. If var.resource_group_id is provided, use it (for cross-subscription or explicit scenarios)
   # 2. If creating resource group, use the created resource group ID
