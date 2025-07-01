@@ -73,10 +73,7 @@ module "ai_foundry_project" {
   storage_account_name            = local.resource_names.storage_account
   create_ai_agent_service         = var.create_ai_agent_service
   create_ai_foundry_project       = var.create_ai_foundry_project
-  storage_connections             = local.storage_connections
   tags                            = var.tags
-  thread_storage_connections      = local.thread_storage_connections
-  vector_store_connections        = local.vector_store_connections
 
   depends_on = [
     module.ai_foundry,
