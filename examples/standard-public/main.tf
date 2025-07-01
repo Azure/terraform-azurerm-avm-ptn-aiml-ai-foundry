@@ -82,7 +82,7 @@ module "ai_foundry" {
   }
   ai_search_private_endpoints          = {}
   cosmos_db_private_endpoints          = {}
-  create_ai_agent_service              = true # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
+  create_ai_agent_service              = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
   create_ai_foundry_project            = true
   create_resource_group                = false
   existing_ai_search_resource_id       = null

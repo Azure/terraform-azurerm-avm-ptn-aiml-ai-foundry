@@ -48,7 +48,7 @@ resource "azapi_resource" "ai_foundry_project_connection_cosmos" {
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
     properties = {
-      category = "CosmosDB"
+      category = "CosmosDb"
       target   = "https://${var.cosmos_db_name}.documents.azure.com:443/"
       authType = "AAD"
       metadata = {
