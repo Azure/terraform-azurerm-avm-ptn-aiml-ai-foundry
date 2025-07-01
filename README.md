@@ -30,7 +30,6 @@ The following resources are used by this module:
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
-- [azurerm_resource_group.existing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -372,6 +371,14 @@ object({
     name = optional(string, null)
   })
 ```
+
+Default: `null`
+
+### <a name="input_resource_group_id"></a> [resource\_group\_id](#input\_resource\_group\_id)
+
+Description: The full resource ID of the resource group. When provided, this takes precedence over resource\_group\_name. Useful for cross-subscription deployments or when the exact resource ID is known. Format: '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}'
+
+Type: `string`
 
 Default: `null`
 

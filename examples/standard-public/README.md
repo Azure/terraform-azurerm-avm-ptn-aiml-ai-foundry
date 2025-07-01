@@ -28,6 +28,10 @@ provider "azurerm" {
   }
 }
 
+locals {
+  base_name = "public"
+}
+
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.5.2"
@@ -41,28 +45,23 @@ resource "random_integer" "region_index" {
   min = 0
 }
 
-resource "random_string" "example_suffix" {
-  length  = 5
-  lower   = true
-  numeric = true
-  special = false
-  upper   = false
-}
-
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = "0.4.2"
+
+  suffix        = [local.base_name]
+  unique-length = 5
 }
 
-resource "azurerm_resource_group" "example" {
+resource "azurerm_resource_group" "this" {
   location = module.regions.regions[random_integer.region_index.result].name
-  name     = "rg-standard-public-${random_string.example_suffix.result}"
+  name     = module.naming.resource_group.name_unique
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
-  location            = azurerm_resource_group.example.location
+  location            = azurerm_resource_group.this.location
   name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.this.name
   retention_in_days   = 30
   sku                 = "PerGB2018"
 }
@@ -70,8 +69,8 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name                    = "std-pub"
-  location                     = azurerm_resource_group.example.location
+  base_name                    = local.base_name
+  location                     = azurerm_resource_group.this.location
   ai_foundry_private_endpoints = {}
   ai_model_deployments = {
     "gpt-4o" = {
@@ -98,7 +97,7 @@ module "ai_foundry" {
   existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
   existing_storage_account_resource_id         = null
   key_vault_private_endpoints                  = {}
-  resource_group_name                          = azurerm_resource_group.example.name
+  resource_group_name                          = azurerm_resource_group.this.name
   storage_private_endpoints                    = {}
 }
 ```
@@ -119,9 +118,8 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
-- [azurerm_resource_group.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
+- [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
-- [random_string.example_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs

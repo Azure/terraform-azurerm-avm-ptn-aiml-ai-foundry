@@ -301,21 +301,21 @@ DESCRIPTION
   }
 }
 
-variable "resource_group_name" {
-  type        = string
-  default     = null
-  description = "The name for the resource group. When create_resource_group=true, this will be the name of the new resource group. When create_resource_group=false, this must be the name of an existing resource group."
-}
-
 variable "resource_group_id" {
   type        = string
   default     = null
   description = "The full resource ID of the resource group. When provided, this takes precedence over resource_group_name. Useful for cross-subscription deployments or when the exact resource ID is known. Format: '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}'"
 
   validation {
-    condition = var.resource_group_id == null || can(regex("^/subscriptions/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/resourceGroups/.+$", var.resource_group_id))
+    condition     = var.resource_group_id == null || can(regex("^/subscriptions/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/resourceGroups/.+$", var.resource_group_id))
     error_message = "The resource_group_id must be in the format '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}' when provided."
   }
+}
+
+variable "resource_group_name" {
+  type        = string
+  default     = null
+  description = "The name for the resource group. When create_resource_group=true, this will be the name of the new resource group. When create_resource_group=false, this must be the name of an existing resource group."
 }
 
 variable "resource_names" {

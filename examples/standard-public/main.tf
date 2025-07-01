@@ -40,8 +40,9 @@ resource "random_integer" "region_index" {
 }
 
 module "naming" {
-  source        = "Azure/naming/azurerm"
-  version       = "0.4.2"
+  source  = "Azure/naming/azurerm"
+  version = "0.4.2"
+
   suffix        = [local.base_name]
   unique-length = 5
 }

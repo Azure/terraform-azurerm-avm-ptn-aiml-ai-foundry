@@ -41,28 +41,27 @@ resource "random_integer" "region_index" {
   min = 0
 }
 
-resource "random_string" "example_suffix" {
-  length  = 5
-  lower   = true
-  numeric = true
-  special = false
-  upper   = false
+locals {
+  base_name = "private"
 }
 
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = "0.4.2"
+
+  suffix        = [local.base_name]
+  unique-length = 5
 }
 
-resource "azurerm_resource_group" "example" {
+resource "azurerm_resource_group" "this" {
   location = module.regions.regions[random_integer.region_index.result].name
-  name     = "rg-standard-private-${random_string.example_suffix.result}"
+  name     = module.naming.resource_group.name_unique
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
-  location            = azurerm_resource_group.example.location
+  location            = azurerm_resource_group.this.location
   name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.this.name
   retention_in_days   = 30
   sku                 = "PerGB2018"
 }
@@ -71,7 +70,7 @@ resource "azurerm_log_analytics_workspace" "this" {
 resource "azurerm_virtual_network" "this" {
   location            = module.regions.regions[random_integer.region_index.result].name
   name                = module.naming.virtual_network.name_unique
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.this.name
   address_space       = ["10.0.0.0/16"]
 }
 
@@ -79,7 +78,7 @@ resource "azurerm_virtual_network" "this" {
 resource "azurerm_subnet" "private_endpoints" {
   address_prefixes     = ["10.0.1.0/24"]
   name                 = "snet-private-endpoints"
-  resource_group_name  = azurerm_resource_group.example.name
+  resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
 }
 
@@ -87,7 +86,7 @@ resource "azurerm_subnet" "private_endpoints" {
 resource "azurerm_subnet" "agent_services" {
   address_prefixes     = ["10.0.2.0/24"]
   name                 = "snet-agent-services"
-  resource_group_name  = azurerm_resource_group.example.name
+  resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
 
   # Required for Container App Environment
@@ -104,7 +103,7 @@ resource "azurerm_subnet" "agent_services" {
 resource "azurerm_subnet" "bastion" {
   address_prefixes     = ["10.0.3.0/26"]
   name                 = "AzureBastionSubnet"
-  resource_group_name  = azurerm_resource_group.example.name
+  resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
 }
 
@@ -112,84 +111,75 @@ resource "azurerm_subnet" "bastion" {
 resource "azurerm_subnet" "vm" {
   address_prefixes     = ["10.0.4.0/24"]
   name                 = "snet-vm"
-  resource_group_name  = azurerm_resource_group.example.name
+  resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
 }
 
 # Storage Account Private DNS Zone
 resource "azurerm_private_dns_zone" "storage_blob" {
   name                = "privatelink.blob.core.windows.net"
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.this.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage_blob" {
   name                  = "vnet-link-storage-blob"
   private_dns_zone_name = azurerm_private_dns_zone.storage_blob.name
-  resource_group_name   = azurerm_resource_group.example.name
+  resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
 }
 
 # Key Vault Private DNS Zone
 resource "azurerm_private_dns_zone" "keyvault" {
   name                = "privatelink.vaultcore.azure.net"
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.this.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
   name                  = "vnet-link-keyvault"
   private_dns_zone_name = azurerm_private_dns_zone.keyvault.name
-  resource_group_name   = azurerm_resource_group.example.name
+  resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
 }
 
 # Cosmos DB Private DNS Zone
 resource "azurerm_private_dns_zone" "cosmosdb" {
   name                = "privatelink.documents.azure.com"
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.this.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "cosmosdb" {
   name                  = "vnet-link-cosmosdb"
   private_dns_zone_name = azurerm_private_dns_zone.cosmosdb.name
-  resource_group_name   = azurerm_resource_group.example.name
+  resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
 }
 
 # AI Search Private DNS Zone
 resource "azurerm_private_dns_zone" "search" {
   name                = "privatelink.search.windows.net"
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.this.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "search" {
   name                  = "vnet-link-search"
   private_dns_zone_name = azurerm_private_dns_zone.search.name
-  resource_group_name   = azurerm_resource_group.example.name
+  resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
 }
 
 # Cognitive Services Private DNS Zone
 resource "azurerm_private_dns_zone" "openai" {
   name                = "privatelink.openai.azure.com"
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.this.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "openai" {
   name                  = "vnet-link-openai"
   private_dns_zone_name = azurerm_private_dns_zone.openai.name
-  resource_group_name   = azurerm_resource_group.example.name
+  resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
 }
 
-# Public IP for Bastion
-resource "azurerm_public_ip" "bastion" {
-  allocation_method   = "Static"
-  location            = module.regions.regions[random_integer.region_index.result].name
-  name                = module.naming.public_ip.name_unique
-  resource_group_name = azurerm_resource_group.example.name
-  sku                 = "Standard"
-  zones               = ["1", "2", "3"]
-}
 
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
@@ -197,14 +187,13 @@ module "bastion_host" {
 
   location            = module.regions.regions[random_integer.region_index.result].name
   name                = module.naming.bastion_host.name_unique
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.this.name
   copy_paste_enabled  = true
   file_copy_enabled   = true
   ip_configuration = {
-    name                 = "IpConf"
-    subnet_id            = azurerm_subnet.bastion.id
-    public_ip_address_id = azurerm_public_ip.bastion.id
-    create_public_ip     = false
+    name             = "IpConf"
+    subnet_id        = azurerm_subnet.bastion.id
+    create_public_ip = true
   }
   ip_connect_enabled     = true
   scale_units            = 2
@@ -230,7 +219,7 @@ module "virtual_machine" {
       }
     }
   }
-  resource_group_name             = azurerm_resource_group.example.name
+  resource_group_name             = azurerm_resource_group.this.name
   zone                            = "1"
   admin_username                  = "azureadmin"
   disable_password_authentication = false
@@ -251,8 +240,8 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name                = "std-prv"
-  location                 = azurerm_resource_group.example.location
+  base_name                = local.base_name
+  location                 = azurerm_resource_group.this.location
   agent_subnet_resource_id = azurerm_subnet.agent_services.id
   ai_foundry_private_endpoints = {
     "account" = {
@@ -308,7 +297,7 @@ module "ai_foundry" {
       ]
     }
   }
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_resource_group.this.name
   storage_private_endpoints = {
     "blob" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -347,15 +336,13 @@ The following resources are used by this module:
 - [azurerm_private_dns_zone_virtual_network_link.openai](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.search](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.storage_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
-- [azurerm_public_ip.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) (resource)
-- [azurerm_resource_group.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
+- [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_subnet.agent_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.private_endpoints](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
-- [random_string.example_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
