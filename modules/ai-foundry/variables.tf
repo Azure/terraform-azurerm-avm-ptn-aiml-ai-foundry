@@ -54,12 +54,6 @@ variable "ai_model_deployments" {
   description = "AI model deployments to create"
 }
 
-variable "log_analytics_workspace_resource_id" {
-  type        = string
-  default     = null
-  description = "Resource ID of the Log Analytics Workspace for diagnostic settings"
-}
-
 variable "tags" {
   type        = map(string)
   default     = null

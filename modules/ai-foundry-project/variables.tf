@@ -33,11 +33,6 @@ variable "ai_search_name" {
   description = "Name of the AI Search service"
 }
 
-variable "ai_services_id" {
-  type        = string
-  description = "Resource ID of the AI services multi-services account"
-}
-
 variable "cosmos_db_id" {
   type        = string
   description = "Resource ID of the Cosmos DB account"
@@ -77,12 +72,6 @@ variable "storage_account_id" {
 variable "storage_account_name" {
   type        = string
   description = "Name of the Storage Account"
-}
-
-variable "agent_subnet_resource_id" {
-  type        = string
-  default     = null
-  description = "Subnet resource ID for the AI agent service"
 }
 
 variable "create_ai_agent_service" {

@@ -117,12 +117,6 @@ variable "key_vault_private_endpoints" {
   description = "Private endpoint configuration for key vault"
 }
 
-variable "log_analytics_workspace_resource_id" {
-  type        = string
-  default     = null
-  description = "Resource ID of the Log Analytics Workspace for diagnostic settings"
-}
-
 variable "storage_private_endpoints" {
   type = map(object({
     name                            = optional(string, null)

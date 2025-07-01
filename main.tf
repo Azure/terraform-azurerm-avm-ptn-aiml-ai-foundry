@@ -19,36 +19,34 @@ resource "random_string" "resource_token" {
 module "dependent_resources" {
   source = "./modules/dependent-resources"
 
-  ai_search_name                      = local.resource_names.ai_search
-  cosmos_db_name                      = local.resource_names.cosmos_db
-  deploy_ai_search                    = local.deploy_ai_search
-  deploy_cosmos_db                    = local.deploy_cosmos_db
-  deploy_key_vault                    = local.deploy_key_vault
-  deploy_storage_account              = local.deploy_storage_account
-  key_vault_name                      = local.resource_names.key_vault
-  location                            = local.location
-  resource_group_name                 = local.resource_group_name
-  storage_account_name                = local.resource_names.storage_account
-  tenant_id                           = data.azurerm_client_config.current.tenant_id
-  ai_search_private_endpoints         = var.ai_search_private_endpoints
-  cosmos_db_private_endpoints         = var.cosmos_db_private_endpoints
-  key_vault_private_endpoints         = var.key_vault_private_endpoints
-  log_analytics_workspace_resource_id = var.existing_log_analytics_workspace_resource_id
-  storage_private_endpoints           = var.storage_private_endpoints
-  tags                                = var.tags
+  ai_search_name              = local.resource_names.ai_search
+  cosmos_db_name              = local.resource_names.cosmos_db
+  deploy_ai_search            = local.deploy_ai_search
+  deploy_cosmos_db            = local.deploy_cosmos_db
+  deploy_key_vault            = local.deploy_key_vault
+  deploy_storage_account      = local.deploy_storage_account
+  key_vault_name              = local.resource_names.key_vault
+  location                    = local.location
+  resource_group_name         = local.resource_group_name
+  storage_account_name        = local.resource_names.storage_account
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  ai_search_private_endpoints = var.ai_search_private_endpoints
+  cosmos_db_private_endpoints = var.cosmos_db_private_endpoints
+  key_vault_private_endpoints = var.key_vault_private_endpoints
+  storage_private_endpoints   = var.storage_private_endpoints
+  tags                        = var.tags
 }
 
 module "ai_foundry" {
   source = "./modules/ai-foundry"
 
-  ai_foundry_name                     = local.resource_names.ai_foundry
-  location                            = local.location
-  resource_group_id                   = local.resource_group_id
-  resource_group_name                 = local.resource_group_name
-  ai_foundry_private_endpoints        = var.ai_foundry_private_endpoints
-  ai_model_deployments                = var.ai_model_deployments
-  log_analytics_workspace_resource_id = var.existing_log_analytics_workspace_resource_id
-  tags                                = var.tags
+  ai_foundry_name              = local.resource_names.ai_foundry
+  location                     = local.location
+  resource_group_id            = local.resource_group_id
+  resource_group_name          = local.resource_group_name
+  ai_foundry_private_endpoints = var.ai_foundry_private_endpoints
+  ai_model_deployments         = var.ai_model_deployments
+  tags                         = var.tags
 
   depends_on = [
     azurerm_resource_group.this
@@ -65,7 +63,6 @@ module "ai_foundry_project" {
   ai_foundry_project_name         = local.resource_names.ai_foundry_project
   ai_search_id                    = try(module.dependent_resources.ai_search_id, null)
   ai_search_name                  = local.resource_names.ai_search
-  ai_services_id                  = coalesce(local.ai_services_resource_id, module.ai_foundry.ai_foundry_id)
   cosmos_db_id                    = try(module.dependent_resources.cosmos_db_id, null)
   cosmos_db_name                  = local.resource_names.cosmos_db
   deploy_ai_search                = local.deploy_ai_search
@@ -74,7 +71,6 @@ module "ai_foundry_project" {
   location                        = local.location
   storage_account_id              = try(module.dependent_resources.storage_account_id, null)
   storage_account_name            = local.resource_names.storage_account
-  agent_subnet_resource_id        = var.agent_subnet_resource_id
   create_ai_agent_service         = var.create_ai_agent_service
   create_ai_foundry_project       = var.create_ai_foundry_project
   storage_connections             = local.storage_connections

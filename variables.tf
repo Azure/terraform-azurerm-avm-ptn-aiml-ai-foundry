@@ -14,17 +14,6 @@ variable "location" {
   nullable    = false
 }
 
-variable "agent_subnet_resource_id" {
-  type        = string
-  default     = null
-  description = "The resource ID of an existing subnet for AI agent services (Container Apps). Optional - only needed when deploying agent services."
-
-  validation {
-    condition     = var.agent_subnet_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Network/virtualNetworks/[^/]+/subnets/[^/]+$", var.agent_subnet_resource_id))
-    error_message = "The agent_subnet_resource_id must be a valid Azure Subnet resource ID."
-  }
-}
-
 variable "ai_foundry_private_endpoints" {
   type = map(object({
     name = optional(string, null)
@@ -232,12 +221,6 @@ variable "existing_key_vault_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created."
-}
-
-variable "existing_log_analytics_workspace_resource_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of an existing Log Analytics Workspace to use. If not provided, a new Log Analytics Workspace will be created."
 }
 
 variable "existing_storage_account_resource_id" {

@@ -7,12 +7,6 @@ module "storage_account" {
   name                            = var.storage_account_name
   resource_group_name             = var.resource_group_name
   default_to_oauth_authentication = true
-  # diagnostic_settings_blob = var.log_analytics_workspace_resource_id != null ? {
-  #   diag = {
-  #     name                  = "diag-${var.storage_account_name}"
-  #     workspace_resource_id = var.log_analytics_workspace_resource_id
-  #   }
-  # } : {}
   managed_identities = {
     system_assigned = true
   }
@@ -33,16 +27,10 @@ module "key_vault" {
   version = "0.10.0"
   count   = var.deploy_key_vault ? 1 : 0
 
-  location            = var.location
-  name                = var.key_vault_name
-  resource_group_name = var.resource_group_name
-  tenant_id           = var.tenant_id
-  # diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
-  #   diag = {
-  #     name                  = "diag-${var.key_vault_name}"
-  #     workspace_resource_id = var.log_analytics_workspace_resource_id
-  #   }
-  # } : {}
+  location                      = var.location
+  name                          = var.key_vault_name
+  resource_group_name           = var.resource_group_name
+  tenant_id                     = var.tenant_id
   private_endpoints             = var.key_vault_private_endpoints
   public_network_access_enabled = length(var.key_vault_private_endpoints) == 0 ? true : false
   tags                          = var.tags
@@ -56,12 +44,6 @@ module "cosmos_db" {
   location            = var.location
   name                = var.cosmos_db_name
   resource_group_name = var.resource_group_name
-  # diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
-  #   diag = {
-  #     name                  = "diag-${var.cosmos_db_name}"
-  #     workspace_resource_id = var.log_analytics_workspace_resource_id
-  #   }
-  # } : {}
   managed_identities = {
     system_assigned = true
   }
@@ -78,12 +60,6 @@ module "ai_search" {
   location            = var.location
   name                = var.ai_search_name
   resource_group_name = var.resource_group_name
-  # diagnostic_settings = var.log_analytics_workspace_resource_id != null ? {
-  #   diag = {
-  #     name                  = "diag-${var.ai_search_name}"
-  #     workspace_resource_id = var.log_analytics_workspace_resource_id
-  #   }
-  # } : {}
   managed_identities = {
     system_assigned = true
   }

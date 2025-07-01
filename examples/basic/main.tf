@@ -78,13 +78,12 @@ module "ai_foundry" {
       }
     }
   }
-  create_ai_agent_service                      = false
-  create_ai_foundry_project                    = true
-  create_resource_group                        = false
-  existing_ai_search_resource_id               = "skip-deployment"
-  existing_cosmos_db_resource_id               = "skip-deployment"
-  existing_key_vault_resource_id               = "skip-deployment"
-  existing_log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.this.id
-  existing_storage_account_resource_id         = "skip-deployment"
-  resource_group_name                          = azurerm_resource_group.this.name
+  create_ai_agent_service              = false
+  create_ai_foundry_project            = true
+  create_resource_group                = false
+  existing_ai_search_resource_id       = "skip-deployment"
+  existing_cosmos_db_resource_id       = "skip-deployment"
+  existing_key_vault_resource_id       = "skip-deployment"
+  existing_storage_account_resource_id = "skip-deployment"
+  resource_group_name                  = azurerm_resource_group.this.name
 }
