@@ -19,18 +19,6 @@ variable "resource_group_name" {
   description = "Name of the resource group"
 }
 
-variable "private_endpoint_subnet_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The subnet ID for private endpoints."
-}
-
-variable "private_dns_zone_resource_id_ai_foundry" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the private DNS zone for Ai Foundry."
-}
-
 variable "ai_model_deployments" {
   type = map(object({
     name = string
@@ -48,6 +36,18 @@ variable "ai_model_deployments" {
   }))
   default     = {}
   description = "AI model deployments to create"
+}
+
+variable "private_dns_zone_resource_id_ai_foundry" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the private DNS zone for Ai Foundry."
+}
+
+variable "private_endpoint_subnet_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The subnet ID for private endpoints."
 }
 
 variable "tags" {

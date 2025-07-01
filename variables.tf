@@ -123,6 +123,42 @@ DESCRIPTION
   }
 }
 
+variable "private_dns_zone_resource_id_ai_foundry" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the private DNS zone for AI Foundry."
+}
+
+variable "private_dns_zone_resource_id_cosmosdb" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the private DNS zone for Cosmos DB."
+}
+
+variable "private_dns_zone_resource_id_keyvault" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the private DNS zone for Key Vault."
+}
+
+variable "private_dns_zone_resource_id_search" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the private DNS zone for AI Search."
+}
+
+variable "private_dns_zone_resource_id_storage_blob" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the private DNS zone for Storage Blob."
+}
+
+variable "private_endpoint_subnet_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The subnet ID for private endpoints."
+}
+
 variable "resource_group_id" {
   type        = string
   default     = null
@@ -189,40 +225,4 @@ variable "tags" {
   type        = map(string)
   default     = null
   description = "(Optional) Tags to be applied to all resources."
-}
-
-variable "private_endpoint_subnet_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The subnet ID for private endpoints."
-}
-
-variable "private_dns_zone_resource_id_search" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the private DNS zone for AI Search."
-}
-
-variable "private_dns_zone_resource_id_cosmosdb" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the private DNS zone for Cosmos DB."
-}
-
-variable "private_dns_zone_resource_id_keyvault" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the private DNS zone for Key Vault."
-}
-
-variable "private_dns_zone_resource_id_storage_blob" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the private DNS zone for Storage Blob."
-}
-
-variable "private_dns_zone_resource_id_ai_foundry" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the private DNS zone for AI Foundry."
 }

@@ -69,9 +69,8 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name                    = local.base_name
-  location                     = azurerm_resource_group.this.location
-  ai_foundry_private_endpoints = {}
+  base_name = local.base_name
+  location  = azurerm_resource_group.this.location
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -86,18 +85,13 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_private_endpoints          = {}
-  cosmos_db_private_endpoints          = {}
   create_ai_agent_service              = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
-  create_ai_foundry_project            = true
   create_resource_group                = false
-  existing_ai_search_resource_id       = null
-  existing_cosmos_db_resource_id       = null
-  existing_key_vault_resource_id       = null
-  existing_storage_account_resource_id = null
-  key_vault_private_endpoints          = {}
+  existing_ai_search_resource_id       = true
+  existing_cosmos_db_resource_id       = true
+  existing_key_vault_resource_id       = true
+  existing_storage_account_resource_id = true
   resource_group_name                  = azurerm_resource_group.this.name
-  storage_private_endpoints            = {}
 }
 ```
 

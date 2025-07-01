@@ -54,18 +54,6 @@ variable "tenant_id" {
   description = "Azure tenant ID"
 }
 
-variable "private_endpoint_subnet_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The subnet ID for private endpoints."
-}
-
-variable "private_dns_zone_resource_id_search" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the private DNS zone for AI Search."
-}
-
 variable "private_dns_zone_resource_id_cosmosdb" {
   type        = string
   default     = null
@@ -78,10 +66,22 @@ variable "private_dns_zone_resource_id_keyvault" {
   description = "(Optional) The resource ID of the private DNS zone for Key Vault."
 }
 
+variable "private_dns_zone_resource_id_search" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the private DNS zone for AI Search."
+}
+
 variable "private_dns_zone_resource_id_storage_blob" {
   type        = string
   default     = null
   description = "(Optional) The resource ID of the private DNS zone for Storage Blob."
+}
+
+variable "private_endpoint_subnet_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The subnet ID for private endpoints."
 }
 
 variable "tags" {

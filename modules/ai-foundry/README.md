@@ -55,28 +55,6 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_ai_foundry_private_endpoints"></a> [ai\_foundry\_private\_endpoints](#input\_ai\_foundry\_private\_endpoints)
-
-Description: Private endpoints for the AI Foundry account
-
-Type:
-
-```hcl
-map(object({
-    location                        = optional(string)
-    name                            = optional(string)
-    private_dns_zone_group_name     = optional(string, "default")
-    private_dns_zone_resource_ids   = optional(list(string), [])
-    private_service_connection_name = optional(string)
-    resource_group_name             = optional(string)
-    subresource_name                = string
-    subnet_resource_id              = string
-    tags                            = optional(map(string), {})
-  }))
-```
-
-Default: `{}`
-
 ### <a name="input_ai_model_deployments"></a> [ai\_model\_deployments](#input\_ai\_model\_deployments)
 
 Description: AI model deployments to create
@@ -101,6 +79,22 @@ map(object({
 ```
 
 Default: `{}`
+
+### <a name="input_private_dns_zone_resource_id_ai_foundry"></a> [private\_dns\_zone\_resource\_id\_ai\_foundry](#input\_private\_dns\_zone\_resource\_id\_ai\_foundry)
+
+Description: (Optional) The resource ID of the private DNS zone for Ai Foundry.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_endpoint_subnet_id"></a> [private\_endpoint\_subnet\_id](#input\_private\_endpoint\_subnet\_id)
+
+Description: (Optional) The subnet ID for private endpoints.
+
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_tags"></a> [tags](#input\_tags)
 

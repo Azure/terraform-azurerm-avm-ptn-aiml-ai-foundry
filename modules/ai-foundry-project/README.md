@@ -129,14 +129,6 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_create_ai_foundry_project"></a> [create\_ai\_foundry\_project](#input\_create\_ai\_foundry\_project)
-
-Description: Whether to create the AI Foundry project
-
-Type: `bool`
-
-Default: `true`
-
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
 Description: Tags to apply to resources
