@@ -1,3 +1,5 @@
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "this" {
   count = var.create_resource_group ? 1 : 0
 
@@ -49,8 +51,7 @@ module "ai_foundry" {
   tags                                = var.tags
 
   depends_on = [
-    azurerm_resource_group.this,
-    data.azurerm_resource_group.existing
+    azurerm_resource_group.this
   ]
 }
 
