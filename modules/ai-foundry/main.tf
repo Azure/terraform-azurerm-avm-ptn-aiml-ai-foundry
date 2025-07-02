@@ -47,7 +47,7 @@ resource "azapi_resource" "ai_model_deployment" {
 }
 
 resource "azurerm_private_endpoint" "ai_foundry" {
-  count = var.private_endpoint_subnet_id != null ? 1 : 0
+  count = var.create_private_endpoints ? 1 : 0
 
   location            = var.location
   name                = "pe-${azapi_resource.ai_foundry.name}"

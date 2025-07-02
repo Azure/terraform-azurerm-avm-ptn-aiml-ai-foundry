@@ -38,6 +38,12 @@ variable "ai_model_deployments" {
   description = "AI model deployments to create"
 }
 
+variable "create_private_endpoints" {
+  type        = bool
+  default     = true
+  description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created, and the resources will be accessible over public endpoints. This is useful for scenarios where private connectivity is not required or when using existing resources that do not require private endpoints."
+}
+
 variable "private_dns_zone_resource_id_ai_foundry" {
   type        = string
   default     = null

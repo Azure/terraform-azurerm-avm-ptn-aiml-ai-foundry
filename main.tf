@@ -30,6 +30,7 @@ module "dependent_resources" {
   resource_group_name                       = local.resource_group_name
   storage_account_name                      = local.resource_names.storage_account
   tenant_id                                 = data.azurerm_client_config.current.tenant_id
+  create_private_endpoints                  = var.create_private_endpoints
   private_dns_zone_resource_id_cosmosdb     = var.private_dns_zone_resource_id_cosmosdb
   private_dns_zone_resource_id_keyvault     = var.private_dns_zone_resource_id_keyvault
   private_dns_zone_resource_id_search       = var.private_dns_zone_resource_id_search
@@ -46,6 +47,7 @@ module "ai_foundry" {
   resource_group_id                       = local.resource_group_id
   resource_group_name                     = local.resource_group_name
   ai_model_deployments                    = var.ai_model_deployments
+  create_private_endpoints                = var.create_private_endpoints
   private_dns_zone_resource_id_ai_foundry = var.private_dns_zone_resource_id_ai_foundry
   private_endpoint_subnet_id              = var.private_endpoint_subnet_id
   tags                                    = var.tags

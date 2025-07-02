@@ -80,25 +80,25 @@ DESCRIPTION
   nullable    = false
 }
 
-variable "existing_ai_search_resource_id" {
+variable "ai_search_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created."
 }
 
-variable "existing_cosmos_db_resource_id" {
+variable "cosmos_db_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The resource ID of an existing Cosmos DB account to use. If not provided, a new Cosmos DB account will be created."
 }
 
-variable "existing_key_vault_resource_id" {
+variable "key_vault_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created."
 }
 
-variable "existing_storage_account_resource_id" {
+variable "storage_account_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created."
@@ -123,34 +123,40 @@ DESCRIPTION
   }
 }
 
+variable "create_private_endpoints" {
+  type        = bool
+  default     = true
+  description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created, and the resources will be accessible over public endpoints. This is useful for scenarios where private connectivity is not required or when using existing resources that do not require private endpoints."
+}
+
 variable "private_dns_zone_resource_id_ai_foundry" {
   type        = string
   default     = null
-  description = "(Optional) The resource ID of the private DNS zone for AI Foundry."
+  description = "(Optional) The resource ID of the existing private DNS zone for AI Foundry."
 }
 
 variable "private_dns_zone_resource_id_cosmosdb" {
   type        = string
   default     = null
-  description = "(Optional) The resource ID of the private DNS zone for Cosmos DB."
+  description = "(Optional) The resource ID of the existing private DNS zone for Cosmos DB."
 }
 
 variable "private_dns_zone_resource_id_keyvault" {
   type        = string
   default     = null
-  description = "(Optional) The resource ID of the private DNS zone for Key Vault."
+  description = "(Optional) The resource ID of the existing private DNS zone for Key Vault."
 }
 
 variable "private_dns_zone_resource_id_search" {
   type        = string
   default     = null
-  description = "(Optional) The resource ID of the private DNS zone for AI Search."
+  description = "(Optional) The resource ID of the existing private DNS zone for AI Search."
 }
 
 variable "private_dns_zone_resource_id_storage_blob" {
   type        = string
   default     = null
-  description = "(Optional) The resource ID of the private DNS zone for Storage Blob."
+  description = "(Optional) The resource ID of the existing private DNS zone for Storage Blob."
 }
 
 variable "private_endpoint_subnet_id" {

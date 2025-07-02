@@ -10,13 +10,14 @@ module "storage_account" {
   managed_identities = {
     system_assigned = true
   }
-  network_rules = var.private_endpoint_subnet_id != null ? {
+  public_network_access_enabled = var.create_private_endpoints ? true : false
+  network_rules = var.create_private_endpoints ? {
     default_action             = "Deny"
     bypass                     = ["AzureServices"]
     ip_rules                   = []
     virtual_network_subnet_ids = []
   } : null
-  private_endpoints = var.private_endpoint_subnet_id != null ? {
+  private_endpoints = var.create_private_endpoints ? {
     "blob" = {
       subnet_resource_id = var.private_endpoint_subnet_id
       subresource_name   = "blob"
@@ -25,9 +26,8 @@ module "storage_account" {
       ]
     }
   } : {}
-  public_network_access_enabled = var.private_endpoint_subnet_id == null ? true : false
-  shared_access_key_enabled     = false
-  tags                          = var.tags
+  shared_access_key_enabled = false
+  tags                      = var.tags
 }
 
 module "key_vault" {
@@ -35,11 +35,12 @@ module "key_vault" {
   version = "0.10.0"
   count   = var.deploy_key_vault ? 1 : 0
 
-  location            = var.location
-  name                = var.key_vault_name
-  resource_group_name = var.resource_group_name
-  tenant_id           = var.tenant_id
-  private_endpoints = var.private_endpoint_subnet_id != null ? {
+  location                      = var.location
+  name                          = var.key_vault_name
+  resource_group_name           = var.resource_group_name
+  tenant_id                     = var.tenant_id
+  public_network_access_enabled = var.create_private_endpoints ? true : false
+  private_endpoints = var.create_private_endpoints ? {
     "vault" = {
       subnet_resource_id = var.private_endpoint_subnet_id
       subresource_name   = "vault"
@@ -48,8 +49,7 @@ module "key_vault" {
       ]
     }
   } : {}
-  public_network_access_enabled = var.private_endpoint_subnet_id == null ? true : false
-  tags                          = var.tags
+  tags = var.tags
 }
 
 module "cosmos_db" {
@@ -63,7 +63,8 @@ module "cosmos_db" {
   managed_identities = {
     system_assigned = true
   }
-  private_endpoints = var.private_endpoint_subnet_id != null ? {
+  public_network_access_enabled = var.create_private_endpoints ? true : false
+  private_endpoints = var.create_private_endpoints ? {
     "sql" = {
       subnet_resource_id = var.private_endpoint_subnet_id
       subresource_name   = "sql"
@@ -72,8 +73,7 @@ module "cosmos_db" {
       ]
     }
   } : {}
-  public_network_access_enabled = var.private_endpoint_subnet_id == null ? true : false
-  tags                          = var.tags
+  tags = var.tags
 }
 
 module "ai_search" {
@@ -87,7 +87,8 @@ module "ai_search" {
   managed_identities = {
     system_assigned = true
   }
-  private_endpoints = var.private_endpoint_subnet_id != null ? {
+  public_network_access_enabled = var.create_private_endpoints ? true : false
+  private_endpoints = var.create_private_endpoints ? {
     "searchService" = {
       subnet_resource_id = var.private_endpoint_subnet_id
       subresource_name   = "searchService"
@@ -96,6 +97,5 @@ module "ai_search" {
       ]
     }
   } : {}
-  public_network_access_enabled = var.private_endpoint_subnet_id == null ? true : false
-  tags                          = var.tags
+  tags = var.tags
 }

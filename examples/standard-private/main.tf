@@ -256,10 +256,10 @@ module "ai_foundry" {
   }
   create_ai_agent_service                   = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
   create_resource_group                     = false
-  existing_ai_search_resource_id            = true
-  existing_cosmos_db_resource_id            = true
-  existing_key_vault_resource_id            = true
-  existing_storage_account_resource_id      = true
+  ai_search_resource_id                     = true
+  cosmos_db_resource_id                     = true
+  key_vault_resource_id                     = true
+  storage_account_resource_id               = true
   private_dns_zone_resource_id_ai_foundry   = azurerm_private_dns_zone.openai.id
   private_dns_zone_resource_id_cosmosdb     = azurerm_private_dns_zone.cosmosdb.id
   private_dns_zone_resource_id_keyvault     = azurerm_private_dns_zone.keyvault.id
