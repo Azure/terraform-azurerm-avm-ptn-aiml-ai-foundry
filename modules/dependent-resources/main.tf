@@ -60,9 +60,16 @@ module "cosmos_db" {
   location            = var.location
   name                = var.cosmos_db_name
   resource_group_name = var.resource_group_name
+  ip_range_filter = [
+    "168.125.123.255",
+    "170.0.0.0/24",
+    "0.0.0.0",                                                                      #Accept connections from within public Azure datacenters. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal
+    "104.42.195.92", "40.76.54.131", "52.176.6.30", "52.169.50.45", "52.187.184.26" #Allow access from the Azure portal. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure
+  ]
   managed_identities = {
     system_assigned = true
   }
+  network_acl_bypass_for_azure_services = true
   private_endpoints = var.create_private_endpoints ? {
     "sql" = {
       subnet_resource_id = var.private_endpoint_subnet_id
@@ -72,15 +79,8 @@ module "cosmos_db" {
       ]
     }
   } : {}
-  public_network_access_enabled         = var.create_private_endpoints ? false : true
-  network_acl_bypass_for_azure_services = true
-  ip_range_filter = [
-    "168.125.123.255",
-    "170.0.0.0/24",
-    "0.0.0.0",                                                                      #Accept connections from within public Azure datacenters. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal
-    "104.42.195.92", "40.76.54.131", "52.176.6.30", "52.169.50.45", "52.187.184.26" #Allow access from the Azure portal. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure
-  ]
-  tags = var.tags
+  public_network_access_enabled = var.create_private_endpoints ? false : true
+  tags                          = var.tags
 }
 
 module "ai_search" {
