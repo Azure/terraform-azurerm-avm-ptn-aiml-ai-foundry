@@ -142,6 +142,14 @@ Type: `bool`
 
 Default: `false`
 
+### <a name="input_create_project_connections"></a> [create\_project\_connections](#input\_create\_project\_connections)
+
+Description: Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created.
+
+Type: `bool`
+
+Default: `false`
+
 ### <a name="input_create_resource_group"></a> [create\_resource\_group](#input\_create\_resource\_group)
 
 Description: Whether to create a new resource group. Set to false to use an existing resource group specified in resource\_group\_name.
