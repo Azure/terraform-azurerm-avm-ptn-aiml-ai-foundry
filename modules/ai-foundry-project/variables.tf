@@ -56,12 +56,6 @@ variable "create_project_connections" {
   description = "Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created."
 }
 
-variable "storage_connections" {
-  type        = list(string)
-  default     = []
-  description = "List of storage connections for the AI agent service"
-}
-
 variable "tags" {
   type        = map(string)
   default     = null

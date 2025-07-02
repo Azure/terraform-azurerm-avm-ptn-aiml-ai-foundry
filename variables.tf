@@ -87,12 +87,6 @@ variable "create_dependent_resources" {
   description = "Whether to create dependent resources such as AI Search, Cosmos DB, Key Vault, and Storage Account. If set to false, resource ids of existing resources must be provided (BYOR)."
 }
 
-variable "create_project_connections" {
-  type        = bool
-  default     = false
-  description = "Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created."
-}
-
 variable "create_resource_group" {
   type        = bool
   default     = false
@@ -108,12 +102,6 @@ For more information see <https://aka.ms/avm/telemetryinfo>.
 If it is set to false, then no telemetry will be collected.
 DESCRIPTION
   nullable    = false
-}
-
-variable "key_vault_resource_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created."
 }
 
 variable "lock" {
