@@ -124,11 +124,19 @@ Description: Whether to create an AI agent service using AzAPI capability hosts.
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
+
+### <a name="input_create_dependent_resources"></a> [create\_dependent\_resources](#input\_create\_dependent\_resources)
+
+Description: Whether to create dependent resources such as AI Search, Cosmos DB, Key Vault, and Storage Account. If set to false, resource ids of existing resources must be provided (BYOR).
+
+Type: `bool`
+
+Default: `false`
 
 ### <a name="input_create_private_endpoints"></a> [create\_private\_endpoints](#input\_create\_private\_endpoints)
 
-Description: Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created, and the resources will be accessible over public endpoints. This is useful for scenarios where private connectivity is not required or when using existing resources that do not require private endpoints.
+Description: Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created.
 
 Type: `bool`
 
@@ -151,14 +159,6 @@ If it is set to false, then no telemetry will be collected.
 Type: `bool`
 
 Default: `true`
-
-### <a name="input_key_vault_resource_id"></a> [key\_vault\_resource\_id](#input\_key\_vault\_resource\_id)
-
-Description: (Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created.
-
-Type: `string`
-
-Default: `null`
 
 ### <a name="input_lock"></a> [lock](#input\_lock)
 

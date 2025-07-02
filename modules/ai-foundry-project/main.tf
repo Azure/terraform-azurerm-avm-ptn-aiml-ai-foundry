@@ -1,9 +1,8 @@
 resource "azapi_resource" "ai_foundry_project" {
-  location                  = var.location
-  name                      = var.ai_foundry_project_name
-  parent_id                 = var.ai_foundry_id
-  schema_validation_enabled = false
-  type                      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
+  location  = var.location
+  name      = var.ai_foundry_project_name
+  parent_id = var.ai_foundry_id
+  type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
   body = {
     sku = {
       name = "S0"
@@ -20,7 +19,8 @@ resource "azapi_resource" "ai_foundry_project" {
     "identity.principalId",
     "properties.internalId"
   ]
-  tags = var.tags
+  schema_validation_enabled = false
+  tags                      = var.tags
 }
 
 resource "time_sleep" "wait_project_identities" {
@@ -34,10 +34,9 @@ resource "time_sleep" "wait_project_identities" {
 resource "azapi_resource" "ai_foundry_project_connection_storage" {
   count = var.create_project_connections ? 1 : 0
 
-  name                      = basename(var.storage_account_id)
-  parent_id                 = azapi_resource.ai_foundry_project.id
-  schema_validation_enabled = false
-  type                      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  name      = basename(var.storage_account_id)
+  parent_id = azapi_resource.ai_foundry_project.id
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
     properties = {
       category = "AzureStorageAccount"
@@ -53,6 +52,7 @@ resource "azapi_resource" "ai_foundry_project_connection_storage" {
   response_export_values = [
     "identity.principalId"
   ]
+  schema_validation_enabled = false
 
   depends_on = [azapi_resource.ai_foundry_project]
 }
@@ -60,10 +60,9 @@ resource "azapi_resource" "ai_foundry_project_connection_storage" {
 resource "azapi_resource" "ai_foundry_project_connection_cosmos" {
   count = var.create_project_connections ? 1 : 0
 
-  name                      = basename(var.cosmos_db_id)
-  parent_id                 = azapi_resource.ai_foundry_project.id
-  schema_validation_enabled = false
-  type                      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  name      = basename(var.cosmos_db_id)
+  parent_id = azapi_resource.ai_foundry_project.id
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
     properties = {
       category = "CosmosDb"
@@ -79,6 +78,7 @@ resource "azapi_resource" "ai_foundry_project_connection_cosmos" {
   response_export_values = [
     "identity.principalId"
   ]
+  schema_validation_enabled = false
 
   depends_on = [azapi_resource.ai_foundry_project]
 }
@@ -86,10 +86,9 @@ resource "azapi_resource" "ai_foundry_project_connection_cosmos" {
 resource "azapi_resource" "ai_foundry_project_connection_search" {
   count = var.create_project_connections ? 1 : 0
 
-  name                      = basename(var.ai_search_id)
-  parent_id                 = azapi_resource.ai_foundry_project.id
-  schema_validation_enabled = false
-  type                      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  name      = basename(var.ai_search_id)
+  parent_id = azapi_resource.ai_foundry_project.id
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
     properties = {
       category = "CognitiveSearch"
@@ -103,14 +102,15 @@ resource "azapi_resource" "ai_foundry_project_connection_search" {
       }
     }
   }
+  schema_validation_enabled = false
 
   depends_on = [azapi_resource.ai_foundry_project]
 }
 
 locals {
   ai_search_name       = try(var.ai_search_id != null ? basename(var.ai_search_id) : null)
-  storage_account_name = try(var.storage_account_id != null ? basename(var.storage_account_id) : null)
   cosmos_db_name       = try(var.cosmos_db_id != null ? basename(var.cosmos_db_id) : null)
+  storage_account_name = try(var.storage_account_id != null ? basename(var.storage_account_id) : null)
 }
 resource "azapi_resource" "ai_agent_capability_host" {
   count = var.create_ai_agent_service ? 1 : 0

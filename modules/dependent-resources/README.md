@@ -31,30 +31,6 @@ Description: Cosmos DB name
 
 Type: `string`
 
-### <a name="input_deploy_ai_search"></a> [deploy\_ai\_search](#input\_deploy\_ai\_search)
-
-Description: Whether to deploy AI search
-
-Type: `bool`
-
-### <a name="input_deploy_cosmos_db"></a> [deploy\_cosmos\_db](#input\_deploy\_cosmos\_db)
-
-Description: Whether to deploy cosmos DB
-
-Type: `bool`
-
-### <a name="input_deploy_key_vault"></a> [deploy\_key\_vault](#input\_deploy\_key\_vault)
-
-Description: Whether to deploy key vault
-
-Type: `bool`
-
-### <a name="input_deploy_storage_account"></a> [deploy\_storage\_account](#input\_deploy\_storage\_account)
-
-Description: Whether to deploy storage account
-
-Type: `bool`
-
 ### <a name="input_key_vault_name"></a> [key\_vault\_name](#input\_key\_vault\_name)
 
 Description: Key vault name
@@ -88,6 +64,14 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_create_dependent_resources"></a> [create\_dependent\_resources](#input\_create\_dependent\_resources)
+
+Description: Whether to create dependent resources like AI Search, Cosmos DB, Key Vault, and Storage Account. If set to false, these resources will not be created, and the module will only create the AI Foundry account.
+
+Type: `bool`
+
+Default: `true`
 
 ### <a name="input_create_private_endpoints"></a> [create\_private\_endpoints](#input\_create\_private\_endpoints)
 

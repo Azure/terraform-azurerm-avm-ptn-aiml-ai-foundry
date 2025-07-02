@@ -1,13 +1,13 @@
 locals {
   base_name_storage = substr(replace(var.base_name, "-", ""), 0, 18)
   location          = var.location
-  # Ensure resource_group_name is never null before using in string interpolation
-  resource_group_name_safe = coalesce(var.resource_group_name, "rg-${var.base_name}-${local.resource_token}")
   resource_group_id = coalesce(
     var.resource_group_id,
     var.create_resource_group ? azurerm_resource_group.this[0].id : "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${local.resource_group_name_safe}"
   )
   resource_group_name = local.resource_group_name_safe
+  # Ensure resource_group_name is never null before using in string interpolation
+  resource_group_name_safe = coalesce(var.resource_group_name, "rg-${var.base_name}-${local.resource_token}")
   resource_names = {
     ai_agent_host                   = coalesce(var.resource_names.ai_agent_host, "ah-${var.base_name}-agent-${local.resource_token}")
     ai_foundry_project              = coalesce(var.resource_names.ai_foundry_project, "aif-${var.base_name}-proj-${local.resource_token}")

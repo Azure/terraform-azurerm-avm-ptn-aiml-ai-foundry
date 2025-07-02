@@ -260,11 +260,10 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_resource_id                     = true
-  cosmos_db_resource_id                     = true
-  create_ai_agent_service                   = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
-  create_resource_group                     = false
-  key_vault_resource_id                     = true
+  create_ai_agent_service                   = false # default: false
+  create_dependent_resources                = true  # default: false
+  create_private_endpoints                  = true  # default: false
+  create_resource_group                     = false # default: false
   private_dns_zone_resource_id_ai_foundry   = azurerm_private_dns_zone.openai.id
   private_dns_zone_resource_id_cosmosdb     = azurerm_private_dns_zone.cosmosdb.id
   private_dns_zone_resource_id_keyvault     = azurerm_private_dns_zone.keyvault.id
@@ -272,7 +271,6 @@ module "ai_foundry" {
   private_dns_zone_resource_id_storage_blob = azurerm_private_dns_zone.storage_blob.id
   private_endpoint_subnet_id                = azurerm_subnet.private_endpoints.id
   resource_group_name                       = azurerm_resource_group.this.name
-  storage_account_resource_id               = true
 }
 ```
 

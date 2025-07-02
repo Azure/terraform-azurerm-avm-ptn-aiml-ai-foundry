@@ -75,16 +75,16 @@ variable "create_ai_agent_service" {
   description = "Whether to create an AI agent service using AzAPI capability hosts."
 }
 
-variable "create_private_endpoints" {
-  type        = bool
-  default     = false
-  description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created."
-}
-
 variable "create_dependent_resources" {
   type        = bool
   default     = false
   description = "Whether to create dependent resources such as AI Search, Cosmos DB, Key Vault, and Storage Account. If set to false, resource ids of existing resources must be provided (BYOR)."
+}
+
+variable "create_private_endpoints" {
+  type        = bool
+  default     = false
+  description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created."
 }
 
 variable "create_resource_group" {

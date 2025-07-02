@@ -84,14 +84,11 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_resource_id       = null
-  cosmos_db_resource_id       = null
-  create_ai_agent_service     = false # default: true
-  create_private_endpoints    = false # default: false
-  create_resource_group       = false # default: false
-  key_vault_resource_id       = null
-  resource_group_name         = azurerm_resource_group.this.name
-  storage_account_resource_id = null
+  create_ai_agent_service    = false # default: false
+  create_dependent_resources = false # default: false
+  create_private_endpoints   = false # default: false
+  create_resource_group      = false # default: false
+  resource_group_name        = azurerm_resource_group.this.name
 }
 ```
 

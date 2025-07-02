@@ -12,6 +12,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
+- <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.9)
+
 ## Resources
 
 The following resources are used by this module:
@@ -64,41 +66,11 @@ Description: Resource ID of the AI Search service
 
 Type: `string`
 
-### <a name="input_ai_search_name"></a> [ai\_search\_name](#input\_ai\_search\_name)
-
-Description: Name of the AI Search service
-
-Type: `string`
-
 ### <a name="input_cosmos_db_id"></a> [cosmos\_db\_id](#input\_cosmos\_db\_id)
 
 Description: Resource ID of the Cosmos DB account
 
 Type: `string`
-
-### <a name="input_cosmos_db_name"></a> [cosmos\_db\_name](#input\_cosmos\_db\_name)
-
-Description: Name of the Cosmos DB account
-
-Type: `string`
-
-### <a name="input_deploy_ai_search"></a> [deploy\_ai\_search](#input\_deploy\_ai\_search)
-
-Description: Whether AI Search is being deployed (not BYO)
-
-Type: `bool`
-
-### <a name="input_deploy_cosmos_db"></a> [deploy\_cosmos\_db](#input\_deploy\_cosmos\_db)
-
-Description: Whether Cosmos DB is being deployed (not BYO)
-
-Type: `bool`
-
-### <a name="input_deploy_storage_account"></a> [deploy\_storage\_account](#input\_deploy\_storage\_account)
-
-Description: Whether Storage Account is being deployed (not BYO)
-
-Type: `bool`
 
 ### <a name="input_location"></a> [location](#input\_location)
 
@@ -109,12 +81,6 @@ Type: `string`
 ### <a name="input_storage_account_id"></a> [storage\_account\_id](#input\_storage\_account\_id)
 
 Description: Resource ID of the Storage Account
-
-Type: `string`
-
-### <a name="input_storage_account_name"></a> [storage\_account\_name](#input\_storage\_account\_name)
-
-Description: Name of the Storage Account
 
 Type: `string`
 
@@ -130,13 +96,13 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_storage_connections"></a> [storage\_connections](#input\_storage\_connections)
+### <a name="input_create_project_connections"></a> [create\_project\_connections](#input\_create\_project\_connections)
 
-Description: List of storage connections for the AI agent service
+Description: Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created.
 
-Type: `list(string)`
+Type: `bool`
 
-Default: `[]`
+Default: `false`
 
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
@@ -145,22 +111,6 @@ Description: Tags to apply to resources
 Type: `map(string)`
 
 Default: `null`
-
-### <a name="input_thread_storage_connections"></a> [thread\_storage\_connections](#input\_thread\_storage\_connections)
-
-Description: List of thread storage connections for the AI agent service
-
-Type: `list(string)`
-
-Default: `[]`
-
-### <a name="input_vector_store_connections"></a> [vector\_store\_connections](#input\_vector\_store\_connections)
-
-Description: List of vector store connections for the AI agent service
-
-Type: `list(string)`
-
-Default: `[]`
 
 ## Outputs
 
