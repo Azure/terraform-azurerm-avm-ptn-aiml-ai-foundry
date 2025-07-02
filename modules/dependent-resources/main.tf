@@ -1,7 +1,7 @@
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "0.6.3"
-  count   = var.deploy_storage_account ? 1 : 0
+  count   = var.create_dependent_resources ? 1 : 0
 
   location                        = var.location
   name                            = var.storage_account_name
@@ -25,7 +25,7 @@ module "storage_account" {
       ]
     }
   } : {}
-  public_network_access_enabled = var.create_private_endpoints ? true : false
+  public_network_access_enabled = var.create_private_endpoints ? false : true
   shared_access_key_enabled     = false
   tags                          = var.tags
 }
@@ -33,7 +33,7 @@ module "storage_account" {
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "0.10.0"
-  count   = var.deploy_key_vault ? 1 : 0
+  count   = var.create_dependent_resources ? 1 : 0
 
   location            = var.location
   name                = var.key_vault_name
@@ -48,14 +48,14 @@ module "key_vault" {
       ]
     }
   } : {}
-  public_network_access_enabled = var.create_private_endpoints ? true : false
+  public_network_access_enabled = var.create_private_endpoints ? false : true
   tags                          = var.tags
 }
 
 module "cosmos_db" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
   version = "0.8.0"
-  count   = var.deploy_cosmos_db ? 1 : 0
+  count   = var.create_dependent_resources ? 1 : 0
 
   location            = var.location
   name                = var.cosmos_db_name
@@ -72,14 +72,14 @@ module "cosmos_db" {
       ]
     }
   } : {}
-  public_network_access_enabled = var.create_private_endpoints ? true : false
+  public_network_access_enabled = var.create_private_endpoints ? false : true
   tags                          = var.tags
 }
 
 module "ai_search" {
   source  = "Azure/avm-res-search-searchservice/azurerm"
   version = "0.1.5"
-  count   = var.deploy_ai_search ? 1 : 0
+  count   = var.create_dependent_resources ? 1 : 0
 
   location            = var.location
   name                = var.ai_search_name
@@ -96,6 +96,6 @@ module "ai_search" {
       ]
     }
   } : {}
-  public_network_access_enabled = var.create_private_endpoints ? true : false
+  public_network_access_enabled = var.create_private_endpoints ? false : true
   tags                          = var.tags
 }

@@ -21,16 +21,13 @@ module "dependent_resources" {
 
   ai_search_name                            = local.resource_names.ai_search
   cosmos_db_name                            = local.resource_names.cosmos_db
-  deploy_ai_search                          = local.deploy_ai_search
-  deploy_cosmos_db                          = local.deploy_cosmos_db
-  deploy_key_vault                          = local.deploy_key_vault
-  deploy_storage_account                    = local.deploy_storage_account
   key_vault_name                            = local.resource_names.key_vault
   location                                  = local.location
   resource_group_name                       = local.resource_group_name
   storage_account_name                      = local.resource_names.storage_account
   tenant_id                                 = data.azurerm_client_config.current.tenant_id
   create_private_endpoints                  = var.create_private_endpoints
+  create_dependent_resources                = var.create_dependent_resources
   private_dns_zone_resource_id_cosmosdb     = var.private_dns_zone_resource_id_cosmosdb
   private_dns_zone_resource_id_keyvault     = var.private_dns_zone_resource_id_keyvault
   private_dns_zone_resource_id_search       = var.private_dns_zone_resource_id_search
@@ -66,17 +63,11 @@ module "ai_foundry_project" {
   ai_foundry_project_description  = var.ai_foundry_project_description
   ai_foundry_project_display_name = local.resource_names.ai_foundry_project_display_name
   ai_foundry_project_name         = local.resource_names.ai_foundry_project
-  ai_search_id                    = try(module.dependent_resources.ai_search_id, null)
-  ai_search_name                  = local.resource_names.ai_search
-  cosmos_db_id                    = try(module.dependent_resources.cosmos_db_id, null)
-  cosmos_db_name                  = local.resource_names.cosmos_db
-  deploy_ai_search                = local.deploy_ai_search
-  deploy_cosmos_db                = local.deploy_cosmos_db
-  deploy_storage_account          = local.deploy_storage_account
-  location                        = local.location
-  storage_account_id              = try(module.dependent_resources.storage_account_id, null)
-  storage_account_name            = local.resource_names.storage_account
+  ai_search_id                    = try(module.dependent_resources.ai_search_id, var.ai_search_resource_id, null)
+  cosmos_db_id                    = try(module.dependent_resources.cosmos_db_id, var.cosmos_db_resource_id, null)
+  storage_account_id              = try(module.dependent_resources.storage_account_id, var.storage_account_resource_id, null)
   create_ai_agent_service         = var.create_ai_agent_service
+  location                        = local.location
   tags                            = var.tags
 
   depends_on = [

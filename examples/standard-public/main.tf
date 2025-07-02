@@ -82,12 +82,8 @@ module "ai_foundry" {
     }
   }
 
-  create_ai_agent_service  = false # default: false
-  create_private_endpoints = false # default: false
-  create_resource_group    = false # default: false
-
-  ai_search_resource_id       = true
-  cosmos_db_resource_id       = true
-  key_vault_resource_id       = true
-  storage_account_resource_id = true
+  create_ai_agent_service    = false # default: false
+  create_private_endpoints   = false # default: false
+  create_resource_group      = false # default: false
+  create_dependent_resources = true  # default: false
 }

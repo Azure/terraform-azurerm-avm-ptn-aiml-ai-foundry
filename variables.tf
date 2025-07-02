@@ -78,7 +78,19 @@ variable "create_ai_agent_service" {
 variable "create_private_endpoints" {
   type        = bool
   default     = false
-  description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created, and the resources will be accessible over public endpoints. This is useful for scenarios where private connectivity is not required or when using existing resources that do not require private endpoints."
+  description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created."
+}
+
+variable "create_dependent_resources" {
+  type        = bool
+  default     = false
+  description = "Whether to create dependent resources such as AI Search, Cosmos DB, Key Vault, and Storage Account. If set to false, resource ids of existing resources must be provided (BYOR)."
+}
+
+variable "create_project_connections" {
+  type        = bool
+  default     = false
+  description = "Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created."
 }
 
 variable "create_resource_group" {

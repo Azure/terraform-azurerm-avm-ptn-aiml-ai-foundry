@@ -28,34 +28,9 @@ variable "ai_search_id" {
   description = "Resource ID of the AI Search service"
 }
 
-variable "ai_search_name" {
-  type        = string
-  description = "Name of the AI Search service"
-}
-
 variable "cosmos_db_id" {
   type        = string
   description = "Resource ID of the Cosmos DB account"
-}
-
-variable "cosmos_db_name" {
-  type        = string
-  description = "Name of the Cosmos DB account"
-}
-
-variable "deploy_ai_search" {
-  type        = bool
-  description = "Whether AI Search is being deployed (not BYO)"
-}
-
-variable "deploy_cosmos_db" {
-  type        = bool
-  description = "Whether Cosmos DB is being deployed (not BYO)"
-}
-
-variable "deploy_storage_account" {
-  type        = bool
-  description = "Whether Storage Account is being deployed (not BYO)"
 }
 
 variable "location" {
@@ -69,15 +44,16 @@ variable "storage_account_id" {
   description = "Resource ID of the Storage Account"
 }
 
-variable "storage_account_name" {
-  type        = string
-  description = "Name of the Storage Account"
-}
-
 variable "create_ai_agent_service" {
   type        = bool
   default     = true
   description = "Whether to create the AI agent service"
+}
+
+variable "create_project_connections" {
+  type        = bool
+  default     = false
+  description = "Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created."
 }
 
 variable "storage_connections" {
@@ -90,16 +66,4 @@ variable "tags" {
   type        = map(string)
   default     = null
   description = "Tags to apply to resources"
-}
-
-variable "thread_storage_connections" {
-  type        = list(string)
-  default     = []
-  description = "List of thread storage connections for the AI agent service"
-}
-
-variable "vector_store_connections" {
-  type        = list(string)
-  default     = []
-  description = "List of vector store connections for the AI agent service"
 }

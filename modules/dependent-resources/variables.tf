@@ -8,26 +8,6 @@ variable "cosmos_db_name" {
   description = "Cosmos DB name"
 }
 
-variable "deploy_ai_search" {
-  type        = bool
-  description = "Whether to deploy AI search"
-}
-
-variable "deploy_cosmos_db" {
-  type        = bool
-  description = "Whether to deploy cosmos DB"
-}
-
-variable "deploy_key_vault" {
-  type        = bool
-  description = "Whether to deploy key vault"
-}
-
-variable "deploy_storage_account" {
-  type        = bool
-  description = "Whether to deploy storage account"
-}
-
 variable "key_vault_name" {
   type        = string
   description = "Key vault name"
@@ -52,6 +32,12 @@ variable "storage_account_name" {
 variable "tenant_id" {
   type        = string
   description = "Azure tenant ID"
+}
+
+variable "create_dependent_resources" {
+  type        = bool
+  default     = true
+  description = "Whether to create dependent resources like AI Search, Cosmos DB, Key Vault, and Storage Account. If set to false, these resources will not be created, and the module will only create the AI Foundry account."
 }
 
 variable "create_private_endpoints" {

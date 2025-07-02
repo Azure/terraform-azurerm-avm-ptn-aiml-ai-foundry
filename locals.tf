@@ -1,10 +1,10 @@
 locals {
-  base_name_storage      = substr(replace(var.base_name, "-", ""), 0, 18)
-  deploy_ai_search       = var.ai_search_resource_id != null ? true : false
-  deploy_cosmos_db       = var.cosmos_db_resource_id != null ? true : false
-  deploy_key_vault       = var.key_vault_resource_id != null ? true : false
-  deploy_storage_account = var.storage_account_resource_id != null ? true : false
-  location               = var.location
+  base_name_storage = substr(replace(var.base_name, "-", ""), 0, 18)
+  # deploy_ai_search       = var.ai_search_resource_id != null ? true : false
+  # deploy_cosmos_db       = var.cosmos_db_resource_id != null ? true : false
+  # deploy_key_vault       = var.key_vault_resource_id != null ? true : false
+  # deploy_storage_account = var.storage_account_resource_id != null ? true : false
+  location = var.location
   # Resource Group ID priority:
   # 1. If var.resource_group_id is provided, use it (for cross-subscription or explicit scenarios)
   # 2. If creating resource group, use the created resource group ID
