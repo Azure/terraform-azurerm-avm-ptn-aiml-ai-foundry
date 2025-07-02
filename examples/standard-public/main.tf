@@ -82,6 +82,7 @@ module "ai_foundry" {
   create_ai_agent_service    = false # default: false
   create_dependent_resources = true  # default: false
   create_private_endpoints   = false # default: false
+  create_project_connections = true  # default: false
   create_resource_group      = false # default: false
   resource_group_name        = azurerm_resource_group.this.name
 }

@@ -87,6 +87,12 @@ variable "create_private_endpoints" {
   description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created."
 }
 
+variable "create_project_connections" {
+  type        = bool
+  default     = false
+  description = "Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created."
+}
+
 variable "create_resource_group" {
   type        = bool
   default     = false

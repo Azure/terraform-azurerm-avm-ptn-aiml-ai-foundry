@@ -68,6 +68,7 @@ module "ai_foundry_project" {
   location                        = local.location
   storage_account_id              = try(module.dependent_resources.storage_account_id, var.storage_account_resource_id, null)
   create_ai_agent_service         = var.create_ai_agent_service
+  create_project_connections      = var.create_project_connections
   tags                            = var.tags
 
   depends_on = [
