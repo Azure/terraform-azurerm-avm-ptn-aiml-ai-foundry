@@ -71,7 +71,7 @@ variable "cosmos_db_resource_id" {
 
 variable "create_ai_agent_service" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether to create an AI agent service using AzAPI capability hosts."
 }
 

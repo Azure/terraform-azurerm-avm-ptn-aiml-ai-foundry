@@ -21,6 +21,7 @@ The following resources are used by this module:
 - [azapi_resource.ai_foundry_project_connection_cosmos](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_foundry_project_connection_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_foundry_project_connection_storage](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [time_sleep.wait_project_identities](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -129,6 +130,14 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_storage_connections"></a> [storage\_connections](#input\_storage\_connections)
+
+Description: List of storage connections for the AI agent service
+
+Type: `list(string)`
+
+Default: `[]`
+
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
 Description: Tags to apply to resources
@@ -136,6 +145,22 @@ Description: Tags to apply to resources
 Type: `map(string)`
 
 Default: `null`
+
+### <a name="input_thread_storage_connections"></a> [thread\_storage\_connections](#input\_thread\_storage\_connections)
+
+Description: List of thread storage connections for the AI agent service
+
+Type: `list(string)`
+
+Default: `[]`
+
+### <a name="input_vector_store_connections"></a> [vector\_store\_connections](#input\_vector\_store\_connections)
+
+Description: List of vector store connections for the AI agent service
+
+Type: `list(string)`
+
+Default: `[]`
 
 ## Outputs
 

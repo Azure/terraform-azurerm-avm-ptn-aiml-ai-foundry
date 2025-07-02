@@ -1,9 +1,8 @@
 resource "azapi_resource" "ai_foundry" {
-  location                  = var.location
-  name                      = var.ai_foundry_name
-  parent_id                 = var.resource_group_id
-  schema_validation_enabled = false
-  type                      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
+  location  = var.location
+  name      = var.ai_foundry_name
+  parent_id = var.resource_group_id
+  type      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
   body = {
 
     kind = "AIServices",
@@ -41,7 +40,8 @@ resource "azapi_resource" "ai_foundry" {
       ] : null
     }
   }
-  tags = var.tags
+  schema_validation_enabled = false
+  tags                      = var.tags
 }
 
 resource "azapi_resource" "ai_model_deployment" {

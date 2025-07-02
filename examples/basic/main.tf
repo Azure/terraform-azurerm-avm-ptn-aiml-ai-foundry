@@ -62,8 +62,10 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name = local.base_name
-  location  = azurerm_resource_group.this.location
+  base_name           = local.base_name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -78,12 +80,13 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_resource_id       = null
-  cosmos_db_resource_id       = null
-  create_ai_agent_service     = false # default: true
-  create_private_endpoints    = false # default: false
-  create_resource_group       = false # default: false
-  key_vault_resource_id       = null
-  resource_group_name         = azurerm_resource_group.this.name
-  storage_account_resource_id = null
+
+  create_ai_agent_service  = false # default: false
+  create_private_endpoints = false # default: false
+  create_resource_group    = false # default: false
+
+  # ai_search_resource_id       = true
+  # cosmos_db_resource_id       = true
+  # key_vault_resource_id       = true
+  # storage_account_resource_id = true
 }

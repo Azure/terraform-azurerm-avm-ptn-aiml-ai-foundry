@@ -55,6 +55,14 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
+### <a name="input_agent_subnet_id"></a> [agent\_subnet\_id](#input\_agent\_subnet\_id)
+
+Description: (Optional) The subnet ID for the AI agent service. If not provided, the AI agent service will not be created.
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_ai_model_deployments"></a> [ai\_model\_deployments](#input\_ai\_model\_deployments)
 
 Description: AI model deployments to create
@@ -80,13 +88,21 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_create_ai_agent_service"></a> [create\_ai\_agent\_service](#input\_create\_ai\_agent\_service)
+
+Description: Whether to create the AI agent service. If set to false, the AI agent service will not be created, and the AI Foundry account will not have any AI agent capabilities.
+
+Type: `bool`
+
+Default: `false`
+
 ### <a name="input_create_private_endpoints"></a> [create\_private\_endpoints](#input\_create\_private\_endpoints)
 
 Description: Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created, and the resources will be accessible over public endpoints. This is useful for scenarios where private connectivity is not required or when using existing resources that do not require private endpoints.
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ### <a name="input_private_dns_zone_resource_id_ai_foundry"></a> [private\_dns\_zone\_resource\_id\_ai\_foundry](#input\_private\_dns\_zone\_resource\_id\_ai\_foundry)
 

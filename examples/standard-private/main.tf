@@ -238,8 +238,11 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name = local.base_name
-  location  = azurerm_resource_group.this.location
+
+  base_name           = local.base_name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -254,17 +257,20 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_resource_id                     = true
-  cosmos_db_resource_id                     = true
-  create_ai_agent_service                   = false # until fixed "Hub Workspace capabilityHost Not Found, please create the capability after Hub workspace Capability is created"
-  create_resource_group                     = false
-  key_vault_resource_id                     = true
+
+  create_ai_agent_service  = false # default: false
+  create_private_endpoints = false # default: false
+  create_resource_group    = false # default: false
+
+  ai_search_resource_id       = true
+  cosmos_db_resource_id       = true
+  key_vault_resource_id       = true
+  storage_account_resource_id = true
+
   private_dns_zone_resource_id_ai_foundry   = azurerm_private_dns_zone.openai.id
   private_dns_zone_resource_id_cosmosdb     = azurerm_private_dns_zone.cosmosdb.id
   private_dns_zone_resource_id_keyvault     = azurerm_private_dns_zone.keyvault.id
   private_dns_zone_resource_id_search       = azurerm_private_dns_zone.search.id
   private_dns_zone_resource_id_storage_blob = azurerm_private_dns_zone.storage_blob.id
   private_endpoint_subnet_id                = azurerm_subnet.private_endpoints.id
-  resource_group_name                       = azurerm_resource_group.this.name
-  storage_account_resource_id               = true
 }

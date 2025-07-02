@@ -132,7 +132,7 @@ Description: Whether to create private endpoints for AI Foundry, Cosmos DB, Key 
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ### <a name="input_create_resource_group"></a> [create\_resource\_group](#input\_create\_resource\_group)
 
@@ -140,7 +140,7 @@ Description: Whether to create a new resource group. Set to false to use an exis
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 

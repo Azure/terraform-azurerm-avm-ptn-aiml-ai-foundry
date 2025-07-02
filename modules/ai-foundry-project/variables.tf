@@ -80,26 +80,26 @@ variable "create_ai_agent_service" {
   description = "Whether to create the AI agent service"
 }
 
-variable "tags" {
-  type        = map(string)
-  default     = null
-  description = "Tags to apply to resources"
-}
-
-variable "vector_store_connections" {
-  type        = list(string)
-  default     = []
-  description = "List of vector store connections for the AI agent service"
-}
-
 variable "storage_connections" {
   type        = list(string)
   default     = []
   description = "List of storage connections for the AI agent service"
 }
 
+variable "tags" {
+  type        = map(string)
+  default     = null
+  description = "Tags to apply to resources"
+}
+
 variable "thread_storage_connections" {
   type        = list(string)
   default     = []
   description = "List of thread storage connections for the AI agent service"
+}
+
+variable "vector_store_connections" {
+  type        = list(string)
+  default     = []
+  description = "List of vector store connections for the AI agent service"
 }
