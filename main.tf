@@ -48,6 +48,7 @@ module "ai_foundry" {
   resource_group_name                     = local.resource_group_name
   ai_model_deployments                    = var.ai_model_deployments
   create_private_endpoints                = var.create_private_endpoints
+  create_ai_agent_service                 = var.create_ai_agent_service
   private_dns_zone_resource_id_ai_foundry = var.private_dns_zone_resource_id_ai_foundry
   private_endpoint_subnet_id              = var.private_endpoint_subnet_id
   tags                                    = var.tags

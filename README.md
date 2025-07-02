@@ -102,9 +102,33 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_ai_search_resource_id"></a> [ai\_search\_resource\_id](#input\_ai\_search\_resource\_id)
+
+Description: (Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_cosmos_db_resource_id"></a> [cosmos\_db\_resource\_id](#input\_cosmos\_db\_resource\_id)
+
+Description: (Optional) The resource ID of an existing Cosmos DB account to use. If not provided, a new Cosmos DB account will be created.
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_create_ai_agent_service"></a> [create\_ai\_agent\_service](#input\_create\_ai\_agent\_service)
 
 Description: Whether to create an AI agent service using AzAPI capability hosts.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_create_private_endpoints"></a> [create\_private\_endpoints](#input\_create\_private\_endpoints)
+
+Description: Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created, and the resources will be accessible over public endpoints. This is useful for scenarios where private connectivity is not required or when using existing resources that do not require private endpoints.
 
 Type: `bool`
 
@@ -128,33 +152,9 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_existing_ai_search_resource_id"></a> [existing\_ai\_search\_resource\_id](#input\_existing\_ai\_search\_resource\_id)
-
-Description: (Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_existing_cosmos_db_resource_id"></a> [existing\_cosmos\_db\_resource\_id](#input\_existing\_cosmos\_db\_resource\_id)
-
-Description: (Optional) The resource ID of an existing Cosmos DB account to use. If not provided, a new Cosmos DB account will be created.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_existing_key_vault_resource_id"></a> [existing\_key\_vault\_resource\_id](#input\_existing\_key\_vault\_resource\_id)
+### <a name="input_key_vault_resource_id"></a> [key\_vault\_resource\_id](#input\_key\_vault\_resource\_id)
 
 Description: (Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_existing_storage_account_resource_id"></a> [existing\_storage\_account\_resource\_id](#input\_existing\_storage\_account\_resource\_id)
-
-Description: (Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created.
 
 Type: `string`
 
@@ -180,7 +180,7 @@ Default: `null`
 
 ### <a name="input_private_dns_zone_resource_id_ai_foundry"></a> [private\_dns\_zone\_resource\_id\_ai\_foundry](#input\_private\_dns\_zone\_resource\_id\_ai\_foundry)
 
-Description: (Optional) The resource ID of the private DNS zone for AI Foundry.
+Description: (Optional) The resource ID of the existing private DNS zone for AI Foundry.
 
 Type: `string`
 
@@ -188,7 +188,7 @@ Default: `null`
 
 ### <a name="input_private_dns_zone_resource_id_cosmosdb"></a> [private\_dns\_zone\_resource\_id\_cosmosdb](#input\_private\_dns\_zone\_resource\_id\_cosmosdb)
 
-Description: (Optional) The resource ID of the private DNS zone for Cosmos DB.
+Description: (Optional) The resource ID of the existing private DNS zone for Cosmos DB.
 
 Type: `string`
 
@@ -196,7 +196,7 @@ Default: `null`
 
 ### <a name="input_private_dns_zone_resource_id_keyvault"></a> [private\_dns\_zone\_resource\_id\_keyvault](#input\_private\_dns\_zone\_resource\_id\_keyvault)
 
-Description: (Optional) The resource ID of the private DNS zone for Key Vault.
+Description: (Optional) The resource ID of the existing private DNS zone for Key Vault.
 
 Type: `string`
 
@@ -204,7 +204,7 @@ Default: `null`
 
 ### <a name="input_private_dns_zone_resource_id_search"></a> [private\_dns\_zone\_resource\_id\_search](#input\_private\_dns\_zone\_resource\_id\_search)
 
-Description: (Optional) The resource ID of the private DNS zone for AI Search.
+Description: (Optional) The resource ID of the existing private DNS zone for AI Search.
 
 Type: `string`
 
@@ -212,7 +212,7 @@ Default: `null`
 
 ### <a name="input_private_dns_zone_resource_id_storage_blob"></a> [private\_dns\_zone\_resource\_id\_storage\_blob](#input\_private\_dns\_zone\_resource\_id\_storage\_blob)
 
-Description: (Optional) The resource ID of the private DNS zone for Storage Blob.
+Description: (Optional) The resource ID of the existing private DNS zone for Storage Blob.
 
 Type: `string`
 
@@ -295,6 +295,14 @@ map(object({
 ```
 
 Default: `{}`
+
+### <a name="input_storage_account_resource_id"></a> [storage\_account\_resource\_id](#input\_storage\_account\_resource\_id)
+
+Description: (Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created.
+
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_tags"></a> [tags](#input\_tags)
 

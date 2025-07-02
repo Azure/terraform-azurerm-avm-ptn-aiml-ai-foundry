@@ -57,15 +57,33 @@ Configuration for AI model deployments (including OpenAI). Each deployment inclu
 DESCRIPTION
 }
 
+variable "ai_search_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created."
+}
+
+variable "cosmos_db_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of an existing Cosmos DB account to use. If not provided, a new Cosmos DB account will be created."
+}
+
 variable "create_ai_agent_service" {
   type        = bool
   default     = true
   description = "Whether to create an AI agent service using AzAPI capability hosts."
 }
 
+variable "create_private_endpoints" {
+  type        = bool
+  default     = false
+  description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created, and the resources will be accessible over public endpoints. This is useful for scenarios where private connectivity is not required or when using existing resources that do not require private endpoints."
+}
+
 variable "create_resource_group" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether to create a new resource group. Set to false to use an existing resource group specified in resource_group_name."
 }
 
@@ -80,28 +98,10 @@ DESCRIPTION
   nullable    = false
 }
 
-variable "ai_search_resource_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created."
-}
-
-variable "cosmos_db_resource_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of an existing Cosmos DB account to use. If not provided, a new Cosmos DB account will be created."
-}
-
 variable "key_vault_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The resource ID of an existing Key Vault to use. If not provided, a new Key Vault will be created."
-}
-
-variable "storage_account_resource_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created."
 }
 
 variable "lock" {
@@ -121,12 +121,6 @@ DESCRIPTION
     condition     = var.lock != null ? contains(["CanNotDelete", "ReadOnly"], var.lock.kind) : true
     error_message = "The lock level must be one of: 'None', 'CanNotDelete', or 'ReadOnly'."
   }
-}
-
-variable "create_private_endpoints" {
-  type        = bool
-  default     = true
-  description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created, and the resources will be accessible over public endpoints. This is useful for scenarios where private connectivity is not required or when using existing resources that do not require private endpoints."
 }
 
 variable "private_dns_zone_resource_id_ai_foundry" {
@@ -225,6 +219,12 @@ A map of role assignments to create on this resource. The map key is deliberatel
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 DESCRIPTION
   nullable    = false
+}
+
+variable "storage_account_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created."
 }
 
 variable "tags" {

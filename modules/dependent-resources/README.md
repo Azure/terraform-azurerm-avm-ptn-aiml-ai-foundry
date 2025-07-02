@@ -89,6 +89,14 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
+### <a name="input_create_private_endpoints"></a> [create\_private\_endpoints](#input\_create\_private\_endpoints)
+
+Description: Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created, and the resources will be accessible over public endpoints. This is useful for scenarios where private connectivity is not required or when using existing resources that do not require private endpoints.
+
+Type: `bool`
+
+Default: `true`
+
 ### <a name="input_private_dns_zone_resource_id_cosmosdb"></a> [private\_dns\_zone\_resource\_id\_cosmosdb](#input\_private\_dns\_zone\_resource\_id\_cosmosdb)
 
 Description: (Optional) The resource ID of the private DNS zone for Cosmos DB.

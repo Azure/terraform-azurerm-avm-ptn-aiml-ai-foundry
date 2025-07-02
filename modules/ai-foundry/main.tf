@@ -1,24 +1,47 @@
 resource "azapi_resource" "ai_foundry" {
-  location  = var.location
-  name      = var.ai_foundry_name
-  parent_id = var.resource_group_id
-  type      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
+  location                  = var.location
+  name                      = var.ai_foundry_name
+  parent_id                 = var.resource_group_id
+  schema_validation_enabled = false
+  type                      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
   body = {
-    kind = "AIServices"
+
+    kind = "AIServices",
     sku = {
       name = "S0"
     }
+    identity = {
+      type = "SystemAssigned"
+    }
+
     properties = {
-      publicNetworkAccess    = var.private_endpoint_subnet_id == null ? "Enabled" : "Disabled"
+      # Support both Entra ID and API Key authentication for underlining Cognitive Services account
+      disableLocalAuth = false
+
+      # Specifies that this is an AI Foundry resource
       allowProjectManagement = true
-      customSubDomainName    = var.ai_foundry_name
+
+      # Set custom subdomain name for DNS names created for this Foundry resource
+      customSubDomainName = var.ai_foundry_name
+
+      # Network-related controls
+      # Disable public access but allow Trusted Azure Services exception
+      publicNetworkAccess = var.create_private_endpoints ? "Disabled" : "Enabled"
+      networkAcls = {
+        defaultAction = "Allow"
+      }
+
+      # Enable VNet injection for Standard Agents
+      networkInjections = var.create_ai_agent_service && var.create_private_endpoints ? [
+        {
+          scenario                   = "agent"
+          subnetArmId                = var.agent_subnet_id
+          useMicrosoftManagedNetwork = false
+        }
+      ] : null
     }
   }
   tags = var.tags
-
-  identity {
-    type = "SystemAssigned"
-  }
 }
 
 resource "azapi_resource" "ai_model_deployment" {
