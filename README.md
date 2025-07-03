@@ -10,6 +10,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
+
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
@@ -21,14 +23,13 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_private_endpoint.this_managed_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint.this_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint_application_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint_application_security_group_association) (resource)
-- [azurerm_resource_group.TODO](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
+- [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
+- [random_string.resource_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
-- [azurerm_client_config.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
+- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -36,21 +37,15 @@ The following resources are used by this module:
 
 The following input variables are required:
 
+### <a name="input_base_name"></a> [base\_name](#input\_base\_name)
+
+Description: The name prefix for the AI Foundry resources. Will be used as base\_name if base\_name is not provided.
+
+Type: `string`
+
 ### <a name="input_location"></a> [location](#input\_location)
 
 Description: Azure region where the resource should be deployed.
-
-Type: `string`
-
-### <a name="input_name"></a> [name](#input\_name)
-
-Description: The name of the this resource.
-
-Type: `string`
-
-### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
-
-Description: The resource group where the resources will be deployed.
 
 Type: `string`
 
@@ -58,63 +53,110 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
+### <a name="input_ai_foundry_project_description"></a> [ai\_foundry\_project\_description](#input\_ai\_foundry\_project\_description)
 
-Description: A map describing customer-managed keys to associate with the resource. This includes the following properties:
-- `key_vault_resource_id` - The resource ID of the Key Vault where the key is stored.
-- `key_name` - The name of the key.
-- `key_version` - (Optional) The version of the key. If not specified, the latest version is used.
-- `user_assigned_identity` - (Optional) An object representing a user-assigned identity with the following properties:
-  - `resource_id` - The resource ID of the user-assigned identity.
+Description: Description for the AI Foundry project.
 
-Type:
+Type: `string`
 
-```hcl
-object({
-    key_vault_resource_id = string
-    key_name              = string
-    key_version           = optional(string, null)
-    user_assigned_identity = optional(object({
-      resource_id = string
-    }), null)
-  })
-```
+Default: `"AI Foundry project for agent services and AI workloads"`
 
-Default: `null`
+### <a name="input_ai_model_deployments"></a> [ai\_model\_deployments](#input\_ai\_model\_deployments)
 
-### <a name="input_diagnostic_settings"></a> [diagnostic\_settings](#input\_diagnostic\_settings)
-
-Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-- `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
-- `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
-- `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
-- `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
-- `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
-- `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
-- `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
-- `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
-- `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
-- `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
+Description: Configuration for AI model deployments (including OpenAI). Each deployment includes:
+- `name` - The name of the deployment
+- `rai_policy_name` - (Optional) The name of the RAI policy
+- `version_upgrade_option` - (Optional) How to handle version upgrades (default: "OnceNewDefaultVersionAvailable")
+- `model` - The model configuration:
+  - `format` - The format of the model (e.g., "OpenAI")
+  - `name` - The name of the model to deploy
+  - `version` - The version of the model
+- `scale` - The scaling configuration:
+  - `type` - The scaling type (e.g., "Standard")
+  - `capacity` - (Optional) The capacity of the deployment
+  - `family` - (Optional) The family of the deployment
+  - `size` - (Optional) The size of the deployment
+  - `tier` - (Optional) The pricing tier for the deployment
 
 Type:
 
 ```hcl
 map(object({
-    name                                     = optional(string, null)
-    log_categories                           = optional(set(string), [])
-    log_groups                               = optional(set(string), ["allLogs"])
-    metric_categories                        = optional(set(string), ["AllMetrics"])
-    log_analytics_destination_type           = optional(string, "Dedicated")
-    workspace_resource_id                    = optional(string, null)
-    storage_account_resource_id              = optional(string, null)
-    event_hub_authorization_rule_resource_id = optional(string, null)
-    event_hub_name                           = optional(string, null)
-    marketplace_partner_resource_id          = optional(string, null)
+    name                   = string
+    rai_policy_name        = optional(string)
+    version_upgrade_option = optional(string, "OnceNewDefaultVersionAvailable")
+    model = object({
+      format  = string
+      name    = string
+      version = string
+    })
+    scale = object({
+      capacity = optional(number)
+      family   = optional(string)
+      size     = optional(string)
+      tier     = optional(string)
+      type     = string
+    })
   }))
 ```
 
 Default: `{}`
+
+### <a name="input_ai_search_resource_id"></a> [ai\_search\_resource\_id](#input\_ai\_search\_resource\_id)
+
+Description: (Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_cosmos_db_resource_id"></a> [cosmos\_db\_resource\_id](#input\_cosmos\_db\_resource\_id)
+
+Description: (Optional) The resource ID of an existing Cosmos DB account to use. If not provided, a new Cosmos DB account will be created.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_create_ai_agent_service"></a> [create\_ai\_agent\_service](#input\_create\_ai\_agent\_service)
+
+Description: Whether to create an AI agent service using AzAPI capability hosts.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_create_dependent_resources"></a> [create\_dependent\_resources](#input\_create\_dependent\_resources)
+
+Description: Whether to create dependent resources such as AI Search, Cosmos DB, Key Vault, and Storage Account. If set to false, resource ids of existing resources must be provided (BYOR).
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_create_private_endpoints"></a> [create\_private\_endpoints](#input\_create\_private\_endpoints)
+
+Description: Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_create_project_connections"></a> [create\_project\_connections](#input\_create\_project\_connections)
+
+Description: Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_create_resource_group"></a> [create\_resource\_group](#input\_create\_resource\_group)
+
+Description: Whether to create a new resource group. Set to false to use an existing resource group specified in resource\_group\_name.
+
+Type: `bool`
+
+Default: `false`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
@@ -130,7 +172,7 @@ Default: `true`
 
 Description: Controls the Resource Lock configuration for this resource. The following properties can be specified:
 
-- `kind` - (Required) The type of lock. Possible values are `\"CanNotDelete\"` and `\"ReadOnly\"`.
+- `kind` - (Required) The type of lock. Possible values are `"CanNotDelete"` and `"ReadOnly"`.
 - `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value. Changing this forces the creation of a new resource.
 
 Type:
@@ -144,87 +186,91 @@ object({
 
 Default: `null`
 
-### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
+### <a name="input_private_dns_zone_resource_id_ai_foundry"></a> [private\_dns\_zone\_resource\_id\_ai\_foundry](#input\_private\_dns\_zone\_resource\_id\_ai\_foundry)
 
-Description: Controls the Managed Identity configuration on this resource. The following properties can be specified:
+Description: (Optional) The resource ID of the existing private DNS zone for AI Foundry.
 
-- `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
-- `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_dns_zone_resource_id_cosmosdb"></a> [private\_dns\_zone\_resource\_id\_cosmosdb](#input\_private\_dns\_zone\_resource\_id\_cosmosdb)
+
+Description: (Optional) The resource ID of the existing private DNS zone for Cosmos DB.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_dns_zone_resource_id_keyvault"></a> [private\_dns\_zone\_resource\_id\_keyvault](#input\_private\_dns\_zone\_resource\_id\_keyvault)
+
+Description: (Optional) The resource ID of the existing private DNS zone for Key Vault.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_dns_zone_resource_id_search"></a> [private\_dns\_zone\_resource\_id\_search](#input\_private\_dns\_zone\_resource\_id\_search)
+
+Description: (Optional) The resource ID of the existing private DNS zone for AI Search.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_dns_zone_resource_id_storage_blob"></a> [private\_dns\_zone\_resource\_id\_storage\_blob](#input\_private\_dns\_zone\_resource\_id\_storage\_blob)
+
+Description: (Optional) The resource ID of the existing private DNS zone for Storage Blob.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_endpoint_subnet_id"></a> [private\_endpoint\_subnet\_id](#input\_private\_endpoint\_subnet\_id)
+
+Description: (Optional) The subnet ID for private endpoints.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_resource_group_id"></a> [resource\_group\_id](#input\_resource\_group\_id)
+
+Description: The full resource ID of the resource group. When provided, this takes precedence over resource\_group\_name. Useful for cross-subscription deployments or when the exact resource ID is known. Format: '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}'
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
+
+Description: The name for the resource group. When create\_resource\_group=true, this will be the name of the new resource group. When create\_resource\_group=false, this must be the name of an existing resource group.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_resource_names"></a> [resource\_names](#input\_resource\_names)
+
+Description: Custom names for each resource. If not provided, names will be generated using base\_name or name.
 
 Type:
 
 ```hcl
 object({
-    system_assigned            = optional(bool, false)
-    user_assigned_resource_ids = optional(set(string), [])
+    ai_agent_host                   = optional(string)
+    ai_foundry                      = optional(string)
+    ai_foundry_project              = optional(string)
+    ai_foundry_project_display_name = optional(string)
+    ai_search                       = optional(string)
+    cosmos_db                       = optional(string)
+    key_vault                       = optional(string)
+    resource_group                  = optional(string)
+    storage_account                 = optional(string)
   })
 ```
 
 Default: `{}`
-
-### <a name="input_private_endpoints"></a> [private\_endpoints](#input\_private\_endpoints)
-
-Description: A map of private endpoints to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-- `name` - (Optional) The name of the private endpoint. One will be generated if not set.
-- `role_assignments` - (Optional) A map of role assignments to create on the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time. See `var.role_assignments` for more information.
-- `lock` - (Optional) The lock level to apply to the private endpoint. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
-- `tags` - (Optional) A mapping of tags to assign to the private endpoint.
-- `subnet_resource_id` - The resource ID of the subnet to deploy the private endpoint in.
-- `private_dns_zone_group_name` - (Optional) The name of the private DNS zone group. One will be generated if not set.
-- `private_dns_zone_resource_ids` - (Optional) A set of resource IDs of private DNS zones to associate with the private endpoint. If not set, no zone groups will be created and the private endpoint will not be associated with any private DNS zones. DNS records must be managed external to this module.
-- `application_security_group_resource_ids` - (Optional) A map of resource IDs of application security groups to associate with the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-- `private_service_connection_name` - (Optional) The name of the private service connection. One will be generated if not set.
-- `network_interface_name` - (Optional) The name of the network interface. One will be generated if not set.
-- `location` - (Optional) The Azure location where the resources will be deployed. Defaults to the location of the resource group.
-- `resource_group_name` - (Optional) The resource group where the resources will be deployed. Defaults to the resource group of this resource.
-- `ip_configurations` - (Optional) A map of IP configurations to create on the private endpoint. If not specified the platform will create one. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-  - `name` - The name of the IP configuration.
-  - `private_ip_address` - The private IP address of the IP configuration.
-
-Type:
-
-```hcl
-map(object({
-    name = optional(string, null)
-    role_assignments = optional(map(object({
-      role_definition_id_or_name             = string
-      principal_id                           = string
-      description                            = optional(string, null)
-      skip_service_principal_aad_check       = optional(bool, false)
-      condition                              = optional(string, null)
-      condition_version                      = optional(string, null)
-      delegated_managed_identity_resource_id = optional(string, null)
-    })), {})
-    lock = optional(object({
-      kind = string
-      name = optional(string, null)
-    }), null)
-    tags                                    = optional(map(string), null)
-    subnet_resource_id                      = string
-    private_dns_zone_group_name             = optional(string, "default")
-    private_dns_zone_resource_ids           = optional(set(string), [])
-    application_security_group_associations = optional(map(string), {})
-    private_service_connection_name         = optional(string, null)
-    network_interface_name                  = optional(string, null)
-    location                                = optional(string, null)
-    resource_group_name                     = optional(string, null)
-    ip_configurations = optional(map(object({
-      name               = string
-      private_ip_address = string
-    })), {})
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_private_endpoints_manage_dns_zone_group"></a> [private\_endpoints\_manage\_dns\_zone\_group](#input\_private\_endpoints\_manage\_dns\_zone\_group)
-
-Description: Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy.
-
-Type: `bool`
-
-Default: `true`
 
 ### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
 
@@ -258,9 +304,17 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_storage_account_resource_id"></a> [storage\_account\_resource\_id](#input\_storage\_account\_resource\_id)
+
+Description: (Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created.
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
-Description: (Optional) Tags of the resource.
+Description: (Optional) Tags to be applied to all resources.
 
 Type: `map(string)`
 
@@ -270,13 +324,95 @@ Default: `null`
 
 The following outputs are exported:
 
-### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
+### <a name="output_ai_agent_service_id"></a> [ai\_agent\_service\_id](#output\_ai\_agent\_service\_id)
 
-Description:   A map of the private endpoints created.
+Description: The resource ID of the AI agent capability host.
+
+### <a name="output_ai_foundry_id"></a> [ai\_foundry\_id](#output\_ai\_foundry\_id)
+
+Description: The resource ID of the AI Foundry account.
+
+### <a name="output_ai_foundry_name"></a> [ai\_foundry\_name](#output\_ai\_foundry\_name)
+
+Description: The name of the AI Foundry account.
+
+### <a name="output_ai_foundry_project_id"></a> [ai\_foundry\_project\_id](#output\_ai\_foundry\_project\_id)
+
+Description: The resource ID of the AI Foundry Project.
+
+### <a name="output_ai_foundry_project_name"></a> [ai\_foundry\_project\_name](#output\_ai\_foundry\_project\_name)
+
+Description: The name of the AI Foundry Project.
+
+### <a name="output_ai_model_deployment_ids"></a> [ai\_model\_deployment\_ids](#output\_ai\_model\_deployment\_ids)
+
+Description: The resource IDs of all AI model deployments.
+
+### <a name="output_ai_search_id"></a> [ai\_search\_id](#output\_ai\_search\_id)
+
+Description: The resource ID of the AI Search service.
+
+### <a name="output_ai_search_name"></a> [ai\_search\_name](#output\_ai\_search\_name)
+
+Description: The name of the AI Search service.
+
+### <a name="output_cosmos_db_id"></a> [cosmos\_db\_id](#output\_cosmos\_db\_id)
+
+Description: The resource ID of the Cosmos DB account.
+
+### <a name="output_cosmos_db_name"></a> [cosmos\_db\_name](#output\_cosmos\_db\_name)
+
+Description: The name of the Cosmos DB account.
+
+### <a name="output_key_vault_id"></a> [key\_vault\_id](#output\_key\_vault\_id)
+
+Description: The resource ID of the Key Vault.
+
+### <a name="output_key_vault_name"></a> [key\_vault\_name](#output\_key\_vault\_name)
+
+Description: The name of the Key Vault.
+
+### <a name="output_resource_group_id"></a> [resource\_group\_id](#output\_resource\_group\_id)
+
+Description: The resource ID of the resource group.
+
+### <a name="output_resource_group_name"></a> [resource\_group\_name](#output\_resource\_group\_name)
+
+Description: The name of the resource group.
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: The resource ID of the primary AI Foundry project resource.
+
+### <a name="output_storage_account_id"></a> [storage\_account\_id](#output\_storage\_account\_id)
+
+Description: The resource ID of the storage account.
+
+### <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name)
+
+Description: The name of the storage account.
 
 ## Modules
 
-No modules.
+The following Modules are called:
+
+### <a name="module_ai_foundry"></a> [ai\_foundry](#module\_ai\_foundry)
+
+Source: ./modules/ai-foundry
+
+Version:
+
+### <a name="module_ai_foundry_project"></a> [ai\_foundry\_project](#module\_ai\_foundry\_project)
+
+Source: ./modules/ai-foundry-project
+
+Version:
+
+### <a name="module_dependent_resources"></a> [dependent\_resources](#module\_dependent\_resources)
+
+Source: ./modules/dependent-resources
+
+Version:
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

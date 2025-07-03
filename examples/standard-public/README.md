@@ -1,19 +1,16 @@
 <!-- BEGIN_TF_DOCS -->
-# Ignored example for e2e tests
+# Default example
 
-This example will not be run as an e2e test as it has the .e2eignore file in the same directory.
+This deploys the module in its simplest form.
 
 ```hcl
 terraform {
-  required_version = "~> 1.5"
+  required_version = ">= 1.9, < 2.0"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.21"
-    }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
+      version = "~> 4.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -23,49 +20,77 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  storage_use_azuread = true
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
+locals {
+  base_name = "public"
+}
 
-## Section to provide a random Azure region for the resource group
-# This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "~> 0.1"
+  version = "0.5.2"
+
+  availability_zones_filter = true
+  geography_filter          = "Australia"
 }
 
-# This allows us to randomize the region for the resource group.
 resource "random_integer" "region_index" {
   max = length(module.regions.regions) - 1
   min = 0
 }
-## End of section to provide a random Azure region for the resource group
 
-# This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "~> 0.3"
+  version = "0.4.2"
+
+  suffix        = [local.base_name]
+  unique-length = 5
 }
 
-# This is required for resource modules
 resource "azurerm_resource_group" "this" {
   location = module.regions.regions[random_integer.region_index.result].name
   name     = module.naming.resource_group.name_unique
 }
 
-# This is the module call
-# Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
-module "test" {
-  source = "../../"
-  # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
-  # ...
+resource "azurerm_log_analytics_workspace" "this" {
   location            = azurerm_resource_group.this.location
-  name                = "TODO" # TODO update with module.naming.<RESOURCE_TYPE>.name_unique
+  name                = module.naming.log_analytics_workspace.name_unique
   resource_group_name = azurerm_resource_group.this.name
+  retention_in_days   = 30
+  sku                 = "PerGB2018"
+}
 
-  enable_telemetry = var.enable_telemetry # see variables.tf
+module "ai_foundry" {
+  source = "../../"
+
+  base_name = local.base_name
+  location  = azurerm_resource_group.this.location
+  ai_model_deployments = {
+    "gpt-4o" = {
+      name = "gpt-4.1"
+      model = {
+        format  = "OpenAI"
+        name    = "gpt-4.1"
+        version = "2025-04-14"
+      }
+      scale = {
+        type     = "GlobalStandard"
+        capacity = 1
+      }
+    }
+  }
+  create_ai_agent_service    = false # default: false
+  create_dependent_resources = true  # default: false
+  create_private_endpoints   = false # default: false
+  create_project_connections = true  # default: false
+  create_resource_group      = false # default: false
+  resource_group_name        = azurerm_resource_group.this.name
 }
 ```
 
@@ -74,11 +99,9 @@ module "test" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.5)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.21)
-
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
@@ -86,6 +109,7 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 
@@ -96,17 +120,7 @@ No required inputs.
 
 ## Optional Inputs
 
-The following input variables are optional (have default values):
-
-### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
-
-Description: This variable controls whether or not telemetry is enabled for the module.  
-For more information see <https://aka.ms/avm/telemetryinfo>.  
-If it is set to false, then no telemetry will be collected.
-
-Type: `bool`
-
-Default: `true`
+No optional inputs.
 
 ## Outputs
 
@@ -116,23 +130,23 @@ No outputs.
 
 The following Modules are called:
 
+### <a name="module_ai_foundry"></a> [ai\_foundry](#module\_ai\_foundry)
+
+Source: ../../
+
+Version:
+
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
 
-Version: ~> 0.3
+Version: 0.4.2
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: ~> 0.1
-
-### <a name="module_test"></a> [test](#module\_test)
-
-Source: ../../
-
-Version:
+Version: 0.5.2
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

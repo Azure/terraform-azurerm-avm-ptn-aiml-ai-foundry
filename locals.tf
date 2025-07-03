@@ -1,34 +1,23 @@
-# TODO: insert locals here.
 locals {
-  managed_identities = {
-    system_assigned_user_assigned = (var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) > 0) ? {
-      this = {
-        type                       = var.managed_identities.system_assigned && length(var.managed_identities.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" : length(var.managed_identities.user_assigned_resource_ids) > 0 ? "UserAssigned" : "SystemAssigned"
-        user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
-      }
-    } : {}
-    system_assigned = var.managed_identities.system_assigned ? {
-      this = {
-        type = "SystemAssigned"
-      }
-    } : {}
-    user_assigned = length(var.managed_identities.user_assigned_resource_ids) > 0 ? {
-      this = {
-        type                       = "UserAssigned"
-        user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
-      }
-    } : {}
+  base_name_storage = substr(replace(var.base_name, "-", ""), 0, 18)
+  location          = var.location
+  resource_group_id = coalesce(
+    var.resource_group_id,
+    var.create_resource_group ? azurerm_resource_group.this[0].id : "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${local.resource_group_name_safe}"
+  )
+  resource_group_name = local.resource_group_name_safe
+  # Ensure resource_group_name is never null before using in string interpolation
+  resource_group_name_safe = coalesce(var.resource_group_name, "rg-${var.base_name}-${local.resource_token}")
+  resource_names = {
+    ai_agent_host                   = coalesce(var.resource_names.ai_agent_host, "ah-${var.base_name}-agent-${local.resource_token}")
+    ai_foundry_project              = coalesce(var.resource_names.ai_foundry_project, "aif-${var.base_name}-proj-${local.resource_token}")
+    ai_foundry_project_display_name = coalesce(var.resource_names.ai_foundry_project_display_name, "AI Foundry Project for ${var.base_name}")
+    ai_search                       = coalesce(var.resource_names.ai_search, "srch-${var.base_name}-${local.resource_token}")
+    ai_foundry                      = coalesce(var.resource_names.ai_foundry, "aif-${var.base_name}-${local.resource_token}")
+    cosmos_db                       = coalesce(var.resource_names.cosmos_db, "cos-${var.base_name}-${local.resource_token}")
+    key_vault                       = coalesce(var.resource_names.key_vault, "kv-${var.base_name}-${local.resource_token}")
+    storage_account                 = coalesce(var.resource_names.storage_account, "st${local.base_name_storage}${local.resource_token}")
   }
-  # Private endpoint application security group associations.
-  # We merge the nested maps from private endpoints and application security group associations into a single map.
-  private_endpoint_application_security_group_associations = { for assoc in flatten([
-    for pe_k, pe_v in var.private_endpoints : [
-      for asg_k, asg_v in pe_v.application_security_group_associations : {
-        asg_key         = asg_k
-        pe_key          = pe_k
-        asg_resource_id = asg_v
-      }
-    ]
-  ]) : "${assoc.pe_key}-${assoc.asg_key}" => assoc }
+  resource_token                     = random_string.resource_token.result
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
 }
