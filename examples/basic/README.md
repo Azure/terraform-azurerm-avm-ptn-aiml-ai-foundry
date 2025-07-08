@@ -41,8 +41,9 @@ module "regions" {
 
 resource "random_shuffle" "locations" {
   input        = module.regions.valid_region_names
-  result_count = 2
+  result_count = 3
 }
+
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = "0.4.2"

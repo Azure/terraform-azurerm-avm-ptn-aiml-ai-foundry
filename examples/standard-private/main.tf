@@ -295,7 +295,7 @@ module "ai_foundry" {
       }
     }
   }
-  create_ai_agent_service                   = true # default: false
+  create_ai_agent_service                   = false # default: false
   create_dependent_resources                = true  # default: false
   create_private_endpoints                  = true  # default: false
   create_project_connections                = true  # default: false

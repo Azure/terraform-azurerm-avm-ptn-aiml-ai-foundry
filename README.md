@@ -49,6 +49,10 @@ The following resources are used by this module:
 
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
+- [azurerm_role_assignment.cosmosdb_operator](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
+- [azurerm_role_assignment.search_index_data_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
+- [azurerm_role_assignment.search_service_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
+- [azurerm_role_assignment.storage_blob_data_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_string.resource_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) (resource)
@@ -373,9 +377,17 @@ Description: The name of the AI Foundry account.
 
 Description: The resource ID of the AI Foundry Project.
 
+### <a name="output_ai_foundry_project_internal_id"></a> [ai\_foundry\_project\_internal\_id](#output\_ai\_foundry\_project\_internal\_id)
+
+Description: The internal ID of the AI Foundry project used for container naming.
+
 ### <a name="output_ai_foundry_project_name"></a> [ai\_foundry\_project\_name](#output\_ai\_foundry\_project\_name)
 
 Description: The name of the AI Foundry Project.
+
+### <a name="output_ai_foundry_project_system_identity_principal_id"></a> [ai\_foundry\_project\_system\_identity\_principal\_id](#output\_ai\_foundry\_project\_system\_identity\_principal\_id)
+
+Description: The principal ID of the AI Foundry project's system-assigned managed identity.
 
 ### <a name="output_ai_model_deployment_ids"></a> [ai\_model\_deployment\_ids](#output\_ai\_model\_deployment\_ids)
 
@@ -404,6 +416,10 @@ Description: The resource ID of the Key Vault.
 ### <a name="output_key_vault_name"></a> [key\_vault\_name](#output\_key\_vault\_name)
 
 Description: The name of the Key Vault.
+
+### <a name="output_project_id_guid"></a> [project\_id\_guid](#output\_project\_id\_guid)
+
+Description: The project ID formatted as GUID for container naming (only available when AI agent service is enabled).
 
 ### <a name="output_resource_group_id"></a> [resource\_group\_id](#output\_resource\_group\_id)
 

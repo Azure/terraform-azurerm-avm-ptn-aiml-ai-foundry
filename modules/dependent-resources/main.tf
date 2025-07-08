@@ -60,6 +60,13 @@ module "cosmos_db" {
   location            = var.location
   name                = var.cosmos_db_name
   resource_group_name = var.resource_group_name
+  geo_locations = [
+    {
+      failover_priority = 0
+      zone_redundant    = false
+      location          = var.location
+    }
+  ]
   ip_range_filter = [
     "168.125.123.255",
     "170.0.0.0/24",
@@ -79,13 +86,6 @@ module "cosmos_db" {
       ]
     }
   } : {}
-  geo_locations = [
-    {
-      failover_priority = 0
-      zone_redundant    = false
-      location          = var.location
-    }
-  ]
   public_network_access_enabled = var.create_private_endpoints ? false : true
   tags                          = var.tags
 }

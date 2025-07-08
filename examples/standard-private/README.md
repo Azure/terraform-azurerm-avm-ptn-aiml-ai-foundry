@@ -38,7 +38,7 @@ module "regions" {
 
 resource "random_shuffle" "locations" {
   input        = module.regions.valid_region_names
-  result_count = 2
+  result_count = 3
 }
 
 locals {
@@ -240,6 +240,7 @@ module "bastion_host" {
   shareable_link_enabled = true
   sku                    = "Standard"
   tunneling_enabled      = true
+  zones                  = []
 }
 
 module "virtual_machine" {
@@ -300,9 +301,9 @@ module "ai_foundry" {
       }
     }
   }
-  create_ai_agent_service                   = true  # default: false
+  create_ai_agent_service                   = false # default: false
   create_dependent_resources                = true  # default: false
-  create_private_endpoints                  = false # default: false
+  create_private_endpoints                  = true  # default: false
   create_project_connections                = true  # default: false
   create_resource_group                     = false # default: false
   private_dns_zone_resource_id_ai_foundry   = azurerm_private_dns_zone.openai.id
