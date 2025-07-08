@@ -14,6 +14,12 @@ variable "location" {
   nullable    = false
 }
 
+variable "agent_subnet_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The subnet ID for the AI agent service. If not provided, managed network will be used for the AI agent service. If provided, the AI agent service will be deployed in the specified subnet."
+}
+
 variable "ai_foundry_project_description" {
   type        = string
   default     = "AI Foundry project for agent services and AI workloads"
@@ -163,12 +169,6 @@ variable "private_endpoint_subnet_id" {
   type        = string
   default     = null
   description = "(Optional) The subnet ID for private endpoints."
-}
-
-variable "agent_subnet_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The subnet ID for the AI agent service. If not provided, managed network will be used for the AI agent service. If provided, the AI agent service will be deployed in the specified subnet."
 }
 
 variable "resource_group_id" {

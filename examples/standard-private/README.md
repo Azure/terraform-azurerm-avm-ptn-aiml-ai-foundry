@@ -33,12 +33,12 @@ module "regions" {
   version = "0.5.2"
 
   availability_zones_filter = true
-  geography_filter          = "Australia"
+  geography_filter          = "United States"
 }
 
-resource "random_integer" "region_index" {
-  max = length(module.regions.regions) - 1
-  min = 0
+resource "random_shuffle" "locations" {
+  input        = module.regions.valid_region_names
+  result_count = 2
 }
 
 locals {
@@ -54,7 +54,7 @@ module "naming" {
 }
 
 resource "azurerm_resource_group" "this" {
-  location = module.regions.regions[random_integer.region_index.result].name
+  location = random_shuffle.locations.result[0]
   name     = module.naming.resource_group.name_unique
 }
 
@@ -68,15 +68,15 @@ resource "azurerm_log_analytics_workspace" "this" {
 
 # Virtual Network for private endpoints and agent services
 resource "azurerm_virtual_network" "this" {
-  location            = module.regions.regions[random_integer.region_index.result].name
+  location            = azurerm_resource_group.this.location
   name                = module.naming.virtual_network.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  address_space       = ["10.0.0.0/16"]
+  address_space       = ["192.168.0.0/16"]
 }
 
 # Subnet for private endpoints
 resource "azurerm_subnet" "private_endpoints" {
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = ["192.168.1.0/24"]
   name                 = "snet-private-endpoints"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
@@ -84,7 +84,7 @@ resource "azurerm_subnet" "private_endpoints" {
 
 # Subnet for AI agent services (Container Apps)
 resource "azurerm_subnet" "agent_services" {
-  address_prefixes     = ["10.0.2.0/24"]
+  address_prefixes     = ["192.168.0.0/24"]
   name                 = "snet-agent-services"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
@@ -102,7 +102,7 @@ resource "azurerm_subnet" "agent_services" {
 
 # Subnet for Bastion
 resource "azurerm_subnet" "bastion" {
-  address_prefixes     = ["10.0.3.0/26"]
+  address_prefixes     = ["192.168.2.0/26"]
   name                 = "AzureBastionSubnet"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
@@ -110,7 +110,7 @@ resource "azurerm_subnet" "bastion" {
 
 # Subnet for VM
 resource "azurerm_subnet" "vm" {
-  address_prefixes     = ["10.0.4.0/24"]
+  address_prefixes     = ["192.168.3.0/26"]
   name                 = "snet-vm"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
@@ -181,12 +181,51 @@ resource "azurerm_private_dns_zone_virtual_network_link" "openai" {
   virtual_network_id    = azurerm_virtual_network.this.id
 }
 
+# Cognitive Services General Private DNS Zone
+resource "azurerm_private_dns_zone" "cognitiveservices" {
+  name                = "privatelink.cognitiveservices.azure.com"
+  resource_group_name = azurerm_resource_group.this.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "cognitiveservices" {
+  name                  = "vnet-link-cognitiveservices"
+  private_dns_zone_name = azurerm_private_dns_zone.cognitiveservices.name
+  resource_group_name   = azurerm_resource_group.this.name
+  virtual_network_id    = azurerm_virtual_network.this.id
+}
+
+# Storage File Private DNS Zone
+resource "azurerm_private_dns_zone" "storage_file" {
+  name                = "privatelink.file.core.windows.net"
+  resource_group_name = azurerm_resource_group.this.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "storage_file" {
+  name                  = "vnet-link-storage-file"
+  private_dns_zone_name = azurerm_private_dns_zone.storage_file.name
+  resource_group_name   = azurerm_resource_group.this.name
+  virtual_network_id    = azurerm_virtual_network.this.id
+}
+
+# AI Services Private DNS Zone
+resource "azurerm_private_dns_zone" "ai_services" {
+  name                = "privatelink.services.ai.azure.com"
+  resource_group_name = azurerm_resource_group.this.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "ai_services" {
+  name                  = "vnet-link-ai-services"
+  private_dns_zone_name = azurerm_private_dns_zone.ai_services.name
+  resource_group_name   = azurerm_resource_group.this.name
+  virtual_network_id    = azurerm_virtual_network.this.id
+}
+
 
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
   version = "0.8.0"
 
-  location            = module.regions.regions[random_integer.region_index.result].name
+  location            = azurerm_resource_group.this.location
   name                = module.naming.bastion_host.name_unique
   resource_group_name = azurerm_resource_group.this.name
   copy_paste_enabled  = true
@@ -207,7 +246,7 @@ module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
   version = "0.19.3"
 
-  location = module.regions.regions[random_integer.region_index.result].name
+  location = azurerm_resource_group.this.location
   name     = module.naming.virtual_machine.name_unique
   network_interfaces = {
     network_interface_1 = {
@@ -244,8 +283,9 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name = local.base_name
-  location  = azurerm_resource_group.this.location
+  base_name       = local.base_name
+  location        = azurerm_resource_group.this.location
+  agent_subnet_id = azurerm_subnet.agent_services.id
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -260,9 +300,9 @@ module "ai_foundry" {
       }
     }
   }
-  create_ai_agent_service                   = false # default: false
+  create_ai_agent_service                   = true  # default: false
   create_dependent_resources                = true  # default: false
-  create_private_endpoints                  = true  # default: false
+  create_private_endpoints                  = false # default: false
   create_project_connections                = true  # default: false
   create_resource_group                     = false # default: false
   private_dns_zone_resource_id_ai_foundry   = azurerm_private_dns_zone.openai.id
@@ -291,23 +331,29 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
+- [azurerm_private_dns_zone.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
+- [azurerm_private_dns_zone.cognitiveservices](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.openai](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.search](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.storage_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
+- [azurerm_private_dns_zone.storage_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
+- [azurerm_private_dns_zone_virtual_network_link.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
+- [azurerm_private_dns_zone_virtual_network_link.cognitiveservices](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.openai](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.search](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.storage_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
+- [azurerm_private_dns_zone_virtual_network_link.storage_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_subnet.agent_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.private_endpoints](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
-- [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs

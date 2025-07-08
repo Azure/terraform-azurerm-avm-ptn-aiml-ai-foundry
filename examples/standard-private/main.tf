@@ -277,8 +277,9 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name = local.base_name
-  location  = azurerm_resource_group.this.location
+  base_name       = local.base_name
+  location        = azurerm_resource_group.this.location
+  agent_subnet_id = azurerm_subnet.agent_services.id
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -304,6 +305,5 @@ module "ai_foundry" {
   private_dns_zone_resource_id_search       = azurerm_private_dns_zone.search.id
   private_dns_zone_resource_id_storage_blob = azurerm_private_dns_zone.storage_blob.id
   private_endpoint_subnet_id                = azurerm_subnet.private_endpoints.id
-  agent_subnet_id                           = azurerm_subnet.agent_services.id
   resource_group_name                       = azurerm_resource_group.this.name
 }

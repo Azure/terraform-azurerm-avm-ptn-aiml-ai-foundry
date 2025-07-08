@@ -71,7 +71,7 @@ Description: Whether to create dependent resources like AI Search, Cosmos DB, Ke
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ### <a name="input_create_private_endpoints"></a> [create\_private\_endpoints](#input\_create\_private\_endpoints)
 
@@ -79,7 +79,7 @@ Description: Whether to create private endpoints for AI Foundry, Cosmos DB, Key 
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ### <a name="input_private_dns_zone_resource_id_cosmosdb"></a> [private\_dns\_zone\_resource\_id\_cosmosdb](#input\_private\_dns\_zone\_resource\_id\_cosmosdb)
 

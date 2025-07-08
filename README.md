@@ -78,6 +78,14 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
+### <a name="input_agent_subnet_id"></a> [agent\_subnet\_id](#input\_agent\_subnet\_id)
+
+Description: (Optional) The subnet ID for the AI agent service. If not provided, managed network will be used for the AI agent service. If provided, the AI agent service will be deployed in the specified subnet.
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_ai_foundry_project_description"></a> [ai\_foundry\_project\_description](#input\_ai\_foundry\_project\_description)
 
 Description: Description for the AI Foundry project.
