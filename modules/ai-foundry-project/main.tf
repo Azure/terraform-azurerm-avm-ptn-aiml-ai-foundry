@@ -142,8 +142,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
   ]
 }
 
-# Role assignments are handled in the main module to avoid dependency issues
-
+# Control-plane role assignments are handled in the main module to avoid dependency issues
 # Data Plane Role Assignments for Cosmos DB containers created by AI Foundry Project
 resource "azurerm_cosmosdb_sql_role_assignment" "thread_message_store" {
   count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
