@@ -2,7 +2,7 @@ resource "azapi_resource" "ai_foundry" {
   location  = var.location
   name      = var.ai_foundry_name
   parent_id = var.resource_group_id
-  type      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts@2025-06-01"
   body = {
 
     kind = "AIServices",
@@ -43,7 +43,7 @@ resource "azapi_resource" "ai_model_deployment" {
 
   name      = each.value.name
   parent_id = azapi_resource.ai_foundry.id
-  type      = "Microsoft.CognitiveServices/accounts/deployments@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/deployments@2025-06-01"
   body = {
     properties = {
       model = {

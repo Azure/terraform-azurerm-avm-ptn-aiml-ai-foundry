@@ -234,6 +234,7 @@ module "bastion_host" {
   shareable_link_enabled = true
   sku                    = "Standard"
   tunneling_enabled      = true
+  zones = []
 }
 
 module "virtual_machine" {
@@ -305,6 +306,5 @@ module "ai_foundry" {
   private_dns_zone_resource_id_search       = azurerm_private_dns_zone.search.id
   private_dns_zone_resource_id_storage_blob = azurerm_private_dns_zone.storage_blob.id
   private_endpoint_subnet_id                = azurerm_subnet.private_endpoints.id
-  agent_service_subnet_id                   = azurerm_subnet.agent_services.id
   resource_group_name                       = azurerm_resource_group.this.name
 }

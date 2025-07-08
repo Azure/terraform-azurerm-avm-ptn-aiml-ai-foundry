@@ -2,7 +2,7 @@ resource "azapi_resource" "ai_foundry_project" {
   location  = var.location
   name      = var.ai_foundry_project_name
   parent_id = var.ai_foundry_id
-  type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/projects@2025-06-01"
   body = {
     sku = {
       name = "S0"
@@ -41,7 +41,7 @@ resource "azapi_resource" "ai_foundry_project_connection_storage" {
 
   name      = basename(var.storage_account_id)
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   body = {
     properties = {
       category = "AzureStorageAccount"
@@ -67,7 +67,7 @@ resource "azapi_resource" "ai_foundry_project_connection_cosmos" {
 
   name      = basename(var.cosmos_db_id)
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   body = {
     properties = {
       category = "CosmosDb"
@@ -93,7 +93,7 @@ resource "azapi_resource" "ai_foundry_project_connection_search" {
 
   name      = basename(var.ai_search_id)
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   body = {
     properties = {
       category = "CognitiveSearch"
@@ -117,7 +117,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
 
   name      = var.ai_agent_host_name
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-06-01"
   body = {
     properties = {
       capabilityHostKind = "Agents"
@@ -200,7 +200,7 @@ resource "azurerm_role_assignment" "storage_blob_data_owner" {
   role_definition_name = "Storage Blob Data Owner"
   principal_id         = azapi_resource.ai_foundry_project.output.identity.principalId
   condition_version    = "2.0"
-  condition = <<-EOT
+  condition            = <<-EOT
   (
     (
       !(ActionMatches{'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/read'})
