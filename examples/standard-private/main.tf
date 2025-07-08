@@ -32,7 +32,7 @@ module "regions" {
 
 resource "random_shuffle" "locations" {
   input        = module.regions.valid_region_names
-  result_count = 2
+  result_count = 3
 }
 
 locals {
