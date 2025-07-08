@@ -79,6 +79,13 @@ module "cosmos_db" {
       ]
     }
   } : {}
+  geo_locations = [
+    {
+      failover_priority = 0
+      zone_redundant    = false
+      location          = var.location
+    }
+  ]
   public_network_access_enabled = var.create_private_endpoints ? false : true
   tags                          = var.tags
 }

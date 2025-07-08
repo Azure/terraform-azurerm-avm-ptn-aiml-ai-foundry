@@ -78,6 +78,56 @@ module "ai_foundry_project" {
   ]
 }
 
+# Control Plane Role Assignments for AI Foundry Project System Identity
+# Only created when project connections are enabled and dependent resources exist
+resource "azurerm_role_assignment" "cosmosdb_operator" {
+  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+
+  scope                = module.dependent_resources.cosmos_db_id
+  role_definition_name = "Cosmos DB Operator"
+  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+
+  depends_on = [
+    module.ai_foundry_project
+  ]
+}
+
+resource "azurerm_role_assignment" "storage_blob_data_contributor" {
+  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+
+  scope                = module.dependent_resources.storage_account_id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+
+  depends_on = [
+    module.ai_foundry_project
+  ]
+}
+
+resource "azurerm_role_assignment" "search_index_data_contributor" {
+  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+
+  scope                = module.dependent_resources.ai_search_id
+  role_definition_name = "Search Index Data Contributor"
+  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+
+  depends_on = [
+    module.ai_foundry_project
+  ]
+}
+
+resource "azurerm_role_assignment" "search_service_contributor" {
+  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+
+  scope                = module.dependent_resources.ai_search_id
+  role_definition_name = "Search Service Contributor"
+  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+
+  depends_on = [
+    module.ai_foundry_project
+  ]
+}
+
 resource "azurerm_management_lock" "this" {
   count = var.lock != null ? 1 : 0
 

@@ -82,3 +82,18 @@ output "storage_account_name" {
   description = "The name of the storage account."
   value       = module.dependent_resources.storage_account_name
 }
+
+output "ai_foundry_project_system_identity_principal_id" {
+  description = "The principal ID of the AI Foundry project's system-assigned managed identity."
+  value       = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+}
+
+output "ai_foundry_project_internal_id" {
+  description = "The internal ID of the AI Foundry project used for container naming."
+  value       = module.ai_foundry_project.ai_foundry_project_internal_id
+}
+
+output "project_id_guid" {
+  description = "The project ID formatted as GUID for container naming (only available when AI agent service is enabled)."
+  value       = module.ai_foundry_project.project_id_guid
+}
