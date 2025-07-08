@@ -27,7 +27,7 @@ module "regions" {
   version = "0.5.2"
 
   availability_zones_filter = true
-  geography_filter          = "United States"
+  geography_filter          = "Australia"
 }
 
 resource "random_shuffle" "locations" {
