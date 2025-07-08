@@ -48,6 +48,7 @@ module "ai_foundry" {
   create_private_endpoints                = var.create_private_endpoints
   private_dns_zone_resource_id_ai_foundry = var.private_dns_zone_resource_id_ai_foundry
   private_endpoint_subnet_id              = var.private_endpoint_subnet_id
+  agent_subnet_id                         = var.agent_subnet_id
   tags                                    = var.tags
 
   depends_on = [

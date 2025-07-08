@@ -36,13 +36,13 @@ variable "tenant_id" {
 
 variable "create_dependent_resources" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether to create dependent resources like AI Search, Cosmos DB, Key Vault, and Storage Account. If set to false, these resources will not be created, and the module will only create the AI Foundry account."
 }
 
 variable "create_private_endpoints" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created, and the resources will be accessible over public endpoints. This is useful for scenarios where private connectivity is not required or when using existing resources that do not require private endpoints."
 }
 

@@ -30,14 +30,13 @@ module "regions" {
   version = "0.5.2"
 
   availability_zones_filter = true
-  geography_filter          = "Australia"
+  geography_filter          = "United States"
 }
 
-resource "random_integer" "region_index" {
-  max = length(module.regions.regions) - 1
-  min = 0
+resource "random_shuffle" "locations" {
+  input        = module.regions.valid_region_names
+  result_count = 2
 }
-
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = "0.4.2"
@@ -47,7 +46,7 @@ module "naming" {
 }
 
 resource "azurerm_resource_group" "this" {
-  location = module.regions.regions[random_integer.region_index.result].name
+  location = random_shuffle.locations.result[0]
   name     = module.naming.resource_group.name_unique
 }
 

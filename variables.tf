@@ -165,6 +165,12 @@ variable "private_endpoint_subnet_id" {
   description = "(Optional) The subnet ID for private endpoints."
 }
 
+variable "agent_subnet_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The subnet ID for the AI agent service. If not provided, managed network will be used for the AI agent service. If provided, the AI agent service will be deployed in the specified subnet."
+}
+
 variable "resource_group_id" {
   type        = string
   default     = null

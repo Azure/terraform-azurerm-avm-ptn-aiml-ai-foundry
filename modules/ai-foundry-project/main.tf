@@ -107,11 +107,6 @@ resource "azapi_resource" "ai_foundry_project_connection_search" {
   depends_on = [azapi_resource.ai_foundry_project]
 }
 
-locals {
-  ai_search_name       = try(var.ai_search_id != null ? basename(var.ai_search_id) : null)
-  cosmos_db_name       = try(var.cosmos_db_id != null ? basename(var.cosmos_db_id) : null)
-  storage_account_name = try(var.storage_account_id != null ? basename(var.storage_account_id) : null)
-}
 resource "azapi_resource" "ai_agent_capability_host" {
   count = var.create_ai_agent_service ? 1 : 0
 
@@ -122,15 +117,15 @@ resource "azapi_resource" "ai_agent_capability_host" {
     properties = {
       capabilityHostKind = "Agents"
       description        = "AI Agent capability host for ${var.ai_foundry_project_name}"
-      vectorStoreConnections = [
-        local.ai_search_name
-      ]
-      storageConnections = [
-        local.storage_account_name
-      ]
-      threadStorageConnections = [
-        local.cosmos_db_name
-      ]
+      vectorStoreConnections = var.create_project_connections && var.ai_search_id != null ? [
+        azapi_resource.ai_foundry_project_connection_search[0].name
+      ] : []
+      storageConnections = var.create_project_connections && var.storage_account_id != null ? [
+        azapi_resource.ai_foundry_project_connection_storage[0].name
+      ] : []
+      threadStorageConnections = var.create_project_connections && var.cosmos_db_id != null ? [
+        azapi_resource.ai_foundry_project_connection_cosmos[0].name
+      ] : []
     }
   }
   schema_validation_enabled = false
