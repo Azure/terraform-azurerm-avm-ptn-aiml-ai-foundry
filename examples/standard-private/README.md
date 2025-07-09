@@ -240,7 +240,7 @@ module "bastion_host" {
   shareable_link_enabled = true
   sku                    = "Standard"
   tunneling_enabled      = true
-  zones                  = []
+  zones                  = ["1", "2"]
 }
 
 module "virtual_machine" {
