@@ -12,6 +12,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+
 - <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.9)
 
 ## Resources
@@ -23,6 +25,10 @@ The following resources are used by this module:
 - [azapi_resource.ai_foundry_project_connection_cosmos](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_foundry_project_connection_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_foundry_project_connection_storage](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azurerm_cosmosdb_sql_role_assignment.agent_entity_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) (resource)
+- [azurerm_cosmosdb_sql_role_assignment.system_thread_message_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) (resource)
+- [azurerm_cosmosdb_sql_role_assignment.thread_message_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) (resource)
+- [azurerm_role_assignment.storage_blob_data_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [time_sleep.wait_project_identities](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 
 <!-- markdownlint-disable MD013 -->
@@ -60,11 +66,23 @@ Description: Name of the AI Foundry project
 
 Type: `string`
 
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: Azure region for deployment
+
+Type: `string`
+
+## Optional Inputs
+
+The following input variables are optional (have default values):
+
 ### <a name="input_ai_search_id"></a> [ai\_search\_id](#input\_ai\_search\_id)
 
 Description: Resource ID of the AI Search service
 
 Type: `string`
+
+Default: `null`
 
 ### <a name="input_cosmos_db_id"></a> [cosmos\_db\_id](#input\_cosmos\_db\_id)
 
@@ -72,21 +90,7 @@ Description: Resource ID of the Cosmos DB account
 
 Type: `string`
 
-### <a name="input_location"></a> [location](#input\_location)
-
-Description: Azure region for deployment
-
-Type: `string`
-
-### <a name="input_storage_account_id"></a> [storage\_account\_id](#input\_storage\_account\_id)
-
-Description: Resource ID of the Storage Account
-
-Type: `string`
-
-## Optional Inputs
-
-The following input variables are optional (have default values):
+Default: `null`
 
 ### <a name="input_create_ai_agent_service"></a> [create\_ai\_agent\_service](#input\_create\_ai\_agent\_service)
 
@@ -103,6 +107,14 @@ Description: Whether to create connections to the AI Foundry project. If set to 
 Type: `bool`
 
 Default: `false`
+
+### <a name="input_storage_account_id"></a> [storage\_account\_id](#input\_storage\_account\_id)
+
+Description: Resource ID of the Storage Account
+
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
@@ -124,9 +136,21 @@ Description: Resource ID of the AI agent capability host
 
 Description: Resource ID of the AI Foundry project
 
+### <a name="output_ai_foundry_project_internal_id"></a> [ai\_foundry\_project\_internal\_id](#output\_ai\_foundry\_project\_internal\_id)
+
+Description: Internal ID of the AI Foundry project used for container naming
+
 ### <a name="output_ai_foundry_project_name"></a> [ai\_foundry\_project\_name](#output\_ai\_foundry\_project\_name)
 
 Description: Name of the AI Foundry project
+
+### <a name="output_ai_foundry_project_system_identity_principal_id"></a> [ai\_foundry\_project\_system\_identity\_principal\_id](#output\_ai\_foundry\_project\_system\_identity\_principal\_id)
+
+Description: Principal ID of the AI Foundry project's system-assigned managed identity
+
+### <a name="output_project_id_guid"></a> [project\_id\_guid](#output\_project\_id\_guid)
+
+Description: Project ID formatted as GUID for container naming (only available when AI agent service is enabled)
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 

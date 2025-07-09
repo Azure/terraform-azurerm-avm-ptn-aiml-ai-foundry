@@ -34,9 +34,9 @@ module "regions" {
   geography_filter          = "Australia"
 }
 
-resource "random_integer" "region_index" {
-  max = length(module.regions.regions) - 1
-  min = 0
+resource "random_shuffle" "locations" {
+  input        = module.regions.valid_region_names
+  result_count = 3
 }
 
 module "naming" {
@@ -48,7 +48,7 @@ module "naming" {
 }
 
 resource "azurerm_resource_group" "this" {
-  location = module.regions.regions[random_integer.region_index.result].name
+  location = random_shuffle.locations.result[0]
   name     = module.naming.resource_group.name_unique
 }
 

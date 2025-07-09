@@ -22,7 +22,7 @@ variable "resource_group_name" {
 variable "agent_subnet_id" {
   type        = string
   default     = null
-  description = "(Optional) The subnet ID for the AI agent service. If not provided, the AI agent service will not be created."
+  description = "(Optional) The subnet ID for the AI agent service."
 }
 
 variable "ai_model_deployments" {

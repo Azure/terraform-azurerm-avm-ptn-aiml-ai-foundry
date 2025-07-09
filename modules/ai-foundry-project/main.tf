@@ -2,7 +2,7 @@ resource "azapi_resource" "ai_foundry_project" {
   location  = var.location
   name      = var.ai_foundry_project_name
   parent_id = var.ai_foundry_id
-  type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/projects@2025-06-01"
   body = {
     sku = {
       name = "S0"
@@ -23,6 +23,11 @@ resource "azapi_resource" "ai_foundry_project" {
   tags                      = var.tags
 }
 
+locals {
+  # Extract project internal ID and format as GUID for container naming
+  project_id_guid = var.create_ai_agent_service ? "${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 0, 8)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 8, 4)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 12, 4)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 16, 4)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 20, 12)}" : ""
+}
+
 resource "time_sleep" "wait_project_identities" {
   create_duration = "10s"
 
@@ -36,7 +41,7 @@ resource "azapi_resource" "ai_foundry_project_connection_storage" {
 
   name      = basename(var.storage_account_id)
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   body = {
     properties = {
       category = "AzureStorageAccount"
@@ -62,7 +67,7 @@ resource "azapi_resource" "ai_foundry_project_connection_cosmos" {
 
   name      = basename(var.cosmos_db_id)
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   body = {
     properties = {
       category = "CosmosDb"
@@ -88,7 +93,7 @@ resource "azapi_resource" "ai_foundry_project_connection_search" {
 
   name      = basename(var.ai_search_id)
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   body = {
     properties = {
       category = "CognitiveSearch"
@@ -107,30 +112,24 @@ resource "azapi_resource" "ai_foundry_project_connection_search" {
   depends_on = [azapi_resource.ai_foundry_project]
 }
 
-locals {
-  ai_search_name       = try(var.ai_search_id != null ? basename(var.ai_search_id) : null)
-  cosmos_db_name       = try(var.cosmos_db_id != null ? basename(var.cosmos_db_id) : null)
-  storage_account_name = try(var.storage_account_id != null ? basename(var.storage_account_id) : null)
-}
 resource "azapi_resource" "ai_agent_capability_host" {
   count = var.create_ai_agent_service ? 1 : 0
 
   name      = var.ai_agent_host_name
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-06-01"
   body = {
     properties = {
       capabilityHostKind = "Agents"
-      description        = "AI Agent capability host for ${var.ai_foundry_project_name}"
-      vectorStoreConnections = [
-        local.ai_search_name
-      ]
-      storageConnections = [
-        local.storage_account_name
-      ]
-      threadStorageConnections = [
-        local.cosmos_db_name
-      ]
+      vectorStoreConnections = var.create_project_connections && var.ai_search_id != null ? [
+        azapi_resource.ai_foundry_project_connection_search[0].name
+      ] : []
+      storageConnections = var.create_project_connections && var.storage_account_id != null ? [
+        azapi_resource.ai_foundry_project_connection_storage[0].name
+      ] : []
+      threadStorageConnections = var.create_project_connections && var.cosmos_db_id != null ? [
+        azapi_resource.ai_foundry_project_connection_cosmos[0].name
+      ] : []
     }
   }
   schema_validation_enabled = false
@@ -140,5 +139,81 @@ resource "azapi_resource" "ai_agent_capability_host" {
     azapi_resource.ai_foundry_project_connection_storage,
     azapi_resource.ai_foundry_project_connection_cosmos,
     azapi_resource.ai_foundry_project_connection_search
+  ]
+}
+
+# Control-plane role assignments are handled in the main module to avoid dependency issues
+# Data Plane Role Assignments for Cosmos DB containers created by AI Foundry Project
+resource "azurerm_cosmosdb_sql_role_assignment" "thread_message_store" {
+  count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
+
+  account_name        = basename(var.cosmos_db_id)
+  principal_id        = azapi_resource.ai_foundry_project.output.identity.principalId
+  resource_group_name = split("/", var.cosmos_db_id)[4]
+  role_definition_id  = "${var.cosmos_db_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
+  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory/colls/${local.project_id_guid}-thread-message-store"
+  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}userthreadmessage_dbsqlrole")
+
+  depends_on = [
+    azapi_resource.ai_agent_capability_host,
+    time_sleep.wait_project_identities
+  ]
+}
+
+resource "azurerm_cosmosdb_sql_role_assignment" "system_thread_message_store" {
+  count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
+
+  account_name        = basename(var.cosmos_db_id)
+  principal_id        = azapi_resource.ai_foundry_project.output.identity.principalId
+  resource_group_name = split("/", var.cosmos_db_id)[4]
+  role_definition_id  = "${var.cosmos_db_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
+  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory/colls/${local.project_id_guid}-system-thread-message-store"
+  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}systemthread_dbsqlrole")
+
+  depends_on = [
+    azurerm_cosmosdb_sql_role_assignment.thread_message_store
+  ]
+}
+
+resource "azurerm_cosmosdb_sql_role_assignment" "agent_entity_store" {
+  count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
+
+  account_name        = basename(var.cosmos_db_id)
+  principal_id        = azapi_resource.ai_foundry_project.output.identity.principalId
+  resource_group_name = split("/", var.cosmos_db_id)[4]
+  role_definition_id  = "${var.cosmos_db_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
+  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory/colls/${local.project_id_guid}-agent-entity-store"
+  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}entitystore_dbsqlrole")
+
+  depends_on = [
+    azurerm_cosmosdb_sql_role_assignment.system_thread_message_store
+  ]
+}
+
+# Advanced Storage Blob Data Owner assignment with ABAC conditions
+resource "azurerm_role_assignment" "storage_blob_data_owner" {
+  count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
+
+  principal_id         = azapi_resource.ai_foundry_project.output.identity.principalId
+  scope                = var.storage_account_id
+  condition            = <<-EOT
+  (
+    (
+      !(ActionMatches{'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/read'})
+      AND  !(ActionMatches{'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/filter/action'})
+      AND  !(ActionMatches{'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/write'})
+    )
+    OR
+    (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringStartsWithIgnoreCase '${local.project_id_guid}'
+    AND @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringLikeIgnoreCase '*-azureml-agent')
+  )
+  EOT
+  condition_version    = "2.0"
+  name                 = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}${basename(var.storage_account_id)}storageblobdataowner")
+  role_definition_name = "Storage Blob Data Owner"
+
+  depends_on = [
+    azapi_resource.ai_agent_capability_host,
+    time_sleep.wait_project_identities
   ]
 }

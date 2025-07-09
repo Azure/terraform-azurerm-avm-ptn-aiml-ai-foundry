@@ -9,7 +9,7 @@ locals {
   # Ensure resource_group_name is never null before using in string interpolation
   resource_group_name_safe = coalesce(var.resource_group_name, "rg-${var.base_name}-${local.resource_token}")
   resource_names = {
-    ai_agent_host                   = coalesce(var.resource_names.ai_agent_host, "ah-${var.base_name}-agent-${local.resource_token}")
+    ai_agent_host                   = coalesce(var.resource_names.ai_agent_host, "ah${var.base_name}agent${local.resource_token}")
     ai_foundry_project              = coalesce(var.resource_names.ai_foundry_project, "aif-${var.base_name}-proj-${local.resource_token}")
     ai_foundry_project_display_name = coalesce(var.resource_names.ai_foundry_project_display_name, "AI Foundry Project for ${var.base_name}")
     ai_search                       = coalesce(var.resource_names.ai_search, "srch-${var.base_name}-${local.resource_token}")

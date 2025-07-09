@@ -57,7 +57,7 @@ The following input variables are optional (have default values):
 
 ### <a name="input_agent_subnet_id"></a> [agent\_subnet\_id](#input\_agent\_subnet\_id)
 
-Description: (Optional) The subnet ID for the AI agent service. If not provided, the AI agent service will not be created.
+Description: (Optional) The subnet ID for the AI agent service.
 
 Type: `string`
 

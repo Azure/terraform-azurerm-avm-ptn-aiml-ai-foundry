@@ -43,6 +43,7 @@ module "ai_foundry" {
   location                                = local.location
   resource_group_id                       = local.resource_group_id
   resource_group_name                     = local.resource_group_name
+  agent_subnet_id                         = var.agent_subnet_id
   ai_model_deployments                    = var.ai_model_deployments
   create_ai_agent_service                 = var.create_ai_agent_service
   create_private_endpoints                = var.create_private_endpoints
@@ -63,17 +64,67 @@ module "ai_foundry_project" {
   ai_foundry_project_description  = var.ai_foundry_project_description
   ai_foundry_project_display_name = local.resource_names.ai_foundry_project_display_name
   ai_foundry_project_name         = local.resource_names.ai_foundry_project
+  location                        = local.location
   ai_search_id                    = try(module.dependent_resources.ai_search_id, var.ai_search_resource_id, null)
   cosmos_db_id                    = try(module.dependent_resources.cosmos_db_id, var.cosmos_db_resource_id, null)
-  location                        = local.location
-  storage_account_id              = try(module.dependent_resources.storage_account_id, var.storage_account_resource_id, null)
   create_ai_agent_service         = var.create_ai_agent_service
   create_project_connections      = var.create_project_connections
+  storage_account_id              = try(module.dependent_resources.storage_account_id, var.storage_account_resource_id, null)
   tags                            = var.tags
 
   depends_on = [
     module.ai_foundry,
     module.dependent_resources
+  ]
+}
+
+# Control Plane Role Assignments for AI Foundry Project System Identity
+# Only created when project connections are enabled and dependent resources exist
+resource "azurerm_role_assignment" "cosmosdb_operator" {
+  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+
+  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+  scope                = module.dependent_resources.cosmos_db_id
+  role_definition_name = "Cosmos DB Operator"
+
+  depends_on = [
+    module.ai_foundry_project
+  ]
+}
+
+resource "azurerm_role_assignment" "storage_blob_data_contributor" {
+  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+
+  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+  scope                = module.dependent_resources.storage_account_id
+  role_definition_name = "Storage Blob Data Contributor"
+
+  depends_on = [
+    module.ai_foundry_project
+  ]
+}
+
+resource "azurerm_role_assignment" "search_index_data_contributor" {
+  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+
+  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+  scope                = module.dependent_resources.ai_search_id
+  role_definition_name = "Search Index Data Contributor"
+
+  depends_on = [
+    module.ai_foundry_project
+  ]
+}
+
+resource "azurerm_role_assignment" "search_service_contributor" {
+  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+
+  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+  scope                = module.dependent_resources.ai_search_id
+  role_definition_name = "Search Service Contributor"
+
+  depends_on = [
+    module.ai_foundry_project
   ]
 }
 

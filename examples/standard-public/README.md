@@ -40,9 +40,9 @@ module "regions" {
   geography_filter          = "Australia"
 }
 
-resource "random_integer" "region_index" {
-  max = length(module.regions.regions) - 1
-  min = 0
+resource "random_shuffle" "locations" {
+  input        = module.regions.valid_region_names
+  result_count = 3
 }
 
 module "naming" {
@@ -54,7 +54,7 @@ module "naming" {
 }
 
 resource "azurerm_resource_group" "this" {
-  location = module.regions.regions[random_integer.region_index.result].name
+  location = random_shuffle.locations.result[0]
   name     = module.naming.resource_group.name_unique
 }
 
@@ -111,7 +111,7 @@ The following resources are used by this module:
 
 - [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
