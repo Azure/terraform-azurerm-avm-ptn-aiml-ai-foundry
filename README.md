@@ -92,7 +92,7 @@ Default: `null`
 
 ### <a name="input_ai_foundry_project_description"></a> [ai\_foundry\_project\_description](#input\_ai\_foundry\_project\_description)
 
-Description: Description for the AI Foundry project.
+Description: Description for the AI Foundry project. This variable is deprecated - use ai\_services\_projects instead.
 
 Type: `string`
 
@@ -146,6 +146,21 @@ Description: (Optional) The resource ID of an existing AI Search service to use.
 Type: `string`
 
 Default: `null`
+
+### <a name="input_ai_services_projects"></a> [ai\_services\_projects](#input\_ai\_services\_projects)
+
+Description: Specifies the projects that should be deployed within your ai service.
+
+Type:
+
+```hcl
+map(object({
+    description  = optional(string, "")
+    display_name = optional(string, "")
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_cosmos_db_resource_id"></a> [cosmos\_db\_resource\_id](#input\_cosmos\_db\_resource\_id)
 
@@ -365,6 +380,10 @@ The following outputs are exported:
 
 Description: The resource ID of the AI agent capability host.
 
+### <a name="output_ai_agent_service_ids"></a> [ai\_agent\_service\_ids](#output\_ai\_agent\_service\_ids)
+
+Description: Map of project names to their AI agent capability host resource IDs.
+
 ### <a name="output_ai_foundry_id"></a> [ai\_foundry\_id](#output\_ai\_foundry\_id)
 
 Description: The resource ID of the AI Foundry account.
@@ -377,17 +396,33 @@ Description: The name of the AI Foundry account.
 
 Description: The resource ID of the AI Foundry Project.
 
+### <a name="output_ai_foundry_project_ids"></a> [ai\_foundry\_project\_ids](#output\_ai\_foundry\_project\_ids)
+
+Description: Map of project names to their AI Foundry Project resource IDs.
+
 ### <a name="output_ai_foundry_project_internal_id"></a> [ai\_foundry\_project\_internal\_id](#output\_ai\_foundry\_project\_internal\_id)
 
 Description: The internal ID of the AI Foundry project used for container naming.
+
+### <a name="output_ai_foundry_project_internal_ids"></a> [ai\_foundry\_project\_internal\_ids](#output\_ai\_foundry\_project\_internal\_ids)
+
+Description: Map of project names to their internal IDs used for container naming.
 
 ### <a name="output_ai_foundry_project_name"></a> [ai\_foundry\_project\_name](#output\_ai\_foundry\_project\_name)
 
 Description: The name of the AI Foundry Project.
 
+### <a name="output_ai_foundry_project_names"></a> [ai\_foundry\_project\_names](#output\_ai\_foundry\_project\_names)
+
+Description: Map of project keys to their AI Foundry Project names.
+
 ### <a name="output_ai_foundry_project_system_identity_principal_id"></a> [ai\_foundry\_project\_system\_identity\_principal\_id](#output\_ai\_foundry\_project\_system\_identity\_principal\_id)
 
 Description: The principal ID of the AI Foundry project's system-assigned managed identity.
+
+### <a name="output_ai_foundry_project_system_identity_principal_ids"></a> [ai\_foundry\_project\_system\_identity\_principal\_ids](#output\_ai\_foundry\_project\_system\_identity\_principal\_ids)
+
+Description: Map of project names to their system-assigned managed identity principal IDs.
 
 ### <a name="output_ai_model_deployment_ids"></a> [ai\_model\_deployment\_ids](#output\_ai\_model\_deployment\_ids)
 
@@ -421,6 +456,10 @@ Description: The name of the Key Vault.
 
 Description: The project ID formatted as GUID for container naming (only available when AI agent service is enabled).
 
+### <a name="output_project_id_guids"></a> [project\_id\_guids](#output\_project\_id\_guids)
+
+Description: Map of project names to their project IDs formatted as GUIDs for container naming.
+
 ### <a name="output_resource_group_id"></a> [resource\_group\_id](#output\_resource\_group\_id)
 
 Description: The resource ID of the resource group.
@@ -432,6 +471,10 @@ Description: The name of the resource group.
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The resource ID of the primary AI Foundry project resource.
+
+### <a name="output_resource_ids"></a> [resource\_ids](#output\_resource\_ids)
+
+Description: Map of project names to their AI Foundry project resource IDs.
 
 ### <a name="output_storage_account_id"></a> [storage\_account\_id](#output\_storage\_account\_id)
 
