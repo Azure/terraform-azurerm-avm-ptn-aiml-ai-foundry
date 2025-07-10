@@ -23,7 +23,17 @@ variable "agent_subnet_id" {
 variable "ai_foundry_project_description" {
   type        = string
   default     = "AI Foundry project for agent services and AI workloads"
-  description = "Description for the AI Foundry project."
+  description = "Description for the AI Foundry project. This variable is deprecated - use ai_services_projects instead."
+}
+
+variable "ai_services_projects" {
+  description = "Specifies the projects that should be deployed within your ai service."
+  type = map(object({
+    description  = optional(string, "")
+    display_name = optional(string, "")
+  }))
+  sensitive = false
+  default   = {}
 }
 
 variable "ai_model_deployments" {

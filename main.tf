@@ -57,13 +57,14 @@ module "ai_foundry" {
 }
 
 module "ai_foundry_project" {
-  source = "./modules/ai-foundry-project"
+  for_each = local.projects
+  source   = "./modules/ai-foundry-project"
 
-  ai_agent_host_name              = local.resource_names.ai_agent_host
+  ai_agent_host_name              = each.key == "default" ? local.resource_names.ai_agent_host : "ah${var.base_name}${each.key}${local.resource_token}"
   ai_foundry_id                   = module.ai_foundry.ai_foundry_id
-  ai_foundry_project_description  = var.ai_foundry_project_description
-  ai_foundry_project_display_name = local.resource_names.ai_foundry_project_display_name
-  ai_foundry_project_name         = local.resource_names.ai_foundry_project
+  ai_foundry_project_description  = each.value.description != "" ? each.value.description : var.ai_foundry_project_description
+  ai_foundry_project_display_name = each.value.display_name != "" ? each.value.display_name : (each.key == "default" ? local.resource_names.ai_foundry_project_display_name : "AI Foundry Project ${each.key} for ${var.base_name}")
+  ai_foundry_project_name         = each.key == "default" ? local.resource_names.ai_foundry_project : "aif-${var.base_name}-${each.key}-${local.resource_token}"
   location                        = local.location
   ai_search_id                    = try(module.dependent_resources.ai_search_id, var.ai_search_resource_id, null)
   cosmos_db_id                    = try(module.dependent_resources.cosmos_db_id, var.cosmos_db_resource_id, null)
@@ -81,9 +82,9 @@ module "ai_foundry_project" {
 # Control Plane Role Assignments for AI Foundry Project System Identity
 # Only created when project connections are enabled and dependent resources exist
 resource "azurerm_role_assignment" "cosmosdb_operator" {
-  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+  for_each = var.create_project_connections && var.create_dependent_resources ? local.projects : {}
 
-  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+  principal_id         = module.ai_foundry_project[each.key].ai_foundry_project_system_identity_principal_id
   scope                = module.dependent_resources.cosmos_db_id
   role_definition_name = "Cosmos DB Operator"
 
@@ -93,9 +94,9 @@ resource "azurerm_role_assignment" "cosmosdb_operator" {
 }
 
 resource "azurerm_role_assignment" "storage_blob_data_contributor" {
-  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+  for_each = var.create_project_connections && var.create_dependent_resources ? local.projects : {}
 
-  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+  principal_id         = module.ai_foundry_project[each.key].ai_foundry_project_system_identity_principal_id
   scope                = module.dependent_resources.storage_account_id
   role_definition_name = "Storage Blob Data Contributor"
 
@@ -105,9 +106,9 @@ resource "azurerm_role_assignment" "storage_blob_data_contributor" {
 }
 
 resource "azurerm_role_assignment" "search_index_data_contributor" {
-  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+  for_each = var.create_project_connections && var.create_dependent_resources ? local.projects : {}
 
-  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+  principal_id         = module.ai_foundry_project[each.key].ai_foundry_project_system_identity_principal_id
   scope                = module.dependent_resources.ai_search_id
   role_definition_name = "Search Index Data Contributor"
 
@@ -117,9 +118,9 @@ resource "azurerm_role_assignment" "search_index_data_contributor" {
 }
 
 resource "azurerm_role_assignment" "search_service_contributor" {
-  count = var.create_project_connections && var.create_dependent_resources ? 1 : 0
+  for_each = var.create_project_connections && var.create_dependent_resources ? local.projects : {}
 
-  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+  principal_id         = module.ai_foundry_project[each.key].ai_foundry_project_system_identity_principal_id
   scope                = module.dependent_resources.ai_search_id
   role_definition_name = "Search Service Contributor"
 
