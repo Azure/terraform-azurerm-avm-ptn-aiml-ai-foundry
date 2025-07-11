@@ -197,8 +197,8 @@ Default: `false`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
-Description: This variable controls whether or not telemetry is enabled for the module.  
-For more information see <https://aka.ms/avm/telemetryinfo>.  
+Description: This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
 If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
@@ -468,3 +468,61 @@ Version:
 
 The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
 <!-- END_TF_DOCS -->
+
+## tfnfr32: AI Foundry Subnet Configuration
+
+### Input: `agent_subnet_id`
+- **Description**: (Optional) The subnet ID for the AI agent service. If not provided, the managed network will be used. If provided, the AI agent service will be deployed in the specified subnet.
+- **Type**: `string`
+- **Default**: `null`
+
+Example:
+```hcl
+module "ai_foundry" {
+  source            = "Azure/terraform-azurerm-avm-ptn-aiml-ai-foundry"
+  agent_subnet_id   = "subnet-id"
+}
+
+
+---
+
+##### `tfnfr29: AI Foundry Role Assignments`
+
+```markdown
+## tfnfr29: AI Foundry Role Assignments
+
+### Input: `role_assignments`
+- **Description**: Specifies role assignments for CosmosDB, Search, and Storage resources.
+- **Type**: `map(bool)`
+- **Default**: `{}`
+
+Example:
+```hcl
+module "ai_foundry" {
+  source                = "Azure/terraform-azurerm-avm-ptn-aiml-ai-foundry"
+  role_assignments = {
+    cosmosdb_operator          = true
+    search_index_data_contributor = true
+    search_service_contributor = true
+    storage_blob_data_contributor = true
+  }
+}
+
+
+---
+
+##### `tfnfr28: Geography Filter and Region Configurations`
+
+```markdown
+## tfnfr28: Geography Filter and Region Configurations
+
+### Input: `geography_filter`
+- **Description**: Defines the region for deploying the AI Foundry resources. This helps ensure that resources are deployed in the appropriate geographic area.
+- **Type**: `string`
+- **Default**: `Australia`
+
+Example:
+```hcl
+module "regions" {
+  geography_filter = "Australia"
+}
