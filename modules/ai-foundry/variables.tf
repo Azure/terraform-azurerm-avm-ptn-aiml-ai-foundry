@@ -50,6 +50,198 @@ variable "create_ai_agent_service" {
   description = "Whether to create the AI agent service. If set to false, the AI agent service will not be created, and the AI Foundry account will not have any AI agent capabilities."
 }
 
+variable "customer_managed_key" {
+  type = object({
+    key_vault_resource_id = string
+    key_name              = string
+    key_version           = optional(string, null)
+  })
+  default     = null
+  description = "Configuration for Customer Managed Key (CMK) encryption for AI Foundry."
+}
+
+# Full AI Foundry account properties based on Microsoft.CognitiveServices/accounts API
+variable "kind" {
+  type        = string
+  default     = "AIServices"
+  description = "The kind of the Cognitive Services account. For AI Foundry, this should be 'AIServices'."
+
+  validation {
+    condition = contains([
+      "AIServices", "CognitiveServices", "ComputerVision", "ContentModerator", "Face",
+      "FormRecognizer", "ImmersiveReader", "LUIS", "Personalizer", "QnAMaker",
+      "SpeechServices", "TextAnalytics", "TextTranslation"
+    ], var.kind)
+    error_message = "The kind must be a valid Cognitive Services account kind."
+  }
+}
+
+variable "sku_name" {
+  type        = string
+  default     = "S0"
+  description = "The SKU name for the Cognitive Services account."
+
+  validation {
+    condition = contains([
+      "F0", "F1", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "E0"
+    ], var.sku_name)
+    error_message = "The SKU name must be a valid Cognitive Services SKU."
+  }
+}
+
+variable "identity_type" {
+  type        = string
+  default     = "SystemAssigned"
+  description = "The type of managed identity for the account."
+
+  validation {
+    condition = contains([
+      "None", "SystemAssigned", "UserAssigned", "SystemAssigned,UserAssigned"
+    ], var.identity_type)
+    error_message = "The identity type must be None, SystemAssigned, UserAssigned, or SystemAssigned,UserAssigned."
+  }
+}
+
+variable "user_assigned_identity_ids" {
+  type        = list(string)
+  default     = []
+  description = "The list of user assigned identity IDs to assign to the account."
+}
+
+variable "api_properties" {
+  type = object({
+    aadClientId                        = optional(string)
+    aadTenantId                        = optional(string)
+    eventHubConnectionString           = optional(string)
+    qnaAzureSearchEndpointId           = optional(string)
+    qnaAzureSearchEndpointKey          = optional(string)
+    qnaRuntimeEndpoint                 = optional(string)
+    statisticsEnabled                  = optional(bool)
+    superUser                          = optional(string)
+    websiteName                        = optional(string)
+  })
+  default     = {}
+  description = "API-specific properties for the Cognitive Services account."
+}
+
+variable "custom_sub_domain_name" {
+  type        = string
+  default     = null
+  description = "The subdomain name used for token-based authentication. When not specified, the account name will be used."
+}
+
+variable "disable_local_auth" {
+  type        = bool
+  default     = false
+  description = "Whether to disable local authentication methods in favor of AAD authentication."
+}
+
+variable "dynamic_throttling_enabled" {
+  type        = bool
+  default     = null
+  description = "Whether to enable dynamic throttling."
+}
+
+variable "fqdn" {
+  type        = string
+  default     = null
+  description = "The fully qualified domain name for the account."
+}
+
+variable "migration_token" {
+  type        = string
+  default     = null
+  description = "The migration token for the account."
+}
+
+variable "network_acls" {
+  type = object({
+    default_action = optional(string, "Allow")
+    ip_rules = optional(list(object({
+      value = string
+    })), [])
+    virtual_network_rules = optional(list(object({
+      id                               = string
+      state                           = optional(string)
+      ignoreMissingVnetServiceEndpoint = optional(bool)
+    })), [])
+  })
+  default = {
+    default_action        = "Allow"
+    ip_rules              = []
+    virtual_network_rules = []
+  }
+  description = "Network access control list for the account."
+}
+
+variable "public_network_access" {
+  type        = string
+  default     = null
+  description = "Whether public network access is allowed. Values: 'Enabled', 'Disabled'."
+
+  validation {
+    condition     = var.public_network_access == null || contains(["Enabled", "Disabled"], var.public_network_access)
+    error_message = "The public network access must be either 'Enabled' or 'Disabled'."
+  }
+}
+
+variable "quota_limit" {
+  type = object({
+    count         = optional(number)
+    renewalPeriod = optional(number)
+    rules = optional(list(object({
+      key                = string
+      matchPatterns      = list(object({
+        method = string
+        path   = string
+      }))
+      renewalPeriod      = number
+      dynamicThrottlingEnabled = optional(bool)
+    })))
+  })
+  default     = null
+  description = "The quota limit configuration for the account."
+}
+
+variable "restore" {
+  type        = bool
+  default     = null
+  description = "Whether to restore a soft-deleted account."
+}
+
+variable "restrict_outbound_network_access" {
+  type        = bool
+  default     = null
+  description = "Whether to restrict outbound network access."
+}
+
+variable "user_owned_storage" {
+  type = list(object({
+    resourceId           = string
+    identityClientId     = optional(string)
+    revisionId           = optional(string)
+    subdomainName        = optional(string)
+  }))
+  default     = []
+  description = "The user-owned storage accounts for the account."
+}
+
+variable "allow_project_management" {
+  type        = bool
+  default     = true
+  description = "Whether to allow project management for AI Foundry."
+}
+
+variable "network_injections" {
+  type = list(object({
+    scenario                   = string
+    subnetArmId               = string
+    useMicrosoftManagedNetwork = optional(bool, false)
+  }))
+  default     = []
+  description = "Network injection configurations for the account."
+}
+
 variable "private_endpoints" {
   type = map(object({
     name = optional(string, null)

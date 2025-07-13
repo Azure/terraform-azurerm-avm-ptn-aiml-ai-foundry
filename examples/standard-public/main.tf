@@ -149,11 +149,57 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_resource_id       = module.ai_search.resource.id
-  cosmos_db_resource_id       = module.cosmos_db.resource.id
-  storage_account_resource_id = module.storage_account.resource.id
+  ai_search_resource_id       = module.ai_search.resource_id
+  cosmos_db_resource_id       = module.cosmos_db.resource_id
+  storage_account_resource_id = module.storage_account.resource_id
   create_ai_agent_service     = false # default: false
   create_project_connections  = true  # default: false
   create_resource_group       = false # default: false
   resource_group_name         = azurerm_resource_group.this.name
+}
+
+# Role Assignments for AI Foundry Project System Identity
+# These assignments allow the project to access the dependent resources
+resource "azurerm_role_assignment" "cosmosdb_operator" {
+  principal_id         = module.ai_foundry.ai_foundry_project_system_identity_principal_id
+  scope                = module.cosmos_db.resource_id
+  role_definition_name = "Cosmos DB Operator"
+
+  depends_on = [
+    module.ai_foundry,
+    module.cosmos_db
+  ]
+}
+
+resource "azurerm_role_assignment" "storage_blob_data_contributor" {
+  principal_id         = module.ai_foundry.ai_foundry_project_system_identity_principal_id
+  scope                = module.storage_account.resource_id
+  role_definition_name = "Storage Blob Data Contributor"
+
+  depends_on = [
+    module.ai_foundry,
+    module.storage_account
+  ]
+}
+
+resource "azurerm_role_assignment" "search_index_data_contributor" {
+  principal_id         = module.ai_foundry.ai_foundry_project_system_identity_principal_id
+  scope                = module.ai_search.resource_id
+  role_definition_name = "Search Index Data Contributor"
+
+  depends_on = [
+    module.ai_foundry,
+    module.ai_search
+  ]
+}
+
+resource "azurerm_role_assignment" "search_service_contributor" {
+  principal_id         = module.ai_foundry.ai_foundry_project_system_identity_principal_id
+  scope                = module.ai_search.resource_id
+  role_definition_name = "Search Service Contributor"
+
+  depends_on = [
+    module.ai_foundry,
+    module.ai_search
+  ]
 }

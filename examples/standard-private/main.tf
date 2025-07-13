@@ -96,6 +96,16 @@ module "key_vault" {
   name                = module.naming.key_vault.name_unique
   resource_group_name = azurerm_resource_group.this.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  # Role assignments for deployment and CMK management
+  role_assignments = {
+    deployment_user = {
+      role_definition_id_or_name = "Key Vault Administrator"
+      principal_id               = data.azurerm_client_config.current.object_id
+      principal_type             = "User"
+    }
+  }
+
   private_endpoints = {
     "vault" = {
       subnet_resource_id = azurerm_subnet.private_endpoints.id
@@ -169,6 +179,25 @@ module "ai_search" {
   }
   public_network_access_enabled = false
   tags                          = {}
+}
+
+# Customer Managed Key for AI Foundry encryption
+resource "azurerm_key_vault_key" "ai_foundry_cmk" {
+  key_vault_id = module.key_vault.resource_id
+  name         = "ai-foundry-cmk"
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "verify",
+    "wrapKey",
+    "unwrapKey",
+  ]
+
+  depends_on = [module.key_vault]
 }
 
 # Virtual Network for private endpoints and agent services
@@ -406,17 +435,83 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_resource_id       = module.ai_search.resource.id
-  cosmos_db_resource_id       = module.cosmos_db.resource.id
-  storage_account_resource_id = module.storage_account.resource.id
+  ai_search_resource_id       = module.ai_search.resource_id
+  cosmos_db_resource_id       = module.cosmos_db.resource_id
+  storage_account_resource_id = module.storage_account.resource_id
   create_ai_agent_service     = false # default: false
   create_project_connections  = true  # default: false
   create_resource_group       = false # default: false
   resource_group_name         = azurerm_resource_group.this.name
+  customer_managed_key = {
+    key_vault_resource_id = module.key_vault.resource_id
+    key_name              = azurerm_key_vault_key.ai_foundry_cmk.name
+  }
   private_endpoints = {
     ai_foundry = {
       subnet_resource_id        = azurerm_subnet.private_endpoints.id
       private_dns_zone_resource_ids = [azurerm_private_dns_zone.ai_services.id]
     }
   }
+}
+
+# Role Assignments for AI Foundry Project System Identity
+# These assignments allow the project to access the dependent resources
+resource "azurerm_role_assignment" "cosmosdb_operator" {
+  principal_id         = module.ai_foundry.ai_foundry_project_system_identity_principal_id
+  scope                = module.cosmos_db.resource_id
+  role_definition_name = "Cosmos DB Operator"
+
+  depends_on = [
+    module.ai_foundry,
+    module.cosmos_db
+  ]
+}
+
+resource "azurerm_role_assignment" "storage_blob_data_contributor" {
+  principal_id         = module.ai_foundry.ai_foundry_project_system_identity_principal_id
+  scope                = module.storage_account.resource_id
+  role_definition_name = "Storage Blob Data Contributor"
+
+  depends_on = [
+    module.ai_foundry,
+    module.storage_account
+  ]
+}
+
+resource "azurerm_role_assignment" "search_index_data_contributor" {
+  principal_id         = module.ai_foundry.ai_foundry_project_system_identity_principal_id
+  scope                = module.ai_search.resource_id
+  role_definition_name = "Search Index Data Contributor"
+
+  depends_on = [
+    module.ai_foundry,
+    module.ai_search
+  ]
+}
+
+resource "azurerm_role_assignment" "search_service_contributor" {
+  principal_id         = module.ai_foundry.ai_foundry_project_system_identity_principal_id
+  scope                = module.ai_search.resource_id
+  role_definition_name = "Search Service Contributor"
+
+  depends_on = [
+    module.ai_foundry,
+    module.ai_search
+  ]
+}
+
+# Outputs
+output "ai_foundry_id" {
+  description = "The resource ID of the AI Foundry account"
+  value       = module.ai_foundry.ai_foundry_id
+}
+
+output "ai_foundry_cmk_key_id" {
+  description = "The Key Vault key ID used for AI Foundry encryption"
+  value       = azurerm_key_vault_key.ai_foundry_cmk.id
+}
+
+output "ai_foundry_cmk_key_vault_uri" {
+  description = "The Key Vault URI containing the CMK"
+  value       = module.key_vault.resource.vault_uri
 }

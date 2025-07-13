@@ -95,6 +95,22 @@ variable "create_resource_group" {
   description = "Whether to create a new resource group. Set to false to use an existing resource group specified in resource_group_name."
 }
 
+variable "customer_managed_key" {
+  type = object({
+    key_vault_resource_id = string
+    key_name              = optional(string, "ai-foundry-cmk")
+    key_version           = optional(string, null)
+  })
+  default     = null
+  description = <<DESCRIPTION
+Configuration for Customer Managed Key (CMK) encryption for AI Foundry. If not provided, Microsoft managed keys will be used.
+
+- `key_vault_resource_id` - (Required) The resource ID of the Key Vault that contains the key.
+- `key_name` - (Optional) The name of the key to use for encryption. Defaults to 'ai-foundry-cmk'.
+- `key_version` - (Optional) The version of the key to use for encryption. If not specified, the latest version will be used.
+DESCRIPTION
+}
+
 variable "enable_telemetry" {
   type        = bool
   default     = true
@@ -250,6 +266,188 @@ variable "storage_account_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created."
+}
+
+# AI Foundry account configuration variables
+variable "ai_foundry_kind" {
+  type        = string
+  default     = "AIServices"
+  description = "The kind of the Cognitive Services account. For AI Foundry, this should be 'AIServices'."
+
+  validation {
+    condition = contains([
+      "AIServices", "CognitiveServices", "ComputerVision", "ContentModerator", "Face",
+      "FormRecognizer", "ImmersiveReader", "LUIS", "Personalizer", "QnAMaker",
+      "SpeechServices", "TextAnalytics", "TextTranslation"
+    ], var.ai_foundry_kind)
+    error_message = "The kind must be a valid Cognitive Services account kind."
+  }
+}
+
+variable "ai_foundry_sku_name" {
+  type        = string
+  default     = "S0"
+  description = "The SKU name for the AI Foundry account."
+
+  validation {
+    condition = contains([
+      "F0", "F1", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "E0"
+    ], var.ai_foundry_sku_name)
+    error_message = "The SKU name must be a valid Cognitive Services SKU."
+  }
+}
+
+variable "ai_foundry_identity_type" {
+  type        = string
+  default     = "SystemAssigned"
+  description = "The type of managed identity for the AI Foundry account."
+
+  validation {
+    condition = contains([
+      "None", "SystemAssigned", "UserAssigned", "SystemAssigned,UserAssigned"
+    ], var.ai_foundry_identity_type)
+    error_message = "The identity type must be None, SystemAssigned, UserAssigned, or SystemAssigned,UserAssigned."
+  }
+}
+
+variable "ai_foundry_user_assigned_identity_ids" {
+  type        = list(string)
+  default     = []
+  description = "The list of user assigned identity IDs to assign to the AI Foundry account."
+}
+
+variable "ai_foundry_api_properties" {
+  type = object({
+    aadClientId                        = optional(string)
+    aadTenantId                        = optional(string)
+    eventHubConnectionString           = optional(string)
+    qnaAzureSearchEndpointId           = optional(string)
+    qnaAzureSearchEndpointKey          = optional(string)
+    qnaRuntimeEndpoint                 = optional(string)
+    statisticsEnabled                  = optional(bool)
+    superUser                          = optional(string)
+    websiteName                        = optional(string)
+  })
+  default     = {}
+  description = "API-specific properties for the AI Foundry account."
+}
+
+variable "ai_foundry_custom_sub_domain_name" {
+  type        = string
+  default     = null
+  description = "The subdomain name used for token-based authentication. When not specified, the AI Foundry account name will be used."
+}
+
+variable "ai_foundry_disable_local_auth" {
+  type        = bool
+  default     = false
+  description = "Whether to disable local authentication methods in favor of AAD authentication for the AI Foundry account."
+}
+
+variable "ai_foundry_dynamic_throttling_enabled" {
+  type        = bool
+  default     = null
+  description = "Whether to enable dynamic throttling for the AI Foundry account."
+}
+
+variable "ai_foundry_fqdn" {
+  type        = string
+  default     = null
+  description = "The fully qualified domain name for the AI Foundry account."
+}
+
+variable "ai_foundry_migration_token" {
+  type        = string
+  default     = null
+  description = "The migration token for the AI Foundry account."
+}
+
+variable "ai_foundry_network_acls" {
+  type = object({
+    default_action = optional(string, "Allow")
+    ip_rules = optional(list(object({
+      value = string
+    })), [])
+    virtual_network_rules = optional(list(object({
+      id                               = string
+      state                           = optional(string)
+      ignoreMissingVnetServiceEndpoint = optional(bool)
+    })), [])
+  })
+  default = {
+    default_action        = "Allow"
+    ip_rules              = []
+    virtual_network_rules = []
+  }
+  description = "Network access control list for the AI Foundry account."
+}
+
+variable "ai_foundry_public_network_access" {
+  type        = string
+  default     = null
+  description = "Whether public network access is allowed for the AI Foundry account. Values: 'Enabled', 'Disabled'."
+
+  validation {
+    condition     = var.ai_foundry_public_network_access == null || contains(["Enabled", "Disabled"], var.ai_foundry_public_network_access)
+    error_message = "The public network access must be either 'Enabled' or 'Disabled'."
+  }
+}
+
+variable "ai_foundry_quota_limit" {
+  type = object({
+    count         = optional(number)
+    renewalPeriod = optional(number)
+    rules = optional(list(object({
+      key                = string
+      matchPatterns      = list(object({
+        method = string
+        path   = string
+      }))
+      renewalPeriod      = number
+      dynamicThrottlingEnabled = optional(bool)
+    })))
+  })
+  default     = null
+  description = "The quota limit configuration for the AI Foundry account."
+}
+
+variable "ai_foundry_restore" {
+  type        = bool
+  default     = null
+  description = "Whether to restore a soft-deleted AI Foundry account."
+}
+
+variable "ai_foundry_restrict_outbound_network_access" {
+  type        = bool
+  default     = null
+  description = "Whether to restrict outbound network access for the AI Foundry account."
+}
+
+variable "ai_foundry_user_owned_storage" {
+  type = list(object({
+    resourceId           = string
+    identityClientId     = optional(string)
+    revisionId           = optional(string)
+    subdomainName        = optional(string)
+  }))
+  default     = []
+  description = "The user-owned storage accounts for the AI Foundry account."
+}
+
+variable "ai_foundry_allow_project_management" {
+  type        = bool
+  default     = true
+  description = "Whether to allow project management for AI Foundry."
+}
+
+variable "ai_foundry_network_injections" {
+  type = list(object({
+    scenario                   = string
+    subnetArmId               = string
+    useMicrosoftManagedNetwork = optional(bool, false)
+  }))
+  default     = []
+  description = "Additional network injection configurations for the AI Foundry account (beyond agent service)."
 }
 
 variable "tags" {

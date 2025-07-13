@@ -26,9 +26,30 @@ module "ai_foundry" {
   agent_subnet_id         = var.agent_subnet_id
   ai_model_deployments    = var.ai_model_deployments
   create_ai_agent_service = var.create_ai_agent_service
+  customer_managed_key    = var.customer_managed_key
   private_endpoints       = var.private_endpoints
   private_endpoints_manage_dns_zone_group = var.private_endpoints_manage_dns_zone_group
   tags                    = var.tags
+
+  # AI Foundry API parameters
+  kind                                       = var.ai_foundry_kind
+  sku_name                                   = var.ai_foundry_sku_name
+  identity_type                              = var.ai_foundry_identity_type
+  user_assigned_identity_ids                 = var.ai_foundry_user_assigned_identity_ids
+  api_properties                             = var.ai_foundry_api_properties
+  custom_sub_domain_name                     = var.ai_foundry_custom_sub_domain_name
+  disable_local_auth                         = var.ai_foundry_disable_local_auth
+  dynamic_throttling_enabled                 = var.ai_foundry_dynamic_throttling_enabled
+  fqdn                                       = var.ai_foundry_fqdn
+  migration_token                            = var.ai_foundry_migration_token
+  network_acls                               = var.ai_foundry_network_acls
+  public_network_access                      = var.ai_foundry_public_network_access
+  quota_limit                                = var.ai_foundry_quota_limit
+  restore                                    = var.ai_foundry_restore
+  restrict_outbound_network_access           = var.ai_foundry_restrict_outbound_network_access
+  user_owned_storage                         = var.ai_foundry_user_owned_storage
+  allow_project_management                   = var.ai_foundry_allow_project_management
+  network_injections                         = var.ai_foundry_network_injections
 
   depends_on = [
     azurerm_resource_group.this
@@ -53,56 +74,6 @@ module "ai_foundry_project" {
 
   depends_on = [
     module.ai_foundry
-  ]
-}
-
-# Control Plane Role Assignments for AI Foundry Project System Identity
-# Only created when project connections are enabled and external resources are provided
-resource "azurerm_role_assignment" "cosmosdb_operator" {
-  count = var.create_project_connections && var.cosmos_db_resource_id != null ? 1 : 0
-
-  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
-  scope                = var.cosmos_db_resource_id
-  role_definition_name = "Cosmos DB Operator"
-
-  depends_on = [
-    module.ai_foundry_project
-  ]
-}
-
-resource "azurerm_role_assignment" "storage_blob_data_contributor" {
-  count = var.create_project_connections && var.storage_account_resource_id != null ? 1 : 0
-
-  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
-  scope                = var.storage_account_resource_id
-  role_definition_name = "Storage Blob Data Contributor"
-
-  depends_on = [
-    module.ai_foundry_project
-  ]
-}
-
-resource "azurerm_role_assignment" "search_index_data_contributor" {
-  count = var.create_project_connections && var.ai_search_resource_id != null ? 1 : 0
-
-  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
-  scope                = var.ai_search_resource_id
-  role_definition_name = "Search Index Data Contributor"
-
-  depends_on = [
-    module.ai_foundry_project
-  ]
-}
-
-resource "azurerm_role_assignment" "search_service_contributor" {
-  count = var.create_project_connections && var.ai_search_resource_id != null ? 1 : 0
-
-  principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
-  scope                = var.ai_search_resource_id
-  role_definition_name = "Search Service Contributor"
-
-  depends_on = [
-    module.ai_foundry_project
   ]
 }
 

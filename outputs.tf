@@ -57,3 +57,18 @@ output "resource_id" {
   description = "The resource ID of the primary AI Foundry project resource."
   value       = module.ai_foundry_project.ai_foundry_project_id
 }
+
+output "customer_managed_key_enabled" {
+  description = "Whether customer managed key encryption is enabled for AI Foundry."
+  value       = var.customer_managed_key != null
+}
+
+output "customer_managed_key_vault_id" {
+  description = "The Key Vault resource ID used for customer managed key encryption (if enabled)."
+  value       = var.customer_managed_key != null ? var.customer_managed_key.key_vault_resource_id : null
+}
+
+output "customer_managed_key_name" {
+  description = "The Key Vault key name used for customer managed key encryption (if enabled)."
+  value       = var.customer_managed_key != null ? var.customer_managed_key.key_name : null
+}
