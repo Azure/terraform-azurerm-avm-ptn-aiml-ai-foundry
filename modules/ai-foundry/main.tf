@@ -17,7 +17,7 @@ resource "azapi_resource" "ai_foundry" {
       disableLocalAuth       = false
       allowProjectManagement = true
       customSubDomainName    = var.ai_foundry_name
-      publicNetworkAccess    = var.create_private_endpoints ? "Disabled" : "Enabled"
+      publicNetworkAccess    = length(var.private_endpoints) > 0 ? "Disabled" : "Enabled"
       networkAcls = {
         defaultAction       = "Allow"
         virtualNetworkRules = []
@@ -63,25 +63,4 @@ resource "azapi_resource" "ai_model_deployment" {
   depends_on = [azapi_resource.ai_foundry]
 }
 
-resource "azurerm_private_endpoint" "ai_foundry" {
-  count = var.create_private_endpoints ? 1 : 0
 
-  location            = var.location
-  name                = "pe-${azapi_resource.ai_foundry.name}"
-  resource_group_name = var.resource_group_name
-  subnet_id           = var.private_endpoint_subnet_id
-  tags                = var.tags
-
-  private_service_connection {
-    is_manual_connection           = false
-    name                           = "psc-${azapi_resource.ai_foundry.name}"
-    private_connection_resource_id = azapi_resource.ai_foundry.id
-    subresource_names              = ["account"]
-  }
-  private_dns_zone_group {
-    name                 = "pe-${azapi_resource.ai_foundry.name}-dns"
-    private_dns_zone_ids = [var.private_dns_zone_resource_id_ai_foundry]
-  }
-
-  depends_on = [azapi_resource.ai_foundry]
-}

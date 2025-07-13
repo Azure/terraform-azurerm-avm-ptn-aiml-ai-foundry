@@ -81,17 +81,7 @@ variable "create_ai_agent_service" {
   description = "Whether to create an AI agent service using AzAPI capability hosts."
 }
 
-variable "create_dependent_resources" {
-  type        = bool
-  default     = false
-  description = "Whether to create dependent resources such as AI Search, Cosmos DB, Key Vault, and Storage Account. If set to false, resource ids of existing resources must be provided (BYOR)."
-}
 
-variable "create_private_endpoints" {
-  type        = bool
-  default     = false
-  description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created."
-}
 
 variable "create_project_connections" {
   type        = bool
@@ -135,41 +125,68 @@ DESCRIPTION
   }
 }
 
-variable "private_dns_zone_resource_id_ai_foundry" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the existing private DNS zone for AI Foundry."
+variable "private_endpoints" {
+  type = map(object({
+    name = optional(string, null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
+    })), {})
+    lock = optional(object({
+      kind = string
+      name = optional(string, null)
+    }), null)
+    tags                                    = optional(map(string), null)
+    subnet_resource_id                      = string
+    private_dns_zone_group_name             = optional(string, "default")
+    private_dns_zone_resource_ids           = optional(set(string), [])
+    application_security_group_associations = optional(map(string), {})
+    private_service_connection_name         = optional(string, null)
+    network_interface_name                  = optional(string, null)
+    location                                = optional(string, null)
+    resource_group_name                     = optional(string, null)
+    ip_configurations = optional(map(object({
+      name               = string
+      private_ip_address = string
+    })), {})
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+  A map of private endpoints to create on the AI Foundry Account.
+
+  - `name` - (Optional) The name of the private endpoint. One will be generated if not set.
+  - `role_assignments` - (Optional) A map of role assignments to create on the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time. See `var.role_assignments` for more information.
+  - `lock` - (Optional) The lock level to apply to the private endpoint. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
+  - `tags` - (Optional) A mapping of tags to assign to the private endpoint.
+  - `subnet_resource_id` - The resource ID of the subnet to deploy the private endpoint in.
+  - `private_dns_zone_group_name` - (Optional) The name of the private DNS zone group. One will be generated if not set.
+  - `private_dns_zone_resource_ids` - (Optional) A set of resource IDs of private DNS zones to associate with the private endpoint. If not set, no zone groups will be created and the private endpoint will not be associated with any private DNS zones. DNS records must be managed external to this module.
+  - `application_security_group_associations` - (Optional) A map of resource IDs of application security groups to associate with the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+  - `private_service_connection_name` - (Optional) The name of the private service connection. One will be generated if not set.
+  - `network_interface_name` - (Optional) The name of the network interface. One will be generated if not set.
+  - `location` - (Optional) The Azure location where the resources will be deployed. Defaults to the location of the resource group.
+  - `resource_group_name` - (Optional) The resource group where the resources will be deployed. Defaults to the resource group of the AI Foundry Account.
+  - `ip_configurations` - (Optional) A map of IP configurations to create on the private endpoint. If not specified the platform will create one. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+    - `name` - The name of the IP configuration.
+    - `private_ip_address` - The private IP address of the IP configuration.
+  DESCRIPTION
+  nullable    = false
 }
 
-variable "private_dns_zone_resource_id_cosmosdb" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the existing private DNS zone for Cosmos DB."
+variable "private_endpoints_manage_dns_zone_group" {
+  type        = bool
+  default     = true
+  description = "Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy."
+  nullable    = false
 }
 
-variable "private_dns_zone_resource_id_keyvault" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the existing private DNS zone for Key Vault."
-}
 
-variable "private_dns_zone_resource_id_search" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the existing private DNS zone for AI Search."
-}
-
-variable "private_dns_zone_resource_id_storage_blob" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the existing private DNS zone for Storage Blob."
-}
-
-variable "private_endpoint_subnet_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The subnet ID for private endpoints."
-}
 
 variable "resource_group_id" {
   type        = string
@@ -194,11 +211,7 @@ variable "resource_names" {
     ai_foundry                      = optional(string)
     ai_foundry_project              = optional(string)
     ai_foundry_project_display_name = optional(string)
-    ai_search                       = optional(string)
-    cosmos_db                       = optional(string)
-    key_vault                       = optional(string)
     resource_group                  = optional(string)
-    storage_account                 = optional(string)
   })
   default     = {}
   description = "Custom names for each resource. If not provided, names will be generated using base_name or name."
