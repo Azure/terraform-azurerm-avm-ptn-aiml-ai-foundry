@@ -59,7 +59,7 @@ variable "cosmosdb_definition" {
     })), [])
     public_network_access_enabled    = optional(bool, false)
     analytical_storage_enabled       = optional(bool, true)
-    automatic_failover_enabled       = optional(bool, false)
+    automatic_failover_enabled       = optional(bool, true)
     local_authentication_disabled    = optional(bool, true)
     partition_merge_enabled          = optional(bool, false)
     multiple_write_locations_enabled = optional(bool, false)
