@@ -3,6 +3,7 @@ variable "ai_search_definition" {
     existing_resource_id         = optional(string, null)
     name                         = optional(string)
     private_dns_zone_resource_id = optional(string, null)
+    enable_diagnostic_settings   = optional(bool, true)
     sku                          = optional(string, "standard")
     local_authentication_enabled = optional(bool, true)
     partition_count              = optional(number, 1)
@@ -51,6 +52,7 @@ variable "cosmosdb_definition" {
   type = object({
     existing_resource_id         = optional(string, null)
     private_dns_zone_resource_id = optional(string, null)
+    enable_diagnostic_settings   = optional(bool, true)
     name                         = optional(string)
     secondary_regions = optional(list(object({
       location          = string
@@ -161,6 +163,7 @@ variable "key_vault_definition" {
     existing_resource_id         = optional(string, null)
     name                         = optional(string)
     private_dns_zone_resource_id = optional(string, null)
+    enable_diagnostic_settings   = optional(bool, true)
     sku                          = optional(string, "standard")
     tenant_id                    = optional(string)
     role_assignments = optional(map(object({
@@ -219,11 +222,12 @@ DESCRIPTION
 
 variable "storage_account_definition" {
   type = object({
-    existing_resource_id     = optional(string, null)
-    name                     = optional(string, null)
-    account_kind             = optional(string, "StorageV2")
-    account_tier             = optional(string, "Standard")
-    account_replication_type = optional(string, "GRS")
+    existing_resource_id       = optional(string, null)
+    enable_diagnostic_settings = optional(bool, true)
+    name                       = optional(string, null)
+    account_kind               = optional(string, "StorageV2")
+    account_tier               = optional(string, "Standard")
+    account_replication_type   = optional(string, "GRS")
     endpoints = optional(map(object({
       type                         = string
       private_dns_zone_resource_id = optional(string, null)

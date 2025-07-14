@@ -27,12 +27,12 @@ module "key_vault" {
   name                = local.key_vault_name
   resource_group_name = local.resource_group_name
   tenant_id           = var.key_vault_definition.tenant_id != null ? var.key_vault_definition.tenant_id : data.azurerm_client_config.current.tenant_id
-  diagnostic_settings = {
+  diagnostic_settings = var.key_vault_definition.enable_diagnostic_settings ? {
     to_law = {
       name                  = "sendToLogAnalytics-kv-${random_string.resource_token.result}"
       workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
     }
-  }
+  } : {}
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
@@ -68,12 +68,12 @@ module "ai_search" {
   location            = var.location
   name                = local.ai_search_name
   resource_group_name = local.resource_group_name
-  diagnostic_settings = {
+  diagnostic_settings = var.ai_search_definition.enable_diagnostic_settings ? {
     search = {
       name                  = "sendToLogAnalytics-search-${random_string.resource_token.result}"
       workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
     }
-  }
+  } : {}
   enable_telemetry             = var.enable_telemetry # see variables.tf
   local_authentication_enabled = var.ai_search_definition.local_authentication_enabled
   partition_count              = var.ai_search_definition.partition_count
@@ -107,12 +107,12 @@ module "storage_account" {
   account_kind             = var.storage_account_definition.account_kind
   account_replication_type = var.storage_account_definition.account_replication_type
   account_tier             = var.storage_account_definition.account_tier
-  diagnostic_settings_storage_account = {
+  diagnostic_settings_storage_account = var.storage_account_definition.enable_diagnostic_settings ? {
     storage = {
       name                  = "sendToLogAnalytics-sa-${random_string.resource_token.result}"
       workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
     }
-  }
+  } : {}
   enable_telemetry = var.enable_telemetry
   network_rules = var.create_private_endpoints ? {
     default_action             = "Deny"
@@ -155,12 +155,12 @@ module "cosmosdb" {
     max_staleness_prefix    = var.cosmosdb_definition.consistency_policy.max_staleness_prefix
   }
   cors_rule = var.cosmosdb_definition.cors_rule
-  diagnostic_settings = {
+  diagnostic_settings = var.cosmosdb_definition.enable_diagnostic_settings ? {
     to_law = {
       name                  = "sendToLogAnalytics-cosmosdb-${random_string.resource_token.result}"
       workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
     }
-  }
+  } : {}
   enable_telemetry = var.enable_telemetry
   geo_locations    = local.cosmosdb_secondary_regions
   ip_range_filter = [

@@ -175,6 +175,7 @@ object({
     existing_resource_id         = optional(string, null)
     name                         = optional(string)
     private_dns_zone_resource_id = optional(string, null)
+    enable_diagnostic_settings   = optional(bool, true)
     sku                          = optional(string, "standard")
     local_authentication_enabled = optional(bool, true)
     partition_count              = optional(number, 1)
@@ -253,6 +254,7 @@ Type:
 object({
     existing_resource_id         = optional(string, null)
     private_dns_zone_resource_id = optional(string, null)
+    enable_diagnostic_settings   = optional(bool, true)
     name                         = optional(string)
     secondary_regions = optional(list(object({
       location          = string
@@ -261,7 +263,7 @@ object({
     })), [])
     public_network_access_enabled    = optional(bool, false)
     analytical_storage_enabled       = optional(bool, true)
-    automatic_failover_enabled       = optional(bool, false)
+    automatic_failover_enabled       = optional(bool, true)
     local_authentication_disabled    = optional(bool, true)
     partition_merge_enabled          = optional(bool, false)
     multiple_write_locations_enabled = optional(bool, false)
@@ -371,6 +373,7 @@ object({
     existing_resource_id         = optional(string, null)
     name                         = optional(string)
     private_dns_zone_resource_id = optional(string, null)
+    enable_diagnostic_settings   = optional(bool, true)
     sku                          = optional(string, "standard")
     tenant_id                    = optional(string)
     role_assignments = optional(map(object({
@@ -525,11 +528,12 @@ Type:
 
 ```hcl
 object({
-    existing_resource_id     = optional(string, null)
-    name                     = optional(string, null)
-    account_kind             = optional(string, "StorageV2")
-    account_tier             = optional(string, "Standard")
-    account_replication_type = optional(string, "GRS")
+    existing_resource_id       = optional(string, null)
+    enable_diagnostic_settings = optional(bool, true)
+    name                       = optional(string, null)
+    account_kind               = optional(string, "StorageV2")
+    account_tier               = optional(string, "Standard")
+    account_replication_type   = optional(string, "GRS")
     endpoints = optional(map(object({
       type                         = string
       private_dns_zone_resource_id = optional(string, null)

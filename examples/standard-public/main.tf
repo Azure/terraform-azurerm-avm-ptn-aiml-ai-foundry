@@ -80,7 +80,19 @@ module "ai_foundry" {
       }
     }
   }
+  ai_search_definition = {
+    enable_diagnostic_settings = false
+  }
+  cosmosdb_definition = {
+    enable_diagnostic_settings = false
+  }
   create_ai_agent_service    = false # default: false
   create_private_endpoints   = false # default: false
   create_project_connections = true  # default: false
+  key_vault_definition = {
+    enable_diagnostic_settings = false
+  }
+  storage_account_definition = {
+    enable_diagnostic_settings = false
+  }
 }

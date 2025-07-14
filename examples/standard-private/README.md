@@ -304,18 +304,22 @@ module "ai_foundry" {
   }
   ai_search_definition = {
     private_dns_zone_resource_id = azurerm_private_dns_zone.search.id
+    enable_diagnostic_settings   = false
   }
   cosmosdb_definition = {
     private_dns_zone_resource_id = azurerm_private_dns_zone.cosmosdb.id
+    enable_diagnostic_settings   = false
   }
   create_ai_agent_service    = false # default: false
   create_project_connections = true  # default: false
   key_vault_definition = {
     private_dns_zone_resource_id = azurerm_private_dns_zone.keyvault.id
+    enable_diagnostic_settings   = false
   }
   private_dns_zone_resource_id_ai_foundry = azurerm_private_dns_zone.openai.id
   private_endpoint_subnet_resource_id     = azurerm_subnet.private_endpoints.id
   storage_account_definition = {
+    enable_diagnostic_settings = false
     endpoints = {
       blob = {
         private_dns_zone_resource_id = azurerm_private_dns_zone.storage_blob.id
