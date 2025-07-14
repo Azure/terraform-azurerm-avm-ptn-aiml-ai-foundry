@@ -278,9 +278,10 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name       = local.base_name
-  location        = azurerm_resource_group.this.location
-  agent_subnet_id = azurerm_subnet.agent_services.id
+  base_name                  = local.base_name
+  location                   = azurerm_resource_group.this.location
+  resource_group_resource_id = azurerm_resource_group.this.id
+  agent_subnet_resource_id   = azurerm_subnet.agent_services.id
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -295,14 +296,25 @@ module "ai_foundry" {
       }
     }
   }
-  create_ai_agent_service                   = false # default: false
-  create_private_endpoints                  = true  # default: false
-  create_project_connections                = true  # default: false
-  private_dns_zone_resource_id_ai_foundry   = azurerm_private_dns_zone.openai.id
-  private_dns_zone_resource_id_cosmosdb     = azurerm_private_dns_zone.cosmosdb.id
-  private_dns_zone_resource_id_keyvault     = azurerm_private_dns_zone.keyvault.id
-  private_dns_zone_resource_id_search       = azurerm_private_dns_zone.search.id
-  private_dns_zone_resource_id_storage_blob = azurerm_private_dns_zone.storage_blob.id
-  private_endpoint_subnet_id                = azurerm_subnet.private_endpoints.id
-  resource_group_name                       = azurerm_resource_group.this.name
+  ai_search_definition = {
+    private_dns_zone_resource_id = azurerm_private_dns_zone.search.id
+  }
+  cosmosdb_definition = {
+    private_dns_zone_resource_id = azurerm_private_dns_zone.cosmosdb.id
+  }
+  create_ai_agent_service    = false # default: false
+  create_project_connections = true  # default: false
+  key_vault_definition = {
+    private_dns_zone_resource_id = azurerm_private_dns_zone.keyvault.id
+  }
+  private_dns_zone_resource_id_ai_foundry = azurerm_private_dns_zone.openai.id
+  private_endpoint_subnet_resource_id     = azurerm_subnet.private_endpoints.id
+  storage_account_definition = {
+    endpoints = {
+      blob = {
+        private_dns_zone_resource_id = azurerm_private_dns_zone.storage_blob.id
+        type                         = "blob"
+      }
+    }
+  }
 }

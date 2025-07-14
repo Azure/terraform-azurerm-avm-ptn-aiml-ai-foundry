@@ -25,11 +25,12 @@ variable "ai_search_definition" {
   description = <<DESCRIPTION
 Configuration object for the Azure AI Search service to be created as part of the enterprise and public knowledge services.
 
+- `existing_resource_id` - (Optional) The resource ID of an existing AI Search service to use. If provided, the service will not be created and the other inputs will be ignored.
 - `name` - (Optional) The name of the AI Search service. If not provided, a name will be generated.
+- `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for AI Search. If not provided, a private endpoint will not be created.
 - `sku` - (Optional) The SKU of the AI Search service. Default is "standard".
 - `local_authentication_enabled` - (Optional) Whether local authentication is enabled. Default is true.
 - `partition_count` - (Optional) The number of partitions for the search service. Default is 1.
-- `public_network_access_enabled` - (Optional) Whether public network access is enabled. Default is false.
 - `replica_count` - (Optional) The number of replicas for the search service. Default is 2.
 - `semantic_search_sku` - (Optional) The SKU for semantic search capabilities. Default is "standard".
 - `tags` - (Optional) Map of tags to assign to the AI Search service.
@@ -107,7 +108,9 @@ variable "cosmosdb_definition" {
   description = <<DESCRIPTION
 Configuration object for the Azure Cosmos DB account to be created for GenAI services.
 
+- `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to use. If provided, the account will not be created and the other inputs will be ignored.
 - `name` - (Optional) The name of the Cosmos DB account. If not provided, a name will be generated.
+- `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Cosmos DB. If one is not provided a private endpoint will not be created.
 - `secondary_regions` - (Optional) List of secondary regions for geo-replication.
   - `location` - The Azure region for the secondary location.
   - `zone_redundant` - (Optional) Whether zone redundancy is enabled for the secondary region. Default is true.
@@ -140,6 +143,16 @@ Configuration object for the Azure Cosmos DB account to be created for GenAI ser
   - `allowed_origins` - Set of allowed origins.
   - `exposed_headers` - Set of exposed headers.
   - `max_age_in_seconds` - (Optional) Maximum age in seconds for CORS.
+- `role_assignments` - (Optional) Map of role assignments to create on the Cosmos DB account. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
+  - `role_definition_id_or_name` - The role definition ID or name to assign.
+  - `principal_id` - The principal ID to assign the role to.
+  - `description` - (Optional) Description of the role assignment.
+  - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.
+  - `condition` - (Optional) Condition for the role assignment.
+  - `condition_version` - (Optional) Version of the condition.
+  - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.
+  - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
+- `tags` - (Optional) Map of tags to assign to the Cosmos DB account.
 DESCRIPTION
 }
 
@@ -166,7 +179,9 @@ variable "key_vault_definition" {
   description = <<DESCRIPTION
 Configuration object for the Azure Key Vault to be created for GenAI services.
 
+- `existing_resource_id` - (Optional) The resource ID of an existing Key Vault to use. If provided, the vault will not be created and the other inputs will be ignored.
 - `name` - (Optional) The name of the Key Vault. If not provided, a name will be generated.
+- `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Key Vault. If one is not provided a private endpoint will not be created.
 - `sku` - (Optional) The SKU of the Key Vault. Default is "standard".
 - `tenant_id` - (Optional) The tenant ID for the Key Vault. If not provided, the current tenant will be used.
 - `role_assignments` - (Optional) Map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
@@ -194,7 +209,7 @@ variable "law_definition" {
   description = <<DESCRIPTION
 Configuration object for the Log Analytics Workspace to be created for monitoring and logging.
 
-- `resource_id` - (Optional) The resource ID of an existing Log Analytics Workspace to use. If provided, the workspace will not be created and the other inputs will be ignored.
+- `existing_resource_id` - (Optional) The resource ID of an existing Log Analytics Workspace to use. If provided, the workspace will not be created and the other inputs will be ignored.
 - `name` - (Optional) The name of the Log Analytics Workspace. If not provided, a name will be generated.
 - `retention` - (Optional) The data retention period in days for the workspace. Default is 30.
 - `sku` - (Optional) The SKU of the Log Analytics Workspace. Default is "PerGB2018".
@@ -238,13 +253,15 @@ variable "storage_account_definition" {
   description = <<DESCRIPTION
 Configuration object for the Azure Storage Account to be created for GenAI services.
 
+- `existing_resource_id` - (Optional) The resource ID of an existing Storage Account to use. If provided, the account will not be created and the other inputs will be ignored.
 - `name` - (Optional) The name of the Storage Account. If not provided, a name will be generated.
 - `account_kind` - (Optional) The kind of storage account. Default is "StorageV2".
 - `account_tier` - (Optional) The performance tier of the storage account. Default is "Standard".
 - `account_replication_type` - (Optional) The replication type for the storage account. Default is "GRS".
-- `endpoint_types` - (Optional) Set of endpoint types to enable. Default is ["blob"].
+- `endpoints` - (Optional) Map of endpoint configurations to enable. Default includes blob endpoint.
+  - `type` - The type of endpoint (e.g., "blob", "file", "queue", "table").
+  - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for the endpoint. If not provided, a private endpoint will not be created.
 - `access_tier` - (Optional) The access tier for the storage account. Default is "Hot".
-- `public_network_access_enabled` - (Optional) Whether public network access is enabled. Default is false.
 - `shared_access_key_enabled` - (Optional) Whether shared access keys are enabled. Default is true.
 - `role_assignments` - (Optional) Map of role assignments to create on the Storage Account. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
   - `role_definition_id_or_name` - The role definition ID or name to assign.
