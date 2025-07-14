@@ -1,12 +1,12 @@
 locals {
   ai_search_default_role_assignments = {
     search_index_data_contributor = {
-      principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
-      role_definition_name = "Search Index Data Contributor"
+      principal_id               = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+      role_definition_id_or_name = "Search Index Data Contributor"
     }
     search_service_contributor = {
-      principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
-      role_definition_name = "Search Service Contributor"
+      principal_id               = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+      role_definition_id_or_name = "Search Service Contributor"
     }
   }
   #################################################################
@@ -19,8 +19,8 @@ locals {
   )
   cosmosdb_default_role_assignments = {
     cosmosdb_operator = {
-      principal_id         = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
-      role_definition_name = "Cosmos DB Operator"
+      principal_id               = module.ai_foundry_project.ai_foundry_project_system_identity_principal_id
+      role_definition_id_or_name = "Cosmos DB Operator"
     }
   }
   #################################################################
