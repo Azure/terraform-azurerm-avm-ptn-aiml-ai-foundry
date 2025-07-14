@@ -1,9 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
-# Default example
-
-This deploys the module in its simplest form.
-
-```hcl
 terraform {
   required_version = ">= 1.9, < 2.0"
 
@@ -284,9 +278,10 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name       = local.base_name
-  location        = azurerm_resource_group.this.location
-  agent_subnet_id = azurerm_subnet.agent_services.id
+  base_name                  = local.base_name
+  location                   = azurerm_resource_group.this.location
+  resource_group_resource_id = azurerm_resource_group.this.id
+  agent_subnet_resource_id   = azurerm_subnet.agent_services.id
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -301,108 +296,25 @@ module "ai_foundry" {
       }
     }
   }
-  create_ai_agent_service                   = false # default: false
-  create_private_endpoints                  = true  # default: false
-  create_project_connections                = true  # default: false
-  private_dns_zone_resource_id_ai_foundry   = azurerm_private_dns_zone.openai.id
-  private_dns_zone_resource_id_cosmosdb     = azurerm_private_dns_zone.cosmosdb.id
-  private_dns_zone_resource_id_keyvault     = azurerm_private_dns_zone.keyvault.id
-  private_dns_zone_resource_id_search       = azurerm_private_dns_zone.search.id
-  private_dns_zone_resource_id_storage_blob = azurerm_private_dns_zone.storage_blob.id
-  private_endpoint_subnet_id                = azurerm_subnet.private_endpoints.id
-  resource_group_name                       = azurerm_resource_group.this.name
+  ai_search_definition = {
+    private_dns_zone_resource_id = azurerm_private_dns_zone.search.id
+  }
+  cosmosdb_definition = {
+    private_dns_zone_resource_id = azurerm_private_dns_zone.cosmosdb.id
+  }
+  create_ai_agent_service    = false # default: false
+  create_project_connections = true  # default: false
+  key_vault_definition = {
+    private_dns_zone_resource_id = azurerm_private_dns_zone.keyvault.id
+  }
+  private_dns_zone_resource_id_ai_foundry = azurerm_private_dns_zone.openai.id
+  private_endpoint_subnet_resource_id     = azurerm_subnet.private_endpoints.id
+  storage_account_definition = {
+    endpoints = {
+      blob = {
+        private_dns_zone_resource_id = azurerm_private_dns_zone.storage_blob.id
+        type                         = "blob"
+      }
+    }
+  }
 }
-```
-
-<!-- markdownlint-disable MD033 -->
-## Requirements
-
-The following requirements are needed by this module:
-
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
-
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
-
-- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
-
-## Resources
-
-The following resources are used by this module:
-
-- [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
-- [azurerm_private_dns_zone.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
-- [azurerm_private_dns_zone.cognitiveservices](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
-- [azurerm_private_dns_zone.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
-- [azurerm_private_dns_zone.keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
-- [azurerm_private_dns_zone.openai](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
-- [azurerm_private_dns_zone.search](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
-- [azurerm_private_dns_zone.storage_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
-- [azurerm_private_dns_zone.storage_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
-- [azurerm_private_dns_zone_virtual_network_link.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
-- [azurerm_private_dns_zone_virtual_network_link.cognitiveservices](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
-- [azurerm_private_dns_zone_virtual_network_link.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
-- [azurerm_private_dns_zone_virtual_network_link.keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
-- [azurerm_private_dns_zone_virtual_network_link.openai](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
-- [azurerm_private_dns_zone_virtual_network_link.search](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
-- [azurerm_private_dns_zone_virtual_network_link.storage_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
-- [azurerm_private_dns_zone_virtual_network_link.storage_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
-- [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [azurerm_subnet.agent_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
-- [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
-- [azurerm_subnet.private_endpoints](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
-- [azurerm_subnet.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
-- [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
-- [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
-
-<!-- markdownlint-disable MD013 -->
-## Required Inputs
-
-No required inputs.
-
-## Optional Inputs
-
-No optional inputs.
-
-## Outputs
-
-No outputs.
-
-## Modules
-
-The following Modules are called:
-
-### <a name="module_ai_foundry"></a> [ai\_foundry](#module\_ai\_foundry)
-
-Source: ../../
-
-Version:
-
-### <a name="module_bastion_host"></a> [bastion\_host](#module\_bastion\_host)
-
-Source: Azure/avm-res-network-bastionhost/azurerm
-
-Version: 0.8.0
-
-### <a name="module_naming"></a> [naming](#module\_naming)
-
-Source: Azure/naming/azurerm
-
-Version: 0.4.2
-
-### <a name="module_regions"></a> [regions](#module\_regions)
-
-Source: Azure/avm-utl-regions/azurerm
-
-Version: 0.5.2
-
-### <a name="module_virtual_machine"></a> [virtual\_machine](#module\_virtual\_machine)
-
-Source: Azure/avm-res-compute-virtualmachine/azurerm
-
-Version: 0.19.3
-
-<!-- markdownlint-disable-next-line MD041 -->
-## Data Collection
-
-The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
-<!-- END_TF_DOCS -->

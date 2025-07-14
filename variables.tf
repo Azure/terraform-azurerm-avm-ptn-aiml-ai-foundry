@@ -1,6 +1,6 @@
 variable "base_name" {
   type        = string
-  description = "The name prefix for the AI Foundry resources. Will be used as base_name if base_name is not provided."
+  description = "The name prefix for the AI Foundry resources."
 
   validation {
     condition     = can(regex("^[a-z0-9][a-z0-9-]{1,7}[a-z0-9]$", var.base_name))
@@ -14,7 +14,12 @@ variable "location" {
   nullable    = false
 }
 
-variable "agent_subnet_id" {
+variable "resource_group_resource_id" {
+  type        = string
+  description = "The resource group resource id where the module resources will be deployed."
+}
+
+variable "agent_subnet_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The subnet ID for the AI agent service. If not provided, managed network will be used for the AI agent service. If provided, the AI agent service will be deployed in the specified subnet."
@@ -63,28 +68,10 @@ Configuration for AI model deployments (including OpenAI). Each deployment inclu
 DESCRIPTION
 }
 
-variable "ai_search_resource_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of an existing AI Search service to use. If not provided, a new AI Search service will be created."
-}
-
-variable "cosmos_db_resource_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of an existing Cosmos DB account to use. If not provided, a new Cosmos DB account will be created."
-}
-
 variable "create_ai_agent_service" {
   type        = bool
   default     = false
   description = "Whether to create an AI agent service using AzAPI capability hosts."
-}
-
-variable "create_dependent_resources" {
-  type        = bool
-  default     = false
-  description = "Whether to create dependent resources such as AI Search, Cosmos DB, Key Vault, and Storage Account. If set to false, resource ids of existing resources must be provided (BYOR)."
 }
 
 variable "create_private_endpoints" {
@@ -97,12 +84,6 @@ variable "create_project_connections" {
   type        = bool
   default     = false
   description = "Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created."
-}
-
-variable "create_resource_group" {
-  type        = bool
-  default     = false
-  description = "Whether to create a new resource group. Set to false to use an existing resource group specified in resource_group_name."
 }
 
 variable "enable_telemetry" {
@@ -141,51 +122,10 @@ variable "private_dns_zone_resource_id_ai_foundry" {
   description = "(Optional) The resource ID of the existing private DNS zone for AI Foundry."
 }
 
-variable "private_dns_zone_resource_id_cosmosdb" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the existing private DNS zone for Cosmos DB."
-}
-
-variable "private_dns_zone_resource_id_keyvault" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the existing private DNS zone for Key Vault."
-}
-
-variable "private_dns_zone_resource_id_search" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the existing private DNS zone for AI Search."
-}
-
-variable "private_dns_zone_resource_id_storage_blob" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of the existing private DNS zone for Storage Blob."
-}
-
-variable "private_endpoint_subnet_id" {
+variable "private_endpoint_subnet_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The subnet ID for private endpoints."
-}
-
-variable "resource_group_id" {
-  type        = string
-  default     = null
-  description = "The full resource ID of the resource group. When provided, this takes precedence over resource_group_name. Useful for cross-subscription deployments or when the exact resource ID is known. Format: '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}'"
-
-  validation {
-    condition     = var.resource_group_id == null || can(regex("^/subscriptions/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/resourceGroups/.+$", var.resource_group_id))
-    error_message = "The resource_group_id must be in the format '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}' when provided."
-  }
-}
-
-variable "resource_group_name" {
-  type        = string
-  default     = null
-  description = "The name for the resource group. When create_resource_group=true, this will be the name of the new resource group. When create_resource_group=false, this must be the name of an existing resource group."
 }
 
 variable "resource_names" {
@@ -231,12 +171,6 @@ A map of role assignments to create on this resource. The map key is deliberatel
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 DESCRIPTION
   nullable    = false
-}
-
-variable "storage_account_resource_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The resource ID of an existing storage account to use. If not provided, a new storage account will be created."
 }
 
 variable "tags" {

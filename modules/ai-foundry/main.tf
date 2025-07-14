@@ -1,7 +1,7 @@
 resource "azapi_resource" "ai_foundry" {
   location  = var.location
   name      = var.ai_foundry_name
-  parent_id = var.resource_group_id
+  parent_id = var.resource_group_resource_id
   type      = "Microsoft.CognitiveServices/accounts@2025-06-01"
   body = {
 
@@ -28,7 +28,7 @@ resource "azapi_resource" "ai_foundry" {
       networkInjections = var.create_ai_agent_service ? [
         {
           scenario                   = "agent"
-          subnetArmId                = var.agent_subnet_id
+          subnetArmId                = var.agent_subnet_resource_id
           useMicrosoftManagedNetwork = false
         }
       ] : null
@@ -68,8 +68,8 @@ resource "azurerm_private_endpoint" "ai_foundry" {
 
   location            = var.location
   name                = "pe-${azapi_resource.ai_foundry.name}"
-  resource_group_name = var.resource_group_name
-  subnet_id           = var.private_endpoint_subnet_id
+  resource_group_name = basename(var.resource_group_resource_id)
+  subnet_id           = var.private_endpoint_subnet_resource_id
   tags                = var.tags
 
   private_service_connection {

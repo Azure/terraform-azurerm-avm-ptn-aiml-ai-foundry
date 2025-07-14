@@ -296,10 +296,8 @@ module "ai_foundry" {
     }
   }
   create_ai_agent_service                   = false # default: false
-  create_dependent_resources                = true  # default: false
   create_private_endpoints                  = true  # default: false
   create_project_connections                = true  # default: false
-  create_resource_group                     = false # default: false
   private_dns_zone_resource_id_ai_foundry   = azurerm_private_dns_zone.openai.id
   private_dns_zone_resource_id_cosmosdb     = azurerm_private_dns_zone.cosmosdb.id
   private_dns_zone_resource_id_keyvault     = azurerm_private_dns_zone.keyvault.id

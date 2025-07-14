@@ -9,17 +9,12 @@ variable "location" {
   nullable    = false
 }
 
-variable "resource_group_id" {
+variable "resource_group_resource_id" {
   type        = string
   description = "Resource group ID for the AI Foundry account"
 }
 
-variable "resource_group_name" {
-  type        = string
-  description = "Name of the resource group"
-}
-
-variable "agent_subnet_id" {
+variable "agent_subnet_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The subnet ID for the AI agent service."
@@ -62,7 +57,7 @@ variable "private_dns_zone_resource_id_ai_foundry" {
   description = "(Optional) The resource ID of the private DNS zone for Ai Foundry."
 }
 
-variable "private_endpoint_subnet_id" {
+variable "private_endpoint_subnet_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The subnet ID for private endpoints."

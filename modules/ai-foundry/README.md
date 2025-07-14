@@ -39,15 +39,9 @@ Description: Azure region for deployment
 
 Type: `string`
 
-### <a name="input_resource_group_id"></a> [resource\_group\_id](#input\_resource\_group\_id)
+### <a name="input_resource_group_resource_id"></a> [resource\_group\_resource\_id](#input\_resource\_group\_resource\_id)
 
 Description: Resource group ID for the AI Foundry account
-
-Type: `string`
-
-### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
-
-Description: Name of the resource group
 
 Type: `string`
 
@@ -55,7 +49,7 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_agent_subnet_id"></a> [agent\_subnet\_id](#input\_agent\_subnet\_id)
+### <a name="input_agent_subnet_resource_id"></a> [agent\_subnet\_resource\_id](#input\_agent\_subnet\_resource\_id)
 
 Description: (Optional) The subnet ID for the AI agent service.
 
@@ -112,7 +106,7 @@ Type: `string`
 
 Default: `null`
 
-### <a name="input_private_endpoint_subnet_id"></a> [private\_endpoint\_subnet\_id](#input\_private\_endpoint\_subnet\_id)
+### <a name="input_private_endpoint_subnet_resource_id"></a> [private\_endpoint\_subnet\_resource\_id](#input\_private\_endpoint\_subnet\_resource\_id)
 
 Description: (Optional) The subnet ID for private endpoints.
 
