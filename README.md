@@ -673,7 +673,7 @@ Source: Azure/avm-res-search-searchservice/azurerm
 
 Version: 0.1.5
 
-### <a name="module_avm-utl-regions"></a> [avm-utl-regions](#module\_avm-utl-regions)
+### <a name="module_avm_utl_regions"></a> [avm\_utl\_regions](#module\_avm\_utl\_regions)
 
 Source: Azure/avm-utl-regions/azurerm
 

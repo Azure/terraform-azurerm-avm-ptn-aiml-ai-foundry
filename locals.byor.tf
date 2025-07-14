@@ -60,12 +60,12 @@ locals {
   # Log Analytics specific local variables
   #################################################################
   log_analytics_workspace_name = try(var.law_definition.name, null) != null ? var.law_definition.name : (try(var.base_name, null) != null ? "${var.base_name}-law" : "ai-foundry-law")
-  paired_region                = [for region in module.avm-utl-regions.regions : region if(lower(region.name) == lower(var.location) || (lower(region.display_name) == lower(var.location)))][0].paired_region_name
-  paired_region_zones          = local.paired_region_zones_lookup != null ? local.paired_region_zones_lookup : []
-  paired_region_zones_lookup   = [for region in module.avm-utl-regions.regions : region if(lower(region.name) == lower(local.paired_region) || (lower(region.display_name) == lower(local.paired_region)))][0].zones
-  region_zones                 = local.region_zones_lookup != null ? local.region_zones_lookup : []
-  region_zones_lookup          = [for region in module.avm-utl-regions.regions : region if(lower(region.name) == lower(var.location) || (lower(region.display_name) == lower(var.location)))][0].zones
-  resource_group_name          = basename(var.resource_group_resource_id) #assumes resource group id is required.
+  paired_region                = [for region in module.avm_utl_regions.regions : region if(lower(region.name) == lower(var.location) || (lower(region.display_name) == lower(var.location)))][0].paired_region_name
+  #paired_region_zones          = local.paired_region_zones_lookup != null ? local.paired_region_zones_lookup : []
+  #paired_region_zones_lookup   = [for region in module.avm_utl_regions.regions : region if(lower(region.name) == lower(local.paired_region) || (lower(region.display_name) == lower(local.paired_region)))][0].zones
+  #region_zones                 = local.region_zones_lookup != null ? local.region_zones_lookup : []
+  #region_zones_lookup          = [for region in module.avm_utl_regions.regions : region if(lower(region.name) == lower(var.location) || (lower(region.display_name) == lower(var.location)))][0].zones
+  resource_group_name = basename(var.resource_group_resource_id) #assumes resource group id is required.
   storage_account_default_role_assignments = {
     deployment_user_blob = {
       role_definition_id_or_name = "Storage Blob Data Owner"
@@ -91,7 +91,7 @@ locals {
   #################################################################
   # Storage Account specific local variables
   #################################################################
-  storage_account_name = try(var.storage_account_definition.name, null) != null ? var.storage_account_definition.name : (try(var.base_name, null) != null ? "${var.base_name}fndrysa${random_string.resource_token.result}" : "fndrysa${random_string.resource_token.result}")
+  storage_account_name = try(var.storage_account_definition.name, null) != null ? var.storage_account_definition.name : (try(var.base_name, null) != null ? "${local.base_name_storage}fndrysa${random_string.resource_token.result}" : "fndrysa${random_string.resource_token.result}")
   storage_account_role_assignments = merge(
     local.storage_account_default_role_assignments,
     var.storage_account_definition.role_assignments
