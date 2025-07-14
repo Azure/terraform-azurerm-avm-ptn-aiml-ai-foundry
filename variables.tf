@@ -128,17 +128,13 @@ variable "private_endpoint_subnet_resource_id" {
   description = "(Optional) The subnet ID for private endpoints."
 }
 
+#TODO: Move the project relating naming to a separate projects map so we can create multiple projects in the same module. (Then separate the remaining names into individual variables?)
 variable "resource_names" {
   type = object({
     ai_agent_host                   = optional(string)
     ai_foundry                      = optional(string)
     ai_foundry_project              = optional(string)
     ai_foundry_project_display_name = optional(string)
-    ai_search                       = optional(string)
-    cosmos_db                       = optional(string)
-    key_vault                       = optional(string)
-    resource_group                  = optional(string)
-    storage_account                 = optional(string)
   })
   default     = {}
   description = "Custom names for each resource. If not provided, names will be generated using base_name or name."

@@ -85,3 +85,5 @@ resource "azurerm_private_endpoint" "ai_foundry" {
 
   depends_on = [azapi_resource.ai_foundry]
 }
+
+#TODO - Add interfaces for RBAC, MI?

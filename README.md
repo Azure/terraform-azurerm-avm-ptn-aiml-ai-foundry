@@ -459,11 +459,6 @@ object({
     ai_foundry                      = optional(string)
     ai_foundry_project              = optional(string)
     ai_foundry_project_display_name = optional(string)
-    ai_search                       = optional(string)
-    cosmos_db                       = optional(string)
-    key_vault                       = optional(string)
-    resource_group                  = optional(string)
-    storage_account                 = optional(string)
   })
 ```
 

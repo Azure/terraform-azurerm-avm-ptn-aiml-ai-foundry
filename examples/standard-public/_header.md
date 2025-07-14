@@ -1,3 +1,3 @@
-# Default example
+# Public example
 
-This deploys the module in its simplest form.
+This deploys a simple version of the module without private endpoints.

@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Default example
+# Foundry Sub-Module
 
-This deploys the module in its simplest form.
+This Sub Module will deploy AI-Foundry along with any associated private endpoint.
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements

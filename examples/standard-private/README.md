@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Default example
+# Private example
 
-This deploys the module in its simplest form.
+This example deploys a simple version of the module with private endpoints enabled.
 
 ```hcl
 terraform {
