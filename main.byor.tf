@@ -20,7 +20,7 @@ module "log_analytics_workspace" {
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "=0.10.0"
+  version = "0.10.0"
   count   = var.key_vault_definition.existing_resource_id == null ? 1 : 0
 
   location            = var.location
