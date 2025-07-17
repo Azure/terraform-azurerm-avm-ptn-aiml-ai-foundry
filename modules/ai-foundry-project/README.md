@@ -22,13 +22,16 @@ The following resources are used by this module:
 
 - [azapi_resource.ai_agent_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_foundry_project](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.ai_foundry_project_connection_cosmos](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.ai_foundry_project_connection_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.ai_foundry_project_connection_storage](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.connection_cosmos](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.connection_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.connection_storage](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azurerm_cosmosdb_sql_role_assignment.agent_entity_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) (resource)
 - [azurerm_cosmosdb_sql_role_assignment.system_thread_message_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) (resource)
 - [azurerm_cosmosdb_sql_role_assignment.thread_message_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) (resource)
+- [azurerm_role_assignment.ai_search_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
+- [azurerm_role_assignment.cosmosdb_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.storage_blob_data_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
+- [azurerm_role_assignment.storage_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [time_sleep.wait_project_identities](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 
 <!-- markdownlint-disable MD013 -->
@@ -48,27 +51,27 @@ Description: Resource ID of the AI Foundry account
 
 Type: `string`
 
-### <a name="input_ai_foundry_project_description"></a> [ai\_foundry\_project\_description](#input\_ai\_foundry\_project\_description)
+### <a name="input_description"></a> [description](#input\_description)
 
 Description: Description for the AI Foundry project
 
 Type: `string`
 
-### <a name="input_ai_foundry_project_display_name"></a> [ai\_foundry\_project\_display\_name](#input\_ai\_foundry\_project\_display\_name)
+### <a name="input_display_name"></a> [display\_name](#input\_display\_name)
 
 Description: Display name for the AI Foundry project
-
-Type: `string`
-
-### <a name="input_ai_foundry_project_name"></a> [ai\_foundry\_project\_name](#input\_ai\_foundry\_project\_name)
-
-Description: Name of the AI Foundry project
 
 Type: `string`
 
 ### <a name="input_location"></a> [location](#input\_location)
 
 Description: Azure region for deployment
+
+Type: `string`
+
+### <a name="input_name"></a> [name](#input\_name)
+
+Description: Name of the AI Foundry project
 
 Type: `string`
 
@@ -102,11 +105,19 @@ Default: `true`
 
 ### <a name="input_create_project_connections"></a> [create\_project\_connections](#input\_create\_project\_connections)
 
-Description: Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created.
+Description: Whether to create project connections for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, the project will not create connections to these resources.
 
 Type: `bool`
 
-Default: `false`
+Default: `true`
+
+### <a name="input_sku"></a> [sku](#input\_sku)
+
+Description: SKU for the AI Foundry project
+
+Type: `string`
+
+Default: `"S0"`
 
 ### <a name="input_storage_account_id"></a> [storage\_account\_id](#input\_storage\_account\_id)
 

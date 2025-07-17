@@ -68,6 +68,9 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
+  ai_foundry = {
+    create_ai_agent_service = false
+  }
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
@@ -85,20 +88,13 @@ module "ai_foundry" {
       }
     }
   }
-  ai_search_definition = {
-    enable_diagnostic_settings = false
-  }
-  cosmosdb_definition = {
-    enable_diagnostic_settings = false
-  }
-  create_ai_agent_service    = false # default: false
-  create_private_endpoints   = false # default: false
-  create_project_connections = false # default: false
-  key_vault_definition = {
-    enable_diagnostic_settings = false
-  }
-  storage_account_definition = {
-    enable_diagnostic_settings = false
+  ai_projects = {
+    project_1 = {
+      name                       = "project-1"
+      description                = "Project 1 description"
+      display_name               = "Project 1 Display Name"
+      create_project_connections = false
+    }
   }
 }
 ```

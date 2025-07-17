@@ -278,6 +278,10 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
+  ai_foundry = {
+    create_ai_agent_service      = false
+    private_dns_zone_resource_id = azurerm_private_dns_zone.openai.id
+  }
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
@@ -296,28 +300,50 @@ module "ai_foundry" {
       }
     }
   }
+  ai_projects = {
+    project_1 = {
+      name                       = "project-1"
+      description                = "Project 1 description"
+      display_name               = "Project 1 Display Name"
+      create_project_connections = true
+      cosmos_db_connection = {
+        new_resource_map_key = "this"
+      }
+      ai_search_connection = {
+        new_resource_map_key = "this"
+      }
+      storage_account_connection = {
+        new_resource_map_key = "this"
+      }
+    }
+  }
   ai_search_definition = {
-    private_dns_zone_resource_id = azurerm_private_dns_zone.search.id
-    enable_diagnostic_settings   = false
+    this = {
+      private_dns_zone_resource_id = azurerm_private_dns_zone.search.id
+      enable_diagnostic_settings   = false
+    }
   }
   cosmosdb_definition = {
-    private_dns_zone_resource_id = azurerm_private_dns_zone.cosmosdb.id
-    enable_diagnostic_settings   = false
+    this = {
+      private_dns_zone_resource_id = azurerm_private_dns_zone.cosmosdb.id
+      enable_diagnostic_settings   = false
+    }
   }
-  create_ai_agent_service    = false # default: false
-  create_project_connections = true  # default: false
   key_vault_definition = {
-    private_dns_zone_resource_id = azurerm_private_dns_zone.keyvault.id
-    enable_diagnostic_settings   = false
+    this = {
+      private_dns_zone_resource_id = azurerm_private_dns_zone.keyvault.id
+      enable_diagnostic_settings   = false
+    }
   }
-  private_dns_zone_resource_id_ai_foundry = azurerm_private_dns_zone.openai.id
-  private_endpoint_subnet_resource_id     = azurerm_subnet.private_endpoints.id
+  private_endpoint_subnet_resource_id = azurerm_subnet.private_endpoints.id
   storage_account_definition = {
-    enable_diagnostic_settings = false
-    endpoints = {
-      blob = {
-        private_dns_zone_resource_id = azurerm_private_dns_zone.storage_blob.id
-        type                         = "blob"
+    this = {
+      enable_diagnostic_settings = false
+      endpoints = {
+        blob = {
+          private_dns_zone_resource_id = azurerm_private_dns_zone.storage_blob.id
+          type                         = "blob"
+        }
       }
     }
   }

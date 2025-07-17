@@ -1,3 +1,4 @@
+
 module "avm_utl_regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.5.2"
@@ -19,15 +20,15 @@ module "log_analytics_workspace" {
 }
 
 module "key_vault" {
-  source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.0"
-  count   = var.key_vault_definition.existing_resource_id == null ? 1 : 0
+  source   = "Azure/avm-res-keyvault-vault/azurerm"
+  version  = "0.10.0"
+  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
 
   location            = var.location
-  name                = local.key_vault_name
+  name                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-kv-${random_string.resource_token.result}" : "kv-fndry-${random_string.resource_token.result}")
   resource_group_name = local.resource_group_name
-  tenant_id           = var.key_vault_definition.tenant_id != null ? var.key_vault_definition.tenant_id : data.azurerm_client_config.current.tenant_id
-  diagnostic_settings = var.key_vault_definition.enable_diagnostic_settings ? {
+  tenant_id           = each.value.tenant_id != null ? each.value.tenant_id : data.azurerm_client_config.current.tenant_id
+  diagnostic_settings = each.value.enable_diagnostic_settings ? {
     to_law = {
       name                  = "sendToLogAnalytics-kv-${random_string.resource_token.result}"
       workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
@@ -36,20 +37,20 @@ module "key_vault" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
-  network_acls = { #TODO check to see if we need to support custom network ACLs
+  network_acls = { #TODO check to see if we need to support custom network ACLs and if this should be deny by default.
     default_action = "Allow"
     bypass         = "AzureServices"
   }
   private_endpoints = var.create_private_endpoints ? {
     "vault" = {
-      private_dns_zone_resource_ids = [var.key_vault_definition.private_dns_zone_resource_id]
+      private_dns_zone_resource_ids = [each.value.private_dns_zone_resource_id]
       subnet_resource_id            = var.private_endpoint_subnet_resource_id
       subresource_name              = "vault"
     }
   } : {}
   public_network_access_enabled = var.create_private_endpoints ? false : true
-  role_assignments              = local.key_vault_role_assignments
-  tags                          = var.key_vault_definition.tags
+  role_assignments              = local.key_vault_role_assignments[each.key]
+  tags                          = each.value.tags
   wait_for_rbac_before_key_operations = {
     create = "60s"
   }
@@ -61,34 +62,34 @@ module "key_vault" {
 
 
 module "ai_search" {
-  source  = "Azure/avm-res-search-searchservice/azurerm"
-  version = "0.1.5"
-  count   = var.ai_search_definition.existing_resource_id == null ? 1 : 0
+  source   = "Azure/avm-res-search-searchservice/azurerm"
+  version  = "0.1.5"
+  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
 
   location            = var.location
-  name                = local.ai_search_name
+  name                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-${each.key}-ai-foundry-ai-search" : "${each.key}-ai-foundry-ai-search-${random_string.resource_token.result}")
   resource_group_name = local.resource_group_name
-  diagnostic_settings = var.ai_search_definition.enable_diagnostic_settings ? {
+  diagnostic_settings = each.value.enable_diagnostic_settings ? {
     search = {
       name                  = "sendToLogAnalytics-search-${random_string.resource_token.result}"
       workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
     }
   } : {}
   enable_telemetry             = var.enable_telemetry # see variables.tf
-  local_authentication_enabled = var.ai_search_definition.local_authentication_enabled
-  partition_count              = var.ai_search_definition.partition_count
+  local_authentication_enabled = each.value.local_authentication_enabled
+  partition_count              = each.value.partition_count
   private_endpoints = var.create_private_endpoints ? {
     "searchService" = {
-      private_dns_zone_resource_ids = [var.ai_search_definition.private_dns_zone_resource_id]
+      private_dns_zone_resource_ids = [each.value.private_dns_zone_resource_id]
       subnet_resource_id            = var.private_endpoint_subnet_resource_id
       subresource_name              = "searchService"
     }
   } : {}
   public_network_access_enabled = var.create_private_endpoints ? false : true
-  replica_count                 = var.ai_search_definition.replica_count
-  role_assignments              = local.ai_search_role_assignments
-  semantic_search_sku           = var.ai_search_definition.semantic_search_sku
-  sku                           = var.ai_search_definition.sku
+  replica_count                 = each.value.replica_count
+  role_assignments              = each.value.role_assignments
+  semantic_search_sku           = each.value.semantic_search_sku
+  sku                           = each.value.sku
 }
 
 #TODO:
@@ -96,18 +97,19 @@ module "ai_search" {
 # removing for testing PE DNS zone strategy when platform flag is false
 
 module "storage_account" {
-  source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.3"
-  count   = var.storage_account_definition.existing_resource_id == null ? 1 : 0
+  source   = "Azure/avm-res-storage-storageaccount/azurerm"
+  version  = "0.6.3"
+  for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
 
-  location                 = var.location
-  name                     = local.storage_account_name
+  location = var.location
+  #name                     = local.storage_account_name
+  name                     = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${local.base_name_storage}${lower(each.key)}fndrysa${random_string.resource_token.result}" : "${lower(each.key)}fndrysa${random_string.resource_token.result}")
   resource_group_name      = local.resource_group_name
-  access_tier              = var.storage_account_definition.access_tier
-  account_kind             = var.storage_account_definition.account_kind
-  account_replication_type = var.storage_account_definition.account_replication_type
-  account_tier             = var.storage_account_definition.account_tier
-  diagnostic_settings_storage_account = var.storage_account_definition.enable_diagnostic_settings ? {
+  access_tier              = each.value.access_tier
+  account_kind             = each.value.account_kind
+  account_replication_type = each.value.account_replication_type
+  account_tier             = each.value.account_tier
+  diagnostic_settings_storage_account = each.value.enable_diagnostic_settings ? {
     storage = {
       name                  = "sendToLogAnalytics-sa-${random_string.resource_token.result}"
       workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
@@ -121,70 +123,70 @@ module "storage_account" {
     virtual_network_subnet_ids = []
   } : null
   private_endpoints = var.create_private_endpoints ? {
-    for endpoint in var.storage_account_definition.endpoints :
+    for endpoint in each.value.endpoints :
     endpoint.type => {
-      name                          = "${local.storage_account_name}-${endpoint.type}-pe"
+      name                          = "${try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${local.base_name_storage}${lower(each.key)}fndrysa${random_string.resource_token.result}" : "${lower(each.key)}fndrysa${random_string.resource_token.result}")}-${endpoint.type}-pe"
       private_dns_zone_resource_ids = [endpoint.private_dns_zone_resource_id]
       subnet_resource_id            = var.private_endpoint_subnet_resource_id
       subresource_name              = endpoint.type
     }
   } : {}
   public_network_access_enabled = var.create_private_endpoints ? false : true
-  role_assignments              = local.storage_account_role_assignments
-  shared_access_key_enabled     = var.storage_account_definition.shared_access_key_enabled
-  tags                          = var.storage_account_definition.tags
+  role_assignments              = local.storage_account_role_assignments[each.key] #assumes the same role assignments will be used for all storage accounts in the map.
+  shared_access_key_enabled     = each.value.shared_access_key_enabled
+  tags                          = each.value.tags
 }
 
 module "cosmosdb" {
-  source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "0.8.0"
-  count   = var.cosmosdb_definition.existing_resource_id == null ? 1 : 0
+  source   = "Azure/avm-res-documentdb-databaseaccount/azurerm"
+  version  = "0.8.0"
+  for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
 
   location                   = var.location
-  name                       = local.cosmosdb_name
+  name                       = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-${each.key}-foundry-cosmosdb-${random_string.resource_token.result}" : "${each.key}-foundry-cosmosdb-${random_string.resource_token.result}")
   resource_group_name        = local.resource_group_name
-  analytical_storage_config  = var.cosmosdb_definition.analytical_storage_config
-  analytical_storage_enabled = var.cosmosdb_definition.analytical_storage_enabled
-  automatic_failover_enabled = var.cosmosdb_definition.automatic_failover_enabled
+  analytical_storage_config  = each.value.analytical_storage_config
+  analytical_storage_enabled = each.value.analytical_storage_enabled
+  automatic_failover_enabled = each.value.automatic_failover_enabled
   capacity = {
-    total_throughput_limit = var.cosmosdb_definition.capacity.total_throughput_limit
+    total_throughput_limit = each.value.capacity.total_throughput_limit
   }
   consistency_policy = {
-    consistency_level       = var.cosmosdb_definition.consistency_policy.consistency_level
-    max_interval_in_seconds = var.cosmosdb_definition.consistency_policy.max_interval_in_seconds
-    max_staleness_prefix    = var.cosmosdb_definition.consistency_policy.max_staleness_prefix
+    consistency_level       = each.value.consistency_policy.consistency_level
+    max_interval_in_seconds = each.value.consistency_policy.max_interval_in_seconds
+    max_staleness_prefix    = each.value.consistency_policy.max_staleness_prefix
   }
-  cors_rule = var.cosmosdb_definition.cors_rule
-  diagnostic_settings = var.cosmosdb_definition.enable_diagnostic_settings ? {
+  cors_rule = each.value.cors_rule
+  diagnostic_settings = each.value.enable_diagnostic_settings ? {
     to_law = {
       name                  = "sendToLogAnalytics-cosmosdb-${random_string.resource_token.result}"
       workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
     }
   } : {}
   enable_telemetry = var.enable_telemetry
-  geo_locations    = local.cosmosdb_secondary_regions
+  geo_locations    = local.cosmosdb_secondary_regions[each.key]
   ip_range_filter = [
     "168.125.123.255",
     "170.0.0.0/24",                                                                 #TODO: check 0.0.0.0 for validity
     "0.0.0.0",                                                                      #Accept connections from within public Azure datacenters. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal
     "104.42.195.92", "40.76.54.131", "52.176.6.30", "52.169.50.45", "52.187.184.26" #Allow access from the Azure portal. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure
   ]
-  local_authentication_disabled         = var.cosmosdb_definition.local_authentication_disabled
-  multiple_write_locations_enabled      = var.cosmosdb_definition.multiple_write_locations_enabled
+  local_authentication_disabled         = each.value.local_authentication_disabled
+  multiple_write_locations_enabled      = each.value.multiple_write_locations_enabled
   network_acl_bypass_for_azure_services = true
-  partition_merge_enabled               = var.cosmosdb_definition.partition_merge_enabled
+  partition_merge_enabled               = each.value.partition_merge_enabled
   private_endpoints = var.create_private_endpoints ? {
     "sql" = {
       subnet_resource_id = var.private_endpoint_subnet_resource_id
       subresource_name   = "sql"
       private_dns_zone_resource_ids = [
-        var.cosmosdb_definition.private_dns_zone_resource_id
+        each.value.private_dns_zone_resource_id
       ]
     }
   } : {}
-  public_network_access_enabled = var.cosmosdb_definition.public_network_access_enabled
-  role_assignments              = local.cosmosdb_role_assignments
-  tags                          = var.cosmosdb_definition.tags
+  public_network_access_enabled = each.value.public_network_access_enabled
+  role_assignments              = each.value.role_assignments
+  tags                          = each.value.tags
 }
 
 

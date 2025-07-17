@@ -25,12 +25,6 @@ variable "agent_subnet_resource_id" {
   description = "(Optional) The subnet ID for the AI agent service. If not provided, managed network will be used for the AI agent service. If provided, the AI agent service will be deployed in the specified subnet."
 }
 
-variable "ai_foundry_project_description" {
-  type        = string
-  default     = "AI Foundry project for agent services and AI workloads"
-  description = "Description for the AI Foundry project."
-}
-
 variable "ai_model_deployments" {
   type = map(object({
     name                   = string
@@ -80,12 +74,6 @@ variable "create_private_endpoints" {
   description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created."
 }
 
-variable "create_project_connections" {
-  type        = bool
-  default     = false
-  description = "Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created."
-}
-
 variable "enable_telemetry" {
   type        = bool
   default     = true
@@ -95,6 +83,12 @@ For more information see <https://aka.ms/avm/telemetryinfo>.
 If it is set to false, then no telemetry will be collected.
 DESCRIPTION
   nullable    = false
+}
+
+variable "include_dependent_resources" {
+  type        = bool
+  default     = true
+  description = "Whether to include dependent resources such as AI Search, Cosmos DB, Key Vault, and Storage Account in this deployment. If set to false, these resources will not be created or linked, and the module will only create the AI Foundry account and project."
 }
 
 variable "lock" {
