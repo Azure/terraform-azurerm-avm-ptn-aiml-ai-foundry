@@ -220,6 +220,15 @@ resource "azurerm_private_dns_zone_virtual_network_link" "ai_services" {
   virtual_network_id    = azurerm_virtual_network.this.id
 }
 
+# Bastion Host
+resource "azurerm_public_ip" "example" {
+  allocation_method   = "Static"
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.public_ip.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+  sku                 = "Standard"
+  zones               = [1, 2, 3]
+}
 
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
@@ -228,19 +237,15 @@ module "bastion_host" {
   location            = azurerm_resource_group.this.location
   name                = module.naming.bastion_host.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  copy_paste_enabled  = true
-  file_copy_enabled   = true
   ip_configuration = {
-    name             = "IpConf"
-    subnet_id        = azurerm_subnet.bastion.id
-    create_public_ip = true
+    name                 = "default-ipconfig"
+    subnet_id            = azurerm_subnet.bastion.id
+    public_ip_address_id = azurerm_public_ip.example.id
+    create_public_ip     = false
   }
-  ip_connect_enabled     = true
   scale_units            = 2
   shareable_link_enabled = true
   sku                    = "Standard"
-  tunneling_enabled      = true
-  zones                  = ["1", "2"]
 }
 
 module "virtual_machine" {
@@ -388,6 +393,7 @@ The following resources are used by this module:
 - [azurerm_private_dns_zone_virtual_network_link.search](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.storage_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.storage_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
+- [azurerm_public_ip.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_subnet.agent_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
