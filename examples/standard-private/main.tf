@@ -214,6 +214,15 @@ resource "azurerm_private_dns_zone_virtual_network_link" "ai_services" {
   virtual_network_id    = azurerm_virtual_network.this.id
 }
 
+# Bastion Host
+resource "azurerm_public_ip" "example" {
+  allocation_method   = "Static"
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.public_ip.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+  sku                 = "Standard"
+  zones               = [1, 2, 3]
+}
 
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
@@ -222,19 +231,15 @@ module "bastion_host" {
   location            = azurerm_resource_group.this.location
   name                = module.naming.bastion_host.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  copy_paste_enabled  = true
-  file_copy_enabled   = true
   ip_configuration = {
-    name             = "IpConf"
-    subnet_id        = azurerm_subnet.bastion.id
-    create_public_ip = true
+    name                 = "default-ipconfig"
+    subnet_id            = azurerm_subnet.bastion.id
+    public_ip_address_id = azurerm_public_ip.example.id
+    create_public_ip     = false
   }
-  ip_connect_enabled     = true
   scale_units            = 2
   shareable_link_enabled = true
   sku                    = "Standard"
-  tunneling_enabled      = true
-  zones                  = ["1", "2"]
 }
 
 module "virtual_machine" {
@@ -278,9 +283,18 @@ module "virtual_machine" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name       = local.base_name
-  location        = azurerm_resource_group.this.location
-  agent_subnet_id = azurerm_subnet.agent_services.id
+  base_name                  = local.base_name
+  location                   = azurerm_resource_group.this.location
+  resource_group_resource_id = azurerm_resource_group.this.id
+  ai_foundry = {
+    create_ai_agent_service      = false
+    private_dns_zone_resource_id = azurerm_private_dns_zone.openai.id
+    network_injections = [{
+      scenario                   = "agent"
+      subnetArmId                = azurerm_subnet.agent_services.id
+      useMicrosoftManagedNetwork = false
+    }]
+  }
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -295,16 +309,51 @@ module "ai_foundry" {
       }
     }
   }
-  create_ai_agent_service                   = false # default: false
-  create_dependent_resources                = true  # default: false
-  create_private_endpoints                  = true  # default: false
-  create_project_connections                = true  # default: false
-  create_resource_group                     = false # default: false
-  private_dns_zone_resource_id_ai_foundry   = azurerm_private_dns_zone.openai.id
-  private_dns_zone_resource_id_cosmosdb     = azurerm_private_dns_zone.cosmosdb.id
-  private_dns_zone_resource_id_keyvault     = azurerm_private_dns_zone.keyvault.id
-  private_dns_zone_resource_id_search       = azurerm_private_dns_zone.search.id
-  private_dns_zone_resource_id_storage_blob = azurerm_private_dns_zone.storage_blob.id
-  private_endpoint_subnet_id                = azurerm_subnet.private_endpoints.id
-  resource_group_name                       = azurerm_resource_group.this.name
+  ai_projects = {
+    project_1 = {
+      name                       = "project-1"
+      description                = "Project 1 description"
+      display_name               = "Project 1 Display Name"
+      create_project_connections = true
+      cosmos_db_connection = {
+        new_resource_map_key = "this"
+      }
+      ai_search_connection = {
+        new_resource_map_key = "this"
+      }
+      storage_account_connection = {
+        new_resource_map_key = "this"
+      }
+    }
+  }
+  ai_search_definition = {
+    this = {
+      private_dns_zone_resource_id = azurerm_private_dns_zone.search.id
+      enable_diagnostic_settings   = false
+    }
+  }
+  cosmosdb_definition = {
+    this = {
+      private_dns_zone_resource_id = azurerm_private_dns_zone.cosmosdb.id
+      enable_diagnostic_settings   = false
+    }
+  }
+  key_vault_definition = {
+    this = {
+      private_dns_zone_resource_id = azurerm_private_dns_zone.keyvault.id
+      enable_diagnostic_settings   = false
+    }
+  }
+  private_endpoint_subnet_resource_id = azurerm_subnet.private_endpoints.id
+  storage_account_definition = {
+    this = {
+      enable_diagnostic_settings = false
+      endpoints = {
+        blob = {
+          private_dns_zone_resource_id = azurerm_private_dns_zone.storage_blob.id
+          type                         = "blob"
+        }
+      }
+    }
+  }
 }

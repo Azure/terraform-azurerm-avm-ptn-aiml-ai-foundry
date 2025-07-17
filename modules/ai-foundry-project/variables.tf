@@ -8,25 +8,25 @@ variable "ai_foundry_id" {
   description = "Resource ID of the AI Foundry account"
 }
 
-variable "ai_foundry_project_description" {
+variable "description" {
   type        = string
   description = "Description for the AI Foundry project"
 }
 
-variable "ai_foundry_project_display_name" {
+variable "display_name" {
   type        = string
   description = "Display name for the AI Foundry project"
-}
-
-variable "ai_foundry_project_name" {
-  type        = string
-  description = "Name of the AI Foundry project"
 }
 
 variable "location" {
   type        = string
   description = "Azure region for deployment"
   nullable    = false
+}
+
+variable "name" {
+  type        = string
+  description = "Name of the AI Foundry project"
 }
 
 variable "ai_search_id" {
@@ -50,7 +50,13 @@ variable "create_ai_agent_service" {
 variable "create_project_connections" {
   type        = bool
   default     = false
-  description = "Whether to create connections to the AI Foundry project. If set to true, connections will be created for the dependent AI Foundry resources. If set to false, no connections will be created."
+  description = "Whether to create project connections for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, the project will not create connections to these resources."
+}
+
+variable "sku" {
+  type        = string
+  default     = "S0"
+  description = "SKU for the AI Foundry project"
 }
 
 variable "storage_account_id" {

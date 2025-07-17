@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Default example
+# Basic example
 
-This deploys the module in its simplest form.
+This deploys the module in its most basic form.
 
 ```hcl
 terraform {
@@ -68,8 +68,12 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  base_name = local.base_name
-  location  = azurerm_resource_group.this.location
+  base_name                  = local.base_name
+  location                   = azurerm_resource_group.this.location
+  resource_group_resource_id = azurerm_resource_group.this.id
+  ai_foundry = {
+    create_ai_agent_service = false
+  }
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"
@@ -84,12 +88,14 @@ module "ai_foundry" {
       }
     }
   }
-  create_ai_agent_service    = false # default: false
-  create_dependent_resources = false # default: false
-  create_private_endpoints   = false # default: false
-  create_project_connections = false # default: false
-  create_resource_group      = false # default: false
-  resource_group_name        = azurerm_resource_group.this.name
+  ai_projects = {
+    project_1 = {
+      name                       = "project-1"
+      description                = "Project 1 description"
+      display_name               = "Project 1 Display Name"
+      create_project_connections = false
+    }
+  }
 }
 ```
 
