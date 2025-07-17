@@ -163,10 +163,11 @@ Type:
 
 ```hcl
 map(object({
-    name         = string
-    sku          = optional(string, "S0")
-    display_name = string
-    description  = string
+    name                       = string
+    sku                        = optional(string, "S0")
+    display_name               = string
+    description                = string
+    create_project_connections = optional(bool, false)
     cosmos_db_connection = optional(object({
       existing_resource_id = optional(string, null)
       new_resource_map_key = optional(string, null)
