@@ -43,7 +43,7 @@ resource "azurerm_role_assignment" "cosmosdb_role_assignments" {
 
 
 resource "azurerm_role_assignment" "storage_role_assignments" {
-  for_each = local.storage_account_default_role_assignments
+  for_each = var.create_project_connections ? local.storage_account_default_role_assignments : {}
 
   principal_id = azapi_resource.ai_foundry_project.output.identity.principalId
   scope        = var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d"
