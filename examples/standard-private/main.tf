@@ -289,11 +289,11 @@ module "ai_foundry" {
   ai_foundry = {
     create_ai_agent_service      = false
     private_dns_zone_resource_id = azurerm_private_dns_zone.openai.id
-    network_injections = {
+    network_injections = [{
       scenario                   = "agent"
       subnetArmId                = azurerm_subnet.agent_services.id
       useMicrosoftManagedNetwork = false
-    }
+    }]
   }
   ai_model_deployments = {
     "gpt-4o" = {
