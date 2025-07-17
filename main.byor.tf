@@ -67,7 +67,7 @@ module "ai_search" {
   for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
 
   location            = var.location
-  name                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-${each.key}-ai-foundry-ai-search" : "${each.key}-ai-foundry-ai-search-${random_string.resource_token.result}")
+  name                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-${each.key}-ai-foundry-ai-search-${random_string.resource_token.result}" : "${each.key}-ai-foundry-ai-search-${random_string.resource_token.result}")
   resource_group_name = local.resource_group_name
   diagnostic_settings = each.value.enable_diagnostic_settings ? {
     search = {
