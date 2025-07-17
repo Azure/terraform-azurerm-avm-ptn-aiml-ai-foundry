@@ -35,13 +35,13 @@ resource "time_sleep" "wait_project_identities" {
 resource "azapi_resource" "connection_storage" {
   count = var.create_project_connections ? 1 : 0
 
-  name      = basename(var.create_project_connections ? var.storage_account_id : "notused")
+  name      = basename(var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   body = {
     properties = {
       category = "AzureStorageAccount"
-      target   = "https://${basename(var.create_project_connections ? var.storage_account_id : "notused")}.blob.core.windows.net/"
+      target   = "https://${basename(var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d")}.blob.core.windows.net/"
       authType = "AAD"
       metadata = {
         ApiType    = "Azure"
@@ -59,13 +59,13 @@ resource "azapi_resource" "connection_storage" {
 resource "azapi_resource" "connection_cosmos" {
   count = var.create_project_connections ? 1 : 0
 
-  name      = basename(var.create_project_connections ? var.cosmos_db_id : "notused")
+  name      = basename(var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   body = {
     properties = {
       category = "CosmosDb"
-      target   = "https://${basename(var.create_project_connections ? var.cosmos_db_id : "notused")}.documents.azure.com:443/"
+      target   = "https://${basename(var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d")}.documents.azure.com:443/"
       authType = "AAD"
       metadata = {
         ApiType    = "Azure"
@@ -83,13 +83,13 @@ resource "azapi_resource" "connection_cosmos" {
 resource "azapi_resource" "connection_search" {
   count = var.create_project_connections ? 1 : 0
 
-  name      = basename(var.create_project_connections ? var.ai_search_id : "notused")
+  name      = basename(var.create_project_connections ? var.ai_search_id : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
   body = {
     properties = {
       category = "CognitiveSearch"
-      target   = "https://${basename(var.create_project_connections ? var.ai_search_id : "notused")}.search.windows.net"
+      target   = "https://${basename(var.create_project_connections ? var.ai_search_id : "/n/o/t/u/s/e/d")}.search.windows.net"
       authType = "AAD"
       metadata = {
         ApiType    = "Azure"
