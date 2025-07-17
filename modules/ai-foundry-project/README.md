@@ -109,7 +109,7 @@ Description: Whether to create project connections for AI Foundry, Cosmos DB, Ke
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ### <a name="input_sku"></a> [sku](#input\_sku)
 

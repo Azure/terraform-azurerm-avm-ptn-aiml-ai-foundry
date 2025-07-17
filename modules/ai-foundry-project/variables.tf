@@ -49,7 +49,7 @@ variable "create_ai_agent_service" {
 
 variable "create_project_connections" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether to create project connections for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, the project will not create connections to these resources."
 }
 
