@@ -292,10 +292,14 @@ module "ai_foundry" {
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
-  agent_subnet_resource_id   = azurerm_subnet.agent_services.id
   ai_foundry = {
     create_ai_agent_service      = false
     private_dns_zone_resource_id = azurerm_private_dns_zone.openai.id
+    network_injections = {
+      scenario                   = "agent"
+      subnetArmId                = azurerm_subnet.agent_services.id
+      useMicrosoftManagedNetwork = false
+    }
   }
   ai_model_deployments = {
     "gpt-4o" = {

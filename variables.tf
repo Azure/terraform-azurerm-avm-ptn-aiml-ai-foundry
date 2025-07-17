@@ -69,12 +69,6 @@ variable "resource_group_resource_id" {
   description = "The resource group resource id where the module resources will be deployed."
 }
 
-variable "agent_subnet_resource_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The subnet ID for the AI agent service. If not provided, managed network will be used for the AI agent service. If provided, the AI agent service will be deployed in the specified subnet."
-}
-
 variable "ai_model_deployments" {
   type = map(object({
     name                   = string

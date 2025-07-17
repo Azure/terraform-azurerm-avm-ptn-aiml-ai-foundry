@@ -84,14 +84,6 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_agent_subnet_resource_id"></a> [agent\_subnet\_resource\_id](#input\_agent\_subnet\_resource\_id)
-
-Description: (Optional) The subnet ID for the AI agent service. If not provided, managed network will be used for the AI agent service. If provided, the AI agent service will be deployed in the specified subnet.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_ai_foundry"></a> [ai\_foundry](#input\_ai\_foundry)
 
 Description: Configuration object for the Azure AI Foundry service to be created for AI workloads and model management.
