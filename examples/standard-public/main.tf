@@ -63,12 +63,12 @@ resource "azurerm_log_analytics_workspace" "this" {
 module "ai_foundry" {
   source = "../../"
 
-  ai_foundry = {
-    create_ai_agent_service = false
-  }
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
+  ai_foundry = {
+    create_ai_agent_service = false
+  }
   ai_model_deployments = {
     "gpt-4o" = {
       name = "gpt-4.1"

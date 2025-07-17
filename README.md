@@ -62,28 +62,6 @@ The following resources are used by this module:
 
 The following input variables are required:
 
-### <a name="input_ai_foundry"></a> [ai\_foundry](#input\_ai\_foundry)
-
-Description: n/a
-
-Type:
-
-```hcl
-object({
-    name                     = optional(string, null)
-    disable_local_auth       = optional(bool, false)
-    allow_project_management = optional(bool, true)
-    create_ai_agent_service  = optional(bool, false)
-    network_injections = optional(list(object({
-      scenario                   = optional(string, "agent")
-      subnetArmId                = string
-      useMicrosoftManagedNetwork = optional(bool, false)
-    })), null)
-    private_dns_zone_resource_id = optional(string, null)
-    sku                          = optional(string, "S0")
-  })
-```
-
 ### <a name="input_base_name"></a> [base\_name](#input\_base\_name)
 
 Description: The name prefix for the AI Foundry resources.
@@ -113,6 +91,41 @@ Description: (Optional) The subnet ID for the AI agent service. If not provided,
 Type: `string`
 
 Default: `null`
+
+### <a name="input_ai_foundry"></a> [ai\_foundry](#input\_ai\_foundry)
+
+Description: Configuration object for the Azure AI Foundry service to be created for AI workloads and model management.
+
+- `name` - (Optional) The name of the AI Foundry service. If not provided, a name will be generated.
+- `disable_local_auth` - (Optional) Whether to disable local authentication for the AI Foundry service. Default is false.
+- `allow_project_management` - (Optional) Whether to allow project management capabilities in the AI Foundry service. Default is true.
+- `create_ai_agent_service` - (Optional) Whether to create an AI agent service as part of the AI Foundry deployment. Default is false.
+- `network_injections` - (Optional) List of network injection configurations for the AI Foundry service.
+  - `scenario` - (Optional) The scenario for the network injection. Default is "agent".
+  - `subnetArmId` - (Optional) The subnet ID for the AI agent service."
+  - `useMicrosoftManagedNetwork` - (Optional) Whether to use Microsoft managed network for the injection. Default is false.
+- `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for AI Foundry. If not provided, a private endpoint will not be created.
+- `sku` - (Optional) The SKU of the AI Foundry service. Default is "S0".
+
+Type:
+
+```hcl
+object({
+    name                     = optional(string, null)
+    disable_local_auth       = optional(bool, false)
+    allow_project_management = optional(bool, true)
+    create_ai_agent_service  = optional(bool, false)
+    network_injections = optional(list(object({
+      scenario                   = optional(string, "agent")
+      subnetArmId                = string
+      useMicrosoftManagedNetwork = optional(bool, false)
+    })), null)
+    private_dns_zone_resource_id = optional(string, null)
+    sku                          = optional(string, "S0")
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_ai_model_deployments"></a> [ai\_model\_deployments](#input\_ai\_model\_deployments)
 
@@ -358,14 +371,6 @@ map(object({
 
 Default: `{}`
 
-### <a name="input_create_ai_agent_service"></a> [create\_ai\_agent\_service](#input\_create\_ai\_agent\_service)
-
-Description: Whether to create an AI agent service using AzAPI capability hosts.
-
-Type: `bool`
-
-Default: `false`
-
 ### <a name="input_create_private_endpoints"></a> [create\_private\_endpoints](#input\_create\_private\_endpoints)
 
 Description: Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created.
@@ -463,32 +468,6 @@ object({
 
 Default: `{}`
 
-### <a name="input_lock"></a> [lock](#input\_lock)
-
-Description: Controls the Resource Lock configuration for this resource. The following properties can be specified:
-
-- `kind` - (Required) The type of lock. Possible values are `"CanNotDelete"` and `"ReadOnly"`.
-- `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value. Changing this forces the creation of a new resource.
-
-Type:
-
-```hcl
-object({
-    kind = string
-    name = optional(string, null)
-  })
-```
-
-Default: `null`
-
-### <a name="input_private_dns_zone_resource_id_ai_foundry"></a> [private\_dns\_zone\_resource\_id\_ai\_foundry](#input\_private\_dns\_zone\_resource\_id\_ai\_foundry)
-
-Description: (Optional) The resource ID of the existing private DNS zone for AI Foundry.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_private_endpoint_subnet_resource_id"></a> [private\_endpoint\_subnet\_resource\_id](#input\_private\_endpoint\_subnet\_resource\_id)
 
 Description: (Optional) The subnet ID for private endpoints.
@@ -510,38 +489,6 @@ object({
     ai_foundry_project              = optional(string)
     ai_foundry_project_display_name = optional(string)
   })
-```
-
-Default: `{}`
-
-### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
-
-Description: A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
-- `principal_id` - The ID of the principal to assign the role to.
-- `description` - The description of the role assignment.
-- `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
-- `condition` - The condition which will be used to scope the role assignment.
-- `condition_version` - The version of the condition syntax. Valid values are '2.0'.
-- `delegated_managed_identity_resource_id` - The delegated Azure Resource Id which contains a Managed Identity. Changing this forces a new resource to be created.
-- `principal_type` - The type of the principal\_id. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
-
-> Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
-
-Type:
-
-```hcl
-map(object({
-    role_definition_id_or_name             = string
-    principal_id                           = string
-    description                            = optional(string, null)
-    skip_service_principal_aad_check       = optional(bool, false)
-    condition                              = optional(string, null)
-    condition_version                      = optional(string, null)
-    delegated_managed_identity_resource_id = optional(string, null)
-    principal_type                         = optional(string, null)
-  }))
 ```
 
 Default: `{}`

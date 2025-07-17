@@ -5,6 +5,5 @@ locals {
   resource_names = {
     ai_agent_host = coalesce(var.resource_names.ai_agent_host, "ah${var.base_name}agent${local.resource_token}")
   }
-  resource_token                     = random_string.resource_token.result
-  role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
+  resource_token = random_string.resource_token.result
 }
