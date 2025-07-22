@@ -65,8 +65,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "thread_message_store" {
   name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}userthreadmessage_dbsqlrole")
 
   depends_on = [
-    azapi_resource.ai_agent_capability_host,
-    time_sleep.wait_project_identities
+     azapi_resource.ai_agent_capability_host
   ]
 }
 
@@ -81,7 +80,8 @@ resource "azurerm_cosmosdb_sql_role_assignment" "system_thread_message_store" {
   name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}systemthread_dbsqlrole")
 
   depends_on = [
-    azurerm_cosmosdb_sql_role_assignment.thread_message_store
+    azurerm_cosmosdb_sql_role_assignment.thread_message_store,
+    azapi_resource.ai_agent_capability_host
   ]
 }
 
@@ -96,7 +96,8 @@ resource "azurerm_cosmosdb_sql_role_assignment" "agent_entity_store" {
   name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}entitystore_dbsqlrole")
 
   depends_on = [
-    azurerm_cosmosdb_sql_role_assignment.system_thread_message_store
+    azurerm_cosmosdb_sql_role_assignment.system_thread_message_store,
+    azapi_resource.ai_agent_capability_host
   ]
 }
 
@@ -123,7 +124,6 @@ resource "azurerm_role_assignment" "storage_blob_data_owner" {
   role_definition_name = "Storage Blob Data Owner"
 
   depends_on = [
-    azapi_resource.ai_agent_capability_host,
-    time_sleep.wait_project_identities
+    azapi_resource.ai_agent_capability_host
   ]
 }

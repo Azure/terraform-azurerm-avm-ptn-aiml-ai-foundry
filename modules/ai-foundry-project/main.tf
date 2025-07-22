@@ -54,6 +54,9 @@ resource "azapi_resource" "connection_storage" {
     "identity.principalId"
   ]
   schema_validation_enabled = false
+
+depends_on = [ azapi_resource.connection_cosmos, azurerm_role_assignment.storage_role_assignments ]
+
 }
 
 resource "azapi_resource" "connection_cosmos" {
@@ -78,6 +81,9 @@ resource "azapi_resource" "connection_cosmos" {
     "identity.principalId"
   ]
   schema_validation_enabled = false
+
+  depends_on = [azurerm_role_assignment.cosmosdb_role_assignments ]
+
 }
 
 resource "azapi_resource" "connection_search" {
@@ -100,6 +106,10 @@ resource "azapi_resource" "connection_search" {
     }
   }
   schema_validation_enabled = false
+
+  depends_on = [ azurerm_role_assignment.ai_search_role_assignments,
+                 azapi_resource.connection_cosmos,
+                 azapi_resource.connection_storage ]
 }
 
 #TODO: do we need to add support for Key Vault connections?
@@ -126,12 +136,22 @@ resource "azapi_resource" "ai_agent_capability_host" {
   schema_validation_enabled = false
 
   depends_on = [
-    azapi_resource.ai_foundry_project,
-    azapi_resource.connection_storage,
-    azapi_resource.connection_cosmos,
-    azapi_resource.connection_search
+    time_sleep.wait_before_capability_host
   ]
 }
 
+resource "time_sleep" "wait_before_capability_host" {
+  create_duration = "120s"
 
+    depends_on = [
+    azapi_resource.ai_foundry_project,
+    azapi_resource.connection_storage,
+    azapi_resource.connection_cosmos,
+    azapi_resource.connection_search,
+    azurerm_role_assignment.ai_search_role_assignments,
+    azurerm_role_assignment.cosmosdb_role_assignments,
+    azurerm_role_assignment.storage_role_assignments,
+    time_sleep.wait_project_identities
+  ]
+}
 

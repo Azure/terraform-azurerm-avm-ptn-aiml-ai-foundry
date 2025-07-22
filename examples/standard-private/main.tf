@@ -287,7 +287,7 @@ module "ai_foundry" {
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
-    create_ai_agent_service      = false
+    create_ai_agent_service      = true
     private_dns_zone_resource_id = azurerm_private_dns_zone.openai.id
     network_injections = [{
       scenario                   = "agent"
