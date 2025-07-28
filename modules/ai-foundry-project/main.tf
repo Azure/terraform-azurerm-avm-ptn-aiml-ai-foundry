@@ -2,7 +2,7 @@ resource "azapi_resource" "ai_foundry_project" {
   location  = var.location
   name      = var.name
   parent_id = var.ai_foundry_id
-  type      = "Microsoft.CognitiveServices/accounts/projects@2025-06-01"
+  type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
   body = {
     sku = {
       name = var.sku
@@ -30,6 +30,8 @@ locals {
 
 resource "time_sleep" "wait_project_identities" {
   create_duration = "10s"
+
+  depends_on = [azapi_resource.ai_foundry_project]
 }
 
 resource "azapi_resource" "connection_storage" {
@@ -37,7 +39,7 @@ resource "azapi_resource" "connection_storage" {
 
   name      = basename(var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
     properties = {
       category = "AzureStorageAccount"
@@ -55,8 +57,7 @@ resource "azapi_resource" "connection_storage" {
   ]
   schema_validation_enabled = false
 
-depends_on = [ azapi_resource.connection_cosmos, azurerm_role_assignment.storage_role_assignments ]
-
+  depends_on = [azapi_resource.connection_cosmos, azurerm_role_assignment.storage_role_assignments]
 }
 
 resource "azapi_resource" "connection_cosmos" {
@@ -64,7 +65,7 @@ resource "azapi_resource" "connection_cosmos" {
 
   name      = basename(var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
     properties = {
       category = "CosmosDb"
@@ -82,8 +83,7 @@ resource "azapi_resource" "connection_cosmos" {
   ]
   schema_validation_enabled = false
 
-  depends_on = [azurerm_role_assignment.cosmosdb_role_assignments ]
-
+  depends_on = [azurerm_role_assignment.cosmosdb_role_assignments]
 }
 
 resource "azapi_resource" "connection_search" {
@@ -91,7 +91,7 @@ resource "azapi_resource" "connection_search" {
 
   name      = basename(var.create_project_connections ? var.ai_search_id : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
     properties = {
       category = "CognitiveSearch"
@@ -107,9 +107,13 @@ resource "azapi_resource" "connection_search" {
   }
   schema_validation_enabled = false
 
-  depends_on = [ azurerm_role_assignment.ai_search_role_assignments,
-                 azapi_resource.connection_cosmos,
-                 azapi_resource.connection_storage ]
+  depends_on = [azurerm_role_assignment.ai_search_role_assignments,
+    azapi_resource.connection_cosmos,
+  azapi_resource.connection_storage]
+
+  lifecycle {
+    ignore_changes = [name]
+  }
 }
 
 #TODO: do we need to add support for Key Vault connections?
@@ -118,7 +122,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
 
   name      = var.ai_agent_host_name
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-06-01"
+  type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
   body = {
     properties = {
       capabilityHostKind = "Agents"
@@ -136,14 +140,17 @@ resource "azapi_resource" "ai_agent_capability_host" {
   schema_validation_enabled = false
 
   depends_on = [
-    time_sleep.wait_before_capability_host
+    azapi_resource.connection_storage,
+    azapi_resource.connection_cosmos,
+    azapi_resource.connection_search,
+    time_sleep.wait_rbac_before_capability_host
   ]
 }
 
-resource "time_sleep" "wait_before_capability_host" {
-  create_duration = "120s"
+resource "time_sleep" "wait_rbac_before_capability_host" {
+  create_duration = "60s"
 
-    depends_on = [
+  depends_on = [
     azapi_resource.ai_foundry_project,
     azapi_resource.connection_storage,
     azapi_resource.connection_cosmos,

@@ -9,6 +9,8 @@ variable "ai_search_definition" {
     partition_count              = optional(number, 1)
     replica_count                = optional(number, 2)
     semantic_search_sku          = optional(string, "standard")
+    semantic_search_enabled      = optional(bool, false)
+    hosting_mode                 = optional(string, "default")
     tags                         = optional(map(string), {})
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
@@ -62,7 +64,7 @@ variable "cosmosdb_definition" {
     })), [])
     public_network_access_enabled    = optional(bool, false)
     analytical_storage_enabled       = optional(bool, true)
-    automatic_failover_enabled       = optional(bool, true)
+    automatic_failover_enabled       = optional(bool, false)
     local_authentication_disabled    = optional(bool, true)
     partition_merge_enabled          = optional(bool, false)
     multiple_write_locations_enabled = optional(bool, false)
@@ -72,7 +74,7 @@ variable "cosmosdb_definition" {
     consistency_policy = optional(object({
       max_interval_in_seconds = optional(number, 300)
       max_staleness_prefix    = optional(number, 100001)
-      consistency_level       = optional(string, "BoundedStaleness")
+      consistency_level       = optional(string, "Session")
     }), {})
     backup = optional(object({
       retention_in_hours  = optional(number)
@@ -229,7 +231,7 @@ variable "storage_account_definition" {
     name                       = optional(string, null)
     account_kind               = optional(string, "StorageV2")
     account_tier               = optional(string, "Standard")
-    account_replication_type   = optional(string, "GRS")
+    account_replication_type   = optional(string, "ZRS")
     endpoints = optional(map(object({
       type                         = string
       private_dns_zone_resource_id = optional(string, null)
@@ -239,7 +241,7 @@ variable "storage_account_definition" {
       }
     })
     access_tier               = optional(string, "Hot")
-    shared_access_key_enabled = optional(bool, true)
+    shared_access_key_enabled = optional(bool, false)
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
       principal_id                           = string

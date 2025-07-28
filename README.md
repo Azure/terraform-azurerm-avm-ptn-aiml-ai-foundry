@@ -49,7 +49,12 @@ The following resources are used by this module:
 
 - [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_model_deployment](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.ai_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azurerm_monitor_diagnostic_setting.this-aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
+- [azurerm_private_endpoint.pe-aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
+- [azurerm_role_assignment.foundry_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
+- [azurerm_role_assignment.this-aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_string.resource_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
@@ -96,7 +101,7 @@ Description: Configuration object for the Azure AI Foundry service to be created
   - `scenario` - (Optional) The scenario for the network injection. Default is "agent".
   - `subnetArmId` - (Optional) The subnet ID for the AI agent service."
   - `useMicrosoftManagedNetwork` - (Optional) Whether to use Microsoft managed network for the injection. Default is false.
-- `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for AI Foundry. If not provided, a private endpoint will not be created.
+- `private_dns_zone_resource_ids` - (Optional) The resource IDs of the existing private DNS zones for AI Foundry. Required when `create_private_endpoints` is true.
 - `sku` - (Optional) The SKU of the AI Foundry service. Default is "S0".
 
 Type:
@@ -112,8 +117,18 @@ object({
       subnetArmId                = string
       useMicrosoftManagedNetwork = optional(bool, false)
     })), null)
-    private_dns_zone_resource_id = optional(string, null)
-    sku                          = optional(string, "S0")
+    private_dns_zone_resource_ids = optional(list(string), [])
+    sku                           = optional(string, "S0")
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
+    })), {})
   })
 ```
 
@@ -232,6 +247,8 @@ map(object({
     partition_count              = optional(number, 1)
     replica_count                = optional(number, 2)
     semantic_search_sku          = optional(string, "standard")
+    semantic_search_enabled      = optional(bool, false)
+    hosting_mode                 = optional(string, "default")
     tags                         = optional(map(string), {})
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
@@ -315,7 +332,7 @@ map(object({
     })), [])
     public_network_access_enabled    = optional(bool, false)
     analytical_storage_enabled       = optional(bool, true)
-    automatic_failover_enabled       = optional(bool, true)
+    automatic_failover_enabled       = optional(bool, false)
     local_authentication_disabled    = optional(bool, true)
     partition_merge_enabled          = optional(bool, false)
     multiple_write_locations_enabled = optional(bool, false)
@@ -325,7 +342,7 @@ map(object({
     consistency_policy = optional(object({
       max_interval_in_seconds = optional(number, 300)
       max_staleness_prefix    = optional(number, 100001)
-      consistency_level       = optional(string, "BoundedStaleness")
+      consistency_level       = optional(string, "Session")
     }), {})
     backup = optional(object({
       retention_in_hours  = optional(number)
@@ -520,7 +537,7 @@ map(object({
     name                       = optional(string, null)
     account_kind               = optional(string, "StorageV2")
     account_tier               = optional(string, "Standard")
-    account_replication_type   = optional(string, "GRS")
+    account_replication_type   = optional(string, "ZRS")
     endpoints = optional(map(object({
       type                         = string
       private_dns_zone_resource_id = optional(string, null)
@@ -530,7 +547,7 @@ map(object({
       }
     })
     access_tier               = optional(string, "Hot")
-    shared_access_key_enabled = optional(bool, true)
+    shared_access_key_enabled = optional(bool, false)
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
       principal_id                           = string
@@ -651,12 +668,6 @@ The following Modules are called:
 Source: ./modules/ai-foundry-project
 
 Version:
-
-### <a name="module_ai_search"></a> [ai\_search](#module\_ai\_search)
-
-Source: Azure/avm-res-search-searchservice/azurerm
-
-Version: 0.1.5
 
 ### <a name="module_avm_utl_regions"></a> [avm\_utl\_regions](#module\_avm\_utl\_regions)
 

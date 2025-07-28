@@ -2,7 +2,7 @@ resource "azapi_resource" "ai_foundry" {
   location  = var.location
   name      = local.ai_foundry_name
   parent_id = var.resource_group_resource_id
-  type      = "Microsoft.CognitiveServices/accounts@2025-06-01"
+  type      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
   body = {
 
     kind = "AIServices",
@@ -38,7 +38,7 @@ resource "azapi_resource" "ai_model_deployment" {
 
   name      = each.value.name
   parent_id = azapi_resource.ai_foundry.id
-  type      = "Microsoft.CognitiveServices/accounts/deployments@2025-06-01"
+  type      = "Microsoft.CognitiveServices/accounts/deployments@2025-04-01-preview"
   body = {
     properties = {
       model = {
@@ -75,21 +75,22 @@ resource "azurerm_private_endpoint" "ai_foundry" {
   }
   private_dns_zone_group {
     name                 = "pe-${azapi_resource.ai_foundry.name}-dns"
-    private_dns_zone_ids = [var.ai_foundry.private_dns_zone_resource_id]
+    private_dns_zone_ids = var.ai_foundry.private_dns_zone_resource_ids
   }
 
   depends_on = [azapi_resource.ai_foundry]
 }
 
 resource "azurerm_role_assignment" "foundry_role_assignments" {
-  for_each                               = local.foundry_role_assignments
-  scope                                  = resource.azapi_resource.ai_foundry.id
-  role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
-  role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
+  for_each = local.foundry_role_assignments
+
   principal_id                           = each.value.principal_id
+  scope                                  = resource.azapi_resource.ai_foundry.id
   condition                              = each.value.condition
   condition_version                      = each.value.condition_version
-  skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
   delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
   principal_type                         = each.value.principal_type
+  role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
+  role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
+  skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }

@@ -33,6 +33,7 @@ The following resources are used by this module:
 - [azurerm_role_assignment.storage_blob_data_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.storage_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [time_sleep.wait_project_identities](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
+- [time_sleep.wait_rbac_before_capability_host](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs

@@ -287,8 +287,8 @@ module "ai_foundry" {
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
-    create_ai_agent_service      = true
-    private_dns_zone_resource_id = azurerm_private_dns_zone.openai.id
+    create_ai_agent_service       = true
+    private_dns_zone_resource_ids = [azurerm_private_dns_zone.openai.id, azurerm_private_dns_zone.cognitiveservices.id, azurerm_private_dns_zone.ai_services.id]
     network_injections = [{
       scenario                   = "agent"
       subnetArmId                = azurerm_subnet.agent_services.id
@@ -336,6 +336,7 @@ module "ai_foundry" {
     this = {
       private_dns_zone_resource_id = azurerm_private_dns_zone.cosmosdb.id
       enable_diagnostic_settings   = false
+      consistency_level            = "Session"
     }
   }
   key_vault_definition = {

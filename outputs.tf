@@ -42,12 +42,14 @@ output "ai_model_deployment_ids" {
 
 output "ai_search_id" {
   description = "The resource ID of the AI Search service."
-  value       = { for k, v in var.ai_search_definition : k => try(v.existing_resource_id, null) != null ? v.existing_resource_id : module.ai_search[k].resource_id }
+  #value       = { for k, v in var.ai_search_definition : k => try(v.existing_resource_id, null) != null ? v.existing_resource_id : module.ai_search[k].resource_id }
+  value = { for k, v in var.ai_search_definition : k => try(v.existing_resource_id, null) != null ? v.existing_resource_id : azapi_resource.ai_search[k].id }
 }
 
 output "ai_search_name" {
   description = "The name of the AI Search service."
-  value       = { for k, v in var.ai_search_definition : k => try(v.existing_resource_id, null) != null ? basename(v.existing_resource_id) : basename(module.ai_search[k].resource_id) }
+  #value       = { for k, v in var.ai_search_definition : k => try(v.existing_resource_id, null) != null ? basename(v.existing_resource_id) : basename(module.ai_search[k].resource_id) }
+  value = { for k, v in var.ai_search_definition : k => try(v.existing_resource_id, null) != null ? basename(v.existing_resource_id) : basename(azapi_resource.ai_search[k].id) }
 }
 
 output "cosmos_db_id" {

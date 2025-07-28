@@ -30,6 +30,8 @@ resource "azurerm_role_assignment" "ai_search_role_assignments" {
   scope        = var.create_project_connections ? var.ai_search_id : "/n/o/t/u/s/e/d"
   #name                 = each.key
   role_definition_name = each.value.role_definition_id_or_name
+
+  depends_on = [time_sleep.wait_project_identities]
 }
 
 resource "azurerm_role_assignment" "cosmosdb_role_assignments" {
@@ -39,6 +41,8 @@ resource "azurerm_role_assignment" "cosmosdb_role_assignments" {
   scope        = var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d"
   #name                 = each.key
   role_definition_name = each.value.role_definition_id_or_name
+
+  depends_on = [time_sleep.wait_project_identities]
 }
 
 
@@ -49,6 +53,8 @@ resource "azurerm_role_assignment" "storage_role_assignments" {
   scope        = var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d"
   #name                 = each.key
   role_definition_name = each.value.role_definition_id_or_name
+
+  depends_on = [time_sleep.wait_project_identities]
 }
 
 
@@ -65,7 +71,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "thread_message_store" {
   name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}userthreadmessage_dbsqlrole")
 
   depends_on = [
-     azapi_resource.ai_agent_capability_host
+    azapi_resource.ai_agent_capability_host
   ]
 }
 
