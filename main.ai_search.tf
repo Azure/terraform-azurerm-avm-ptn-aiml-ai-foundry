@@ -42,7 +42,7 @@ resource "azapi_resource" "ai_search" {
 }
 
 resource "azurerm_private_endpoint" "pe-aisearch" {
-  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
+  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true && v.create_private_endpoint == true }
 
   location            = var.location
   name                = "${azapi_resource.ai_search[each.key].name}-private-endpoint"
@@ -83,7 +83,7 @@ resource "azurerm_role_assignment" "this-aisearch" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "this-aisearch" {
-  for_each = var.ai_search_definition
+  for_each = { for k, v in var.ai_search_definition : k => v if v.enable_diagnostic_settings == true }
 
   name                           = "diag-${azapi_resource.ai_search[each.key].name}"
   target_resource_id             = azapi_resource.ai_search[each.key].id
