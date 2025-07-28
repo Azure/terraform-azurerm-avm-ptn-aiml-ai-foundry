@@ -42,7 +42,7 @@ resource "azapi_resource" "ai_search" {
 }
 
 resource "azurerm_private_endpoint" "pe-aisearch" {
-  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true && v.create_private_endpoint == true }
+  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true && var.create_private_endpoints == true }
 
   location            = var.location
   name                = "${azapi_resource.ai_search[each.key].name}-private-endpoint"
