@@ -61,6 +61,8 @@ module "key_vault" {
 
 
 
+
+/*
 module "ai_search" {
   source   = "Azure/avm-res-search-searchservice/azurerm"
   version  = "0.1.5"
@@ -91,6 +93,7 @@ module "ai_search" {
   semantic_search_sku           = each.value.semantic_search_sku
   sku                           = each.value.sku
 }
+*/
 
 #TODO:
 # Implement subservice passthrough in variables and here
