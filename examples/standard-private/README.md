@@ -64,15 +64,6 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-# The module will create the Log Analytics workspace when include_dependent_resources = true
-# resource "azurerm_log_analytics_workspace" "this" {
-#   location            = azurerm_resource_group.this.location
-#   name                = module.naming.log_analytics_workspace.name_unique
-#   resource_group_name = azurerm_resource_group.this.name
-#   retention_in_days   = 30
-#   sku                 = "PerGB2018"
-# }
-
 # Virtual Network for private endpoints and agent services
 resource "azurerm_virtual_network" "this" {
   location            = azurerm_resource_group.this.location
