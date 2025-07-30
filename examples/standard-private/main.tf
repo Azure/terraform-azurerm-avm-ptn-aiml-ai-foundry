@@ -19,8 +19,14 @@ provider "azurerm" {
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
+    virtual_machine {
+      delete_os_disk_on_deletion = true
+    }
   }
 }
+
+# Get current subscription data
+data "azurerm_client_config" "current" {}
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
@@ -91,6 +97,10 @@ resource "azurerm_subnet" "agent_services" {
       name    = "Microsoft.App/environments"
       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -357,4 +367,25 @@ module "ai_foundry" {
       }
     }
   }
+}
+
+# Resource to handle service association link cleanup during destroy
+resource "null_resource" "service_association_link_cleanup" {
+  # This will run when the resource is destroyed
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      az resource delete \
+        --ids "/subscriptions/${self.triggers.subscription_id}/resourceGroups/${self.triggers.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${self.triggers.vnet_name}/subnets/${self.triggers.subnet_name}/serviceAssociationLinks/legionservicelink" \
+        --api-version 2018-10-01 || echo "Service association link removal failed or already removed"
+    EOT
+  }
+
+  triggers = {
+    subscription_id     = data.azurerm_client_config.current.subscription_id
+    resource_group_name = azurerm_resource_group.this.name
+    vnet_name          = azurerm_virtual_network.this.name
+    subnet_name        = azurerm_subnet.agent_services.name
+  }
+  depends_on = [module.ai_foundry]
 }
