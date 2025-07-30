@@ -7,16 +7,16 @@ module "avm_utl_regions" {
 }
 
 module "log_analytics_workspace" {
-  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version = "0.4.2"
-  count   = var.law_definition.existing_resource_id == null ? 1 : 0
+  source   = "Azure/avm-res-operationalinsights-workspace/azurerm"
+  version  = "0.4.2"
+  for_each = { for k, v in var.law_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
 
   location                                  = var.location
   name                                      = local.log_analytics_workspace_name
   resource_group_name                       = local.resource_group_name
   enable_telemetry                          = var.enable_telemetry
-  log_analytics_workspace_retention_in_days = var.law_definition.retention
-  log_analytics_workspace_sku               = var.law_definition.sku
+  log_analytics_workspace_retention_in_days = each.value.retention
+  log_analytics_workspace_sku               = each.value.sku
 }
 
 module "key_vault" {

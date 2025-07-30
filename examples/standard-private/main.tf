@@ -58,14 +58,6 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-resource "azurerm_log_analytics_workspace" "this" {
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-  retention_in_days   = 30
-  sku                 = "PerGB2018"
-}
-
 # Virtual Network for private endpoints and agent services
 resource "azurerm_virtual_network" "this" {
   location            = azurerm_resource_group.this.location
@@ -371,21 +363,22 @@ module "ai_foundry" {
 
 # Resource to handle service association link cleanup during destroy
 resource "null_resource" "service_association_link_cleanup" {
+  triggers = {
+    subscription_id     = data.azurerm_client_config.current.subscription_id
+    resource_group_name = azurerm_resource_group.this.name
+    vnet_name           = azurerm_virtual_network.this.name
+    subnet_name         = azurerm_subnet.agent_services.name
+  }
+
   # This will run when the resource is destroyed
   provisioner "local-exec" {
-    when    = destroy
     command = <<-EOT
       az resource delete \
         --ids "/subscriptions/${self.triggers.subscription_id}/resourceGroups/${self.triggers.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${self.triggers.vnet_name}/subnets/${self.triggers.subnet_name}/serviceAssociationLinks/legionservicelink" \
         --api-version 2018-10-01 || echo "Service association link removal failed or already removed"
     EOT
+    when    = destroy
   }
 
-  triggers = {
-    subscription_id     = data.azurerm_client_config.current.subscription_id
-    resource_group_name = azurerm_resource_group.this.name
-    vnet_name          = azurerm_virtual_network.this.name
-    subnet_name        = azurerm_subnet.agent_services.name
-  }
   depends_on = [module.ai_foundry]
 }

@@ -457,22 +457,23 @@ Default: `{}`
 
 Description: Configuration object for the Log Analytics Workspace to be created for monitoring and logging.
 
-- `existing_resource_id` - (Optional) The resource ID of an existing Log Analytics Workspace to use. If provided, the workspace will not be created and the other inputs will be ignored.
-- `name` - (Optional) The name of the Log Analytics Workspace. If not provided, a name will be generated.
-- `retention` - (Optional) The data retention period in days for the workspace. Default is 30.
-- `sku` - (Optional) The SKU of the Log Analytics Workspace. Default is "PerGB2018".
-- `tags` - (Optional) Map of tags to assign to the Log Analytics Workspace.
+- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Log Analytics Workspaces.
+  - `existing_resource_id` - (Optional) The resource ID of an existing Log Analytics Workspace to use. If provided, the workspace will not be created and the other inputs will be ignored.
+  - `name` - (Optional) The name of the Log Analytics Workspace. If not provided, a name will be generated.
+  - `retention` - (Optional) The data retention period in days for the workspace. Default is 30.
+  - `sku` - (Optional) The SKU of the Log Analytics Workspace. Default is "PerGB2018".
+  - `tags` - (Optional) Map of tags to assign to the Log Analytics Workspace.
 
 Type:
 
 ```hcl
-object({
-    existing_resource_id = optional(string)
+map(object({
+    existing_resource_id = optional(string, null)
     name                 = optional(string)
     retention            = optional(number, 30)
     sku                  = optional(string, "PerGB2018")
     tags                 = optional(map(string), {})
-  })
+  }))
 ```
 
 Default: `{}`

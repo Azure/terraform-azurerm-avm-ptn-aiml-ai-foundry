@@ -25,8 +25,14 @@ provider "azurerm" {
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
+    virtual_machine {
+      delete_os_disk_on_deletion = true
+    }
   }
 }
+
+# Get current subscription data
+data "azurerm_client_config" "current" {}
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
@@ -58,13 +64,14 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-resource "azurerm_log_analytics_workspace" "this" {
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-  retention_in_days   = 30
-  sku                 = "PerGB2018"
-}
+# The module will create the Log Analytics workspace when include_dependent_resources = true
+# resource "azurerm_log_analytics_workspace" "this" {
+#   location            = azurerm_resource_group.this.location
+#   name                = module.naming.log_analytics_workspace.name_unique
+#   resource_group_name = azurerm_resource_group.this.name
+#   retention_in_days   = 30
+#   sku                 = "PerGB2018"
+# }
 
 # Virtual Network for private endpoints and agent services
 resource "azurerm_virtual_network" "this" {
@@ -97,6 +104,10 @@ resource "azurerm_subnet" "agent_services" {
       name    = "Microsoft.App/environments"
       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -364,6 +375,28 @@ module "ai_foundry" {
     }
   }
 }
+
+# Resource to handle service association link cleanup during destroy
+resource "null_resource" "service_association_link_cleanup" {
+  triggers = {
+    subscription_id     = data.azurerm_client_config.current.subscription_id
+    resource_group_name = azurerm_resource_group.this.name
+    vnet_name           = azurerm_virtual_network.this.name
+    subnet_name         = azurerm_subnet.agent_services.name
+  }
+
+  # This will run when the resource is destroyed
+  provisioner "local-exec" {
+    command = <<-EOT
+      az resource delete \
+        --ids "/subscriptions/${self.triggers.subscription_id}/resourceGroups/${self.triggers.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${self.triggers.vnet_name}/subnets/${self.triggers.subnet_name}/serviceAssociationLinks/legionservicelink" \
+        --api-version 2018-10-01 || echo "Service association link removal failed or already removed"
+    EOT
+    when    = destroy
+  }
+
+  depends_on = [module.ai_foundry]
+}
 ```
 
 <!-- markdownlint-disable MD033 -->
@@ -381,7 +414,6 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_private_dns_zone.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.cognitiveservices](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
@@ -405,7 +437,9 @@ The following resources are used by this module:
 - [azurerm_subnet.private_endpoints](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
+- [null_resource.service_association_link_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) (resource)
 - [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
+- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs

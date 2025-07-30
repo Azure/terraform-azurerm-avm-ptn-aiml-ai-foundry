@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 1.9, < 2.0"
 
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.0"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
@@ -9,10 +13,6 @@ terraform {
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
-    }
-    azapi = {
-      source  = "Azure/azapi"
-      version = "~> 2.0"
     }
   }
 }
@@ -118,6 +118,10 @@ module "key_vault" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  network_acls = {
+    default_action = "Allow"
+    bypass         = "AzureServices"
+  }
 }
 
 module "storage_account" {
@@ -138,8 +142,8 @@ module "cosmosdb" {
   version = "0.8.0"
 
   location                   = azurerm_resource_group.this.location
-  resource_group_name        = azurerm_resource_group.this.name
   name                       = module.naming.cosmosdb_account.name_unique
+  resource_group_name        = azurerm_resource_group.this.name
   analytical_storage_enabled = true
   automatic_failover_enabled = true
   capacity = {
@@ -163,14 +167,12 @@ module "cosmosdb" {
   public_network_access_enabled         = true
 }
 
-
 module "ai_foundry" {
   source = "../../"
 
-  base_name                   = local.base_name
-  location                    = azurerm_resource_group.this.location
-  resource_group_resource_id  = azurerm_resource_group.this.id
-  include_dependent_resources = false
+  base_name                  = local.base_name
+  location                   = azurerm_resource_group.this.location
+  resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service = false
   }
@@ -220,11 +222,17 @@ module "ai_foundry" {
       enable_diagnostic_settings = false
     }
   }
-  create_private_endpoints = false # default: false
+  create_private_endpoints    = false # default: false
+  include_dependent_resources = false
   key_vault_definition = {
     this = {
       existing_resource_id       = module.key_vault.resource_id
       enable_diagnostic_settings = false
+    }
+  }
+  law_definition = {
+    this = {
+      existing_resource_id = azurerm_log_analytics_workspace.this.id
     }
   }
   storage_account_definition = {

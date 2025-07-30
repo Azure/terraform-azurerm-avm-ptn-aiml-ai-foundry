@@ -31,7 +31,7 @@ locals {
   #################################################################
   # Log Analytics specific local variables
   #################################################################
-  log_analytics_workspace_name = try(var.law_definition.name, null) != null ? var.law_definition.name : (try(var.base_name, null) != null ? "${var.base_name}-law" : "ai-foundry-law")
+  log_analytics_workspace_name = length(var.law_definition) > 0 ? try(values(var.law_definition)[0].name, null) != null ? values(var.law_definition)[0].name : (try(var.base_name, null) != null ? "${var.base_name}-law" : "ai-foundry-law") : "ai-foundry-law"
   paired_region                = [for region in module.avm_utl_regions.regions : region if(lower(region.name) == lower(var.location) || (lower(region.display_name) == lower(var.location)))][0].paired_region_name
   #paired_region_zones          = local.paired_region_zones_lookup != null ? local.paired_region_zones_lookup : []
   #paired_region_zones_lookup   = [for region in module.avm_utl_regions.regions : region if(lower(region.name) == lower(local.paired_region) || (lower(region.display_name) == lower(local.paired_region)))][0].zones
