@@ -337,7 +337,7 @@ resource "azapi_resource" "ai_search" {
   schema_validation_enabled = true
 }
 
-resource "azurerm_private_endpoint" "pe-aisearch" {
+resource "azurerm_private_endpoint" "pe_aisearch" {
   location            = azurerm_resource_group.this.location
   name                = "${azapi_resource.ai_search.name}-private-endpoint"
   resource_group_name = azurerm_resource_group.this.name

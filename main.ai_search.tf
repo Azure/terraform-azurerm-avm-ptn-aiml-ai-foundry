@@ -41,13 +41,14 @@ resource "azapi_resource" "ai_search" {
   schema_validation_enabled = true
 }
 
-resource "azurerm_private_endpoint" "pe-aisearch" {
+resource "azurerm_private_endpoint" "pe_aisearch" {
   for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true && var.create_private_endpoints == true }
 
   location            = var.location
   name                = "${azapi_resource.ai_search[each.key].name}-private-endpoint"
   resource_group_name = local.resource_group_name
   subnet_id           = var.private_endpoint_subnet_resource_id
+  tags                = var.tags
 
   private_service_connection {
     is_manual_connection           = false
@@ -68,7 +69,7 @@ resource "azurerm_private_endpoint" "pe-aisearch" {
   ]
 }
 
-resource "azurerm_role_assignment" "this-aisearch" {
+resource "azurerm_role_assignment" "this_aisearch" {
   for_each = local.ai_search_rbac
 
   principal_id                           = each.value.role_assignment.principal_id
@@ -82,7 +83,7 @@ resource "azurerm_role_assignment" "this-aisearch" {
   skip_service_principal_aad_check       = each.value.role_assignment.skip_service_principal_aad_check
 }
 
-resource "azurerm_monitor_diagnostic_setting" "this-aisearch" {
+resource "azurerm_monitor_diagnostic_setting" "this_aisearch" {
   for_each = { for k, v in var.ai_search_definition : k => v if v.enable_diagnostic_settings == true }
 
   name                           = "diag-${azapi_resource.ai_search[each.key].name}"
