@@ -33,6 +33,9 @@ provider "azurerm" {
     virtual_machine {
       delete_os_disk_on_deletion = true
     }
+    cognitive_account {
+      purge_soft_delete_on_destroy = true
+    }
   }
 }
 
@@ -100,10 +103,6 @@ resource "azurerm_subnet" "agent_services" {
       name    = "Microsoft.App/environments"
       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }
 
@@ -554,6 +553,30 @@ module "ai_foundry" {
     }
   }
 }
+
+# Resource to handle AI Foundry account purge during destroy to clean up service association links
+resource "null_resource" "ai_foundry_purge_cleanup" {
+  triggers = {
+    subscription_id     = data.azurerm_client_config.current.subscription_id
+    resource_group_name = azurerm_resource_group.this.name
+    ai_foundry_name     = module.ai_foundry.ai_foundry_name
+    location            = azurerm_resource_group.this.location
+  }
+
+  # This will run when the resource is destroyed
+  provisioner "local-exec" {
+    command = <<-EOT
+      # Purge the AI Foundry account to clean up all associated resources including service association links
+      az cognitiveservices account purge \
+        --name "${self.triggers.ai_foundry_name}" \
+        --resource-group "${self.triggers.resource_group_name}" \
+        --location "${self.triggers.location}" || echo "AI Foundry account purge failed or already completed"
+    EOT
+    when    = destroy
+  }
+
+  depends_on = [module.ai_foundry]
+}
 ```
 
 <!-- markdownlint-disable MD033 -->
@@ -599,6 +622,7 @@ The following resources are used by this module:
 - [azurerm_subnet.private_endpoints](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
+- [null_resource.ai_foundry_purge_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) (resource)
 - [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 

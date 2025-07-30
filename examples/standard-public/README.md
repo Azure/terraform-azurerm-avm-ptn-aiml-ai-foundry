@@ -26,6 +26,9 @@ provider "azurerm" {
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
+    cognitive_account {
+      purge_soft_delete_on_destroy = true
+    }
   }
 }
 
