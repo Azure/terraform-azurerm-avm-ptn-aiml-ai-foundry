@@ -31,7 +31,7 @@ module "ai_foundry_project" {
     azapi_resource.ai_foundry,
     azurerm_private_endpoint.ai_foundry,
     azapi_resource.ai_search,
-    azurerm_private_endpoint.pe-aisearch, #module.ai_search,
+    azurerm_private_endpoint.pe_aisearch, #module.ai_search,
     module.cosmosdb,
   module.storage_account]
 }
