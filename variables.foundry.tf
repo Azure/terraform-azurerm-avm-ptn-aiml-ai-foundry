@@ -32,9 +32,18 @@ Configuration object for the Azure AI Foundry service to be created for AI workl
 - `create_ai_agent_service` - (Optional) Whether to create an AI agent service as part of the AI Foundry deployment. Default is false.
 - `network_injections` - (Optional) List of network injection configurations for the AI Foundry service.
   - `scenario` - (Optional) The scenario for the network injection. Default is "agent".
-  - `subnetArmId` - (Optional) The subnet ID for the AI agent service."
+  - `subnetArmId` - The subnet ARM ID for the AI agent service.
   - `useMicrosoftManagedNetwork` - (Optional) Whether to use Microsoft managed network for the injection. Default is false.
 - `private_dns_zone_resource_ids` - (Optional) The resource IDs of the existing private DNS zones for AI Foundry. Required when `create_private_endpoints` is true.
 - `sku` - (Optional) The SKU of the AI Foundry service. Default is "S0".
+- `role_assignments` - (Optional) Map of role assignments to create on the AI Foundry service. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
+  - `role_definition_id_or_name` - The role definition ID or name to assign.
+  - `principal_id` - The principal ID to assign the role to.
+  - `description` - (Optional) Description of the role assignment.
+  - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.
+  - `condition` - (Optional) Condition for the role assignment.
+  - `condition_version` - (Optional) Version of the condition.
+  - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.
+  - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
 DESCRIPTION
 }
