@@ -293,7 +293,10 @@ module "virtual_machine" {
     sku       = "2022-datacenter-g2"
     version   = "latest"
   }
-  tags = {}
+
+  tags = {
+    environment = "test"
+  }
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
@@ -436,7 +439,10 @@ module "storage_account" {
       subresource_name              = "blob"
     }
   }
-  tags = {}
+
+  tags = {
+    environment = "test"
+  }
 }
 
 module "cosmosdb" {
