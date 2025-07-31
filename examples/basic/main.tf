@@ -76,6 +76,7 @@ module "ai_foundry" {
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service = false
+    name                    = module.naming.cognitive_account.name_unique
   }
   ai_model_deployments = {
     "gpt-4o" = {
@@ -108,7 +109,7 @@ resource "null_resource" "ai_foundry_purge_cleanup" {
   triggers = {
     subscription_id     = data.azurerm_client_config.current.subscription_id
     resource_group_name = azurerm_resource_group.this.name
-    ai_foundry_name     = module.ai_foundry.ai_foundry_name
+    ai_foundry_name     = module.naming.cognitive_account.name_unique
     location            = azurerm_resource_group.this.location
   }
 

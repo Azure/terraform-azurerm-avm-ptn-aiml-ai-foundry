@@ -13,6 +13,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -30,6 +34,8 @@ provider "azurerm" {
     }
   }
 }
+
+data "azurerm_client_config" "current" {}
 
 locals {
   base_name = "basic"
@@ -77,6 +83,7 @@ module "ai_foundry" {
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service = false
+    name                    = module.naming.cognitive_account.name_unique
   }
   ai_model_deployments = {
     "gpt-4o" = {
@@ -100,6 +107,30 @@ module "ai_foundry" {
       create_project_connections = false
     }
   }
+
+  depends_on = [null_resource.ai_foundry_purge_cleanup]
+}
+
+# Resource to handle AI Foundry account purge during destroy to clean up service association links
+resource "null_resource" "ai_foundry_purge_cleanup" {
+  triggers = {
+    subscription_id     = data.azurerm_client_config.current.subscription_id
+    resource_group_name = azurerm_resource_group.this.name
+    ai_foundry_name     = module.naming.cognitive_account.name_unique
+    location            = azurerm_resource_group.this.location
+  }
+
+  # This will run when the resource is destroyed
+  provisioner "local-exec" {
+    command = <<-EOT
+      # Purge the AI Foundry account to clean up all associated resources including service association links
+      az cognitiveservices account purge \
+        --name "${self.triggers.ai_foundry_name}" \
+        --resource-group "${self.triggers.resource_group_name}" \
+        --location "${self.triggers.location}" || echo "AI Foundry account purge failed or already completed"
+    EOT
+    when    = destroy
+  }
 }
 ```
 
@@ -112,6 +143,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
+- <a name="requirement_null"></a> [null](#requirement\_null) (~> 3.2)
+
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 ## Resources
@@ -120,7 +153,9 @@ The following resources are used by this module:
 
 - [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
+- [null_resource.ai_foundry_purge_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) (resource)
 - [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
+- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs

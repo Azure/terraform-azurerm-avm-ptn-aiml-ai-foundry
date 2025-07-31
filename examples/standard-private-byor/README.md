@@ -60,7 +60,7 @@ resource "random_shuffle" "locations" {
 }
 
 locals {
-  base_name = "private"
+  base_name = "pribyor"
 }
 
 module "naming" {
@@ -293,6 +293,7 @@ module "virtual_machine" {
     sku       = "2022-datacenter-g2"
     version   = "latest"
   }
+  tags = {}
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
@@ -432,6 +433,7 @@ module "storage_account" {
       subresource_name              = "blob"
     }
   }
+  tags = {}
 }
 
 module "cosmosdb" {
@@ -485,6 +487,7 @@ module "ai_foundry" {
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service       = true
+    name                          = module.naming.cognitive_account.name_unique
     private_dns_zone_resource_ids = [azurerm_private_dns_zone.openai.id, azurerm_private_dns_zone.cognitiveservices.id, azurerm_private_dns_zone.ai_services.id]
     network_injections = [{
       scenario                   = "agent"
@@ -556,6 +559,8 @@ module "ai_foundry" {
       enable_diagnostic_settings = false
     }
   }
+
+  depends_on = [null_resource.ai_foundry_purge_cleanup]
 }
 
 # Resource to handle AI Foundry account purge during destroy to clean up service association links
@@ -563,7 +568,7 @@ resource "null_resource" "ai_foundry_purge_cleanup" {
   triggers = {
     subscription_id     = data.azurerm_client_config.current.subscription_id
     resource_group_name = azurerm_resource_group.this.name
-    ai_foundry_name     = module.ai_foundry.ai_foundry_name
+    ai_foundry_name     = module.naming.cognitive_account.name_unique
     location            = azurerm_resource_group.this.location
   }
 
@@ -578,8 +583,6 @@ resource "null_resource" "ai_foundry_purge_cleanup" {
     EOT
     when    = destroy
   }
-
-  depends_on = [module.ai_foundry]
 }
 ```
 

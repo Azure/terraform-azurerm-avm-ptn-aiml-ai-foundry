@@ -286,6 +286,7 @@ module "virtual_machine" {
     sku       = "2022-datacenter-g2"
     version   = "latest"
   }
+  tags = {}
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
@@ -425,6 +426,7 @@ module "storage_account" {
       subresource_name              = "blob"
     }
   }
+  tags = {}
 }
 
 module "cosmosdb" {
@@ -478,6 +480,7 @@ module "ai_foundry" {
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service       = true
+    name                          = module.naming.cognitive_account.name_unique
     private_dns_zone_resource_ids = [azurerm_private_dns_zone.openai.id, azurerm_private_dns_zone.cognitiveservices.id, azurerm_private_dns_zone.ai_services.id]
     network_injections = [{
       scenario                   = "agent"
@@ -558,7 +561,7 @@ resource "null_resource" "ai_foundry_purge_cleanup" {
   triggers = {
     subscription_id     = data.azurerm_client_config.current.subscription_id
     resource_group_name = azurerm_resource_group.this.name
-    ai_foundry_name     = module.ai_foundry.ai_foundry_name
+    ai_foundry_name     = module.naming.cognitive_account.name_unique
     location            = azurerm_resource_group.this.location
   }
 
