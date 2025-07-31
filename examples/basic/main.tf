@@ -99,6 +99,8 @@ module "ai_foundry" {
       create_project_connections = false
     }
   }
+
+  depends_on = [null_resource.ai_foundry_purge_cleanup]
 }
 
 # Resource to handle AI Foundry account purge during destroy to clean up service association links
@@ -121,6 +123,4 @@ resource "null_resource" "ai_foundry_purge_cleanup" {
     EOT
     when    = destroy
   }
-
-  depends_on = [module.ai_foundry]
 }

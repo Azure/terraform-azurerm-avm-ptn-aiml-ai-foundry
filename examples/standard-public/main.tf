@@ -150,6 +150,4 @@ resource "null_resource" "ai_foundry_purge_cleanup" {
     EOT
     when    = destroy
   }
-
-  depends_on = [module.ai_foundry]
 }
