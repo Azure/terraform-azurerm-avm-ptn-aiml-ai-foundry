@@ -293,7 +293,6 @@ module "virtual_machine" {
     sku       = "2022-datacenter-g2"
     version   = "latest"
   }
-
   tags = {
     environment = "test"
   }
@@ -439,7 +438,6 @@ module "storage_account" {
       subresource_name              = "blob"
     }
   }
-
   tags = {
     environment = "test"
   }
