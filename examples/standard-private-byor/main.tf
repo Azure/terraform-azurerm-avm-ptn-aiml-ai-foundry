@@ -53,7 +53,7 @@ resource "random_shuffle" "locations" {
 }
 
 locals {
-  base_name = "private"
+  base_name = "pribyor"
 }
 
 module "naming" {

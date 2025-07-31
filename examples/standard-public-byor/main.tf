@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.1"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -241,4 +245,28 @@ module "ai_foundry" {
       enable_diagnostic_settings = false
     }
   }
+}
+
+# Resource to handle AI Foundry account purge during destroy to clean up service association links
+resource "null_resource" "ai_foundry_purge_cleanup" {
+  triggers = {
+    subscription_id     = data.azurerm_client_config.current.subscription_id
+    resource_group_name = azurerm_resource_group.this.name
+    ai_foundry_name     = module.ai_foundry.ai_foundry_name
+    location            = azurerm_resource_group.this.location
+  }
+
+  # This will run when the resource is destroyed
+  provisioner "local-exec" {
+    command = <<-EOT
+      # Purge the AI Foundry account to clean up all associated resources including service association links
+      az cognitiveservices account purge \
+        --name "${self.triggers.ai_foundry_name}" \
+        --resource-group "${self.triggers.resource_group_name}" \
+        --location "${self.triggers.location}" || echo "AI Foundry account purge failed or already completed"
+    EOT
+    when    = destroy
+  }
+
+  depends_on = [module.ai_foundry]
 }
