@@ -568,6 +568,16 @@ resource "null_resource" "ai_foundry_purge_cleanup" {
   # This will run when the resource is destroyed
   provisioner "local-exec" {
     command = <<-EOT
+      # Check if Azure CLI is authenticated
+      if ! az account show >/dev/null 2>&1; then
+        echo "Azure CLI not authenticated, attempting to login with managed identity..."
+        if ! az login --identity >/dev/null 2>&1; then
+          echo "ERROR: Azure CLI authentication failed. Please authenticate first using 'az login'."
+          exit 1
+        fi
+        echo "Successfully authenticated with managed identity."
+      fi
+
       # Purge the AI Foundry account to clean up all associated resources including service association links
       az cognitiveservices account purge \
         --name "${self.triggers.ai_foundry_name}" \
