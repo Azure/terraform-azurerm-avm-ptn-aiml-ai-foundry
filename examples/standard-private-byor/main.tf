@@ -101,8 +101,6 @@ resource "azurerm_subnet" "agent_services" {
       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
-
-  depends_on = [time_sleep.purge_ai_foundry_cooldown]
 }
 
 # Subnet for Bastion
@@ -570,4 +568,6 @@ resource "azapi_resource_action" "purge_ai_foundry" {
 
 resource "time_sleep" "purge_ai_foundry_cooldown" {
   destroy_duration = "300s" # 5m
+
+  depends_on = [azurerm_subnet.agent_services]
 }
