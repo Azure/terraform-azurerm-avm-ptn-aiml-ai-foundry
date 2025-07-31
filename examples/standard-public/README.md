@@ -9,6 +9,10 @@ terraform {
   required_version = ">= 1.9, < 2.0"
 
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.0"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
@@ -139,39 +143,14 @@ module "ai_foundry" {
     }
   }
 
-  depends_on = [null_resource.ai_foundry_purge_cleanup]
+  depends_on = [azapi_resource_action.purge_ai_foundry]
 }
 
-# Resource to handle AI Foundry account purge during destroy to clean up service association links
-resource "null_resource" "ai_foundry_purge_cleanup" {
-  triggers = {
-    subscription_id     = data.azurerm_client_config.current.subscription_id
-    resource_group_name = azurerm_resource_group.this.name
-    ai_foundry_name     = module.naming.cognitive_account.name_unique
-    location            = azurerm_resource_group.this.location
-  }
-
-  # This will run when the resource is destroyed
-  provisioner "local-exec" {
-    command = <<-EOT
-      # Check if Azure CLI is authenticated
-      if ! az account show >/dev/null 2>&1; then
-        echo "Azure CLI not authenticated, attempting to login with managed identity..."
-        if ! az login --identity >/dev/null 2>&1; then
-          echo "ERROR: Azure CLI authentication failed. Please authenticate first using 'az login'."
-          exit 1
-        fi
-        echo "Successfully authenticated with managed identity."
-      fi
-
-      # Purge the AI Foundry account to clean up all associated resources including service association links
-      az cognitiveservices account purge \
-        --name "${self.triggers.ai_foundry_name}" \
-        --resource-group "${self.triggers.resource_group_name}" \
-        --location "${self.triggers.location}" || echo "AI Foundry account purge failed or already completed"
-    EOT
-    when    = destroy
-  }
+resource "azapi_resource_action" "purge_ai_foundry" {
+  method      = "DELETE"
+  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
+  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2021-04-30"
+  when        = "destroy"
 }
 ```
 
@@ -181,6 +160,8 @@ resource "null_resource" "ai_foundry_purge_cleanup" {
 The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
+
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.0)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
@@ -192,9 +173,9 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azapi_resource_action.purge_ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) (resource)
 - [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [null_resource.ai_foundry_purge_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) (resource)
 - [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 

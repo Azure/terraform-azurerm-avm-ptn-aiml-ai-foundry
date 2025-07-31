@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 1.9, < 2.0"
 
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.0"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
@@ -60,14 +64,6 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-resource "azurerm_log_analytics_workspace" "this" {
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-  retention_in_days   = 30
-  sku                 = "PerGB2018"
-}
-
 module "ai_foundry" {
   source = "../../"
 
@@ -101,37 +97,12 @@ module "ai_foundry" {
     }
   }
 
-  depends_on = [null_resource.ai_foundry_purge_cleanup]
+  depends_on = [azapi_resource_action.purge_ai_foundry]
 }
 
-# Resource to handle AI Foundry account purge during destroy to clean up service association links
-resource "null_resource" "ai_foundry_purge_cleanup" {
-  triggers = {
-    subscription_id     = data.azurerm_client_config.current.subscription_id
-    resource_group_name = azurerm_resource_group.this.name
-    ai_foundry_name     = module.naming.cognitive_account.name_unique
-    location            = azurerm_resource_group.this.location
-  }
-
-  # This will run when the resource is destroyed
-  provisioner "local-exec" {
-    command = <<-EOT
-      # Check if Azure CLI is authenticated
-      if ! az account show >/dev/null 2>&1; then
-        echo "Azure CLI not authenticated, attempting to login with managed identity..."
-        if ! az login --identity >/dev/null 2>&1; then
-          echo "ERROR: Azure CLI authentication failed. Please authenticate first using 'az login'."
-          exit 1
-        fi
-        echo "Successfully authenticated with managed identity."
-      fi
-
-      # Purge the AI Foundry account to clean up all associated resources including service association links
-      az cognitiveservices account purge \
-        --name "${self.triggers.ai_foundry_name}" \
-        --resource-group "${self.triggers.resource_group_name}" \
-        --location "${self.triggers.location}" || echo "AI Foundry account purge failed or already completed"
-    EOT
-    when    = destroy
-  }
+resource "azapi_resource_action" "purge_ai_foundry" {
+  method      = "DELETE"
+  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
+  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2021-04-30"
+  when        = "destroy"
 }
