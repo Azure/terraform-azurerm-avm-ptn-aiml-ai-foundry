@@ -9,7 +9,7 @@ module "avm_utl_regions" {
 module "log_analytics_workspace" {
   source   = "Azure/avm-res-operationalinsights-workspace/azurerm"
   version  = "0.4.2"
-  for_each = { for k, v in var.law_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
+  for_each = { for k, v in var.law_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                                  = var.location
   name                                      = local.log_analytics_workspace_name
@@ -22,7 +22,7 @@ module "log_analytics_workspace" {
 module "key_vault" {
   source   = "Azure/avm-res-keyvault-vault/azurerm"
   version  = "0.10.0"
-  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
+  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location            = var.location
   name                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-kv-${random_string.resource_token.result}" : "kv-fndry-${random_string.resource_token.result}")
@@ -66,7 +66,7 @@ module "key_vault" {
 module "storage_account" {
   source   = "Azure/avm-res-storage-storageaccount/azurerm"
   version  = "0.6.3"
-  for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
+  for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location = var.location
   #name                     = local.storage_account_name
@@ -107,7 +107,7 @@ module "storage_account" {
 module "cosmosdb" {
   source   = "Azure/avm-res-documentdb-databaseaccount/azurerm"
   version  = "0.8.0"
-  for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
+  for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                   = var.location
   name                       = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-${each.key}-foundry-cosmosdb-${random_string.resource_token.result}" : "${each.key}-foundry-cosmosdb-${random_string.resource_token.result}")

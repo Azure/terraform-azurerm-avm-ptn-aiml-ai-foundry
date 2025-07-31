@@ -230,8 +230,8 @@ module "ai_foundry" {
       enable_diagnostic_settings = false
     }
   }
-  create_private_endpoints    = false # default: false
-  include_dependent_resources = false
+  create_byor              = false # default: false
+  create_private_endpoints = false # default: false
   key_vault_definition = {
     this = {
       existing_resource_id       = module.key_vault.resource_id

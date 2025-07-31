@@ -399,6 +399,14 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_create_byor"></a> [create\_byor](#input\_create\_byor)
+
+Description: Whether to create resources such as AI Search, Cosmos DB, Key Vault, and Storage Account in this deployment. If set to false, these resources will not be created or linked, and the module will only create the AI Foundry account and project.
+
+Type: `bool`
+
+Default: `false`
+
 ### <a name="input_create_private_endpoints"></a> [create\_private\_endpoints](#input\_create\_private\_endpoints)
 
 Description: Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created.
@@ -412,14 +420,6 @@ Default: `false`
 Description: This variable controls whether or not telemetry is enabled for the module.  
 For more information see <https://aka.ms/avm/telemetryinfo>.  
 If it is set to false, then no telemetry will be collected.
-
-Type: `bool`
-
-Default: `true`
-
-### <a name="input_include_dependent_resources"></a> [include\_dependent\_resources](#input\_include\_dependent\_resources)
-
-Description: Whether to include dependent resources such as AI Search, Cosmos DB, Key Vault, and Storage Account in this deployment. If set to false, these resources will not be created or linked, and the module will only create the AI Foundry account and project.
 
 Type: `bool`
 
