@@ -411,12 +411,15 @@ module "storage_account" {
     blob = {
       name                  = "sendToLogAnalytics-blob-${module.naming.log_analytics_workspace.name_unique}"
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
+      log_categories        = ["audit", "alllogs"]
+      metric_categories     = ["Capacity", "Transaction"]
     }
   }
   diagnostic_settings_storage_account = {
     storage = {
       name                  = "sendToLogAnalytics-storage-${module.naming.log_analytics_workspace.name_unique}"
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
+      metric_categories     = ["Capacity", "Transaction"]
     }
   }
   private_endpoints = {
