@@ -36,6 +36,8 @@ provider "azurerm" {
   }
 }
 
+data "azurerm_client_config" "current" {}
+
 locals {
   base_name = "public"
 }
@@ -184,6 +186,7 @@ The following resources are used by this module:
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [null_resource.ai_foundry_purge_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) (resource)
 - [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
+- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
