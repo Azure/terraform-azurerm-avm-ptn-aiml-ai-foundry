@@ -11,19 +11,44 @@ This Azure Verified Module (AVM) Pattern deploys a complete AI Foundry infrastru
 - **Network Isolation**: Private endpoints and VNet integration support for enterprise security
 - **Three Example Configurations**: Basic (minimal), Standard Public (full features), Standard Private (enterprise-grade)
 
-## Architecture
+## Resource Types
 
-The module uses a conditional deployment pattern where dependent services can be:
-- **Created new** (`*_resource_id = null`) - Creates new resources (default behavior)
-- **Use existing** (`*_resource_id = "/subscriptions/.../resource-id"`) - Uses provided existing resources
+This module deploys resources in three categories:
 
-| Feature | Basic | Standard Public | Standard Private |
-|---------|-------|-----------------|------------------|
-| **AI Foundry** | ✅ Public | ✅ Public | ✅ Private |
-| **Storage/Key Vault/Cosmos/Search** | ❌ Not created | ✅ New Public | ✅ New Private |
-| **Private Endpoints** | ❌ | ❌ | ✅ All services |
-| **VNet & Management** | ❌ | ❌ | ✅ Bastion & VM |
-| **Use Case** | Development, PoC | Production | Enterprise, regulated |
+| Type      | Resource                        | Code Location                | Code / Deployment Notes                |
+| --------- | ------------------------------- | ---------------------------- | -------------------------------------- |
+| Required  | AI Foundry                      | Root module                  | Always deploy                          |
+| Required  | AI Foundry Connections          | Root module                  | Always deploy (BYOR dependency)       |
+| Required  | AI Foundry Project              | Root module                  | Always deploy                          |
+| Required  | AI Foundry Project Connections  | Root module                  | Always deploy (BYOR dependency)       |
+| Required  | AI Foundry Agent Service        | Root module                  | Private deployment only                |
+| Required  | RBACs                           | Root module                  | Always deploy                          |
+| Required  | Resource Lock                   | Root module                  | Always deploy                          |
+| Dependent | Virtual Network                 | Example main.tf              | Use resource block, not AVM res module |
+| Dependent | Subnets                         | Example main.tf              | Use resource block, not AVM res module |
+| Dependent | Private DNS Zones               | Example main.tf              | Use resource block, not AVM res module |
+| Dependent | Private DNS Zone vNet Links     | Example main.tf              | Use resource block, not AVM res module |
+| Dependent | Bastion                         | Example main.tf              | Use AVM Resource Module                |
+| Dependent | Virtual Machine                 | Example main.tf              | Use AVM Resource Module                |
+| Dependent | Log Analytics Workspace         | Example main.tf              | Use resource block, not AVM res module |
+| BYOR      | Key Vault                       | main.byor.tf                 | Use AVM Resource Module                |
+| BYOR      | Search Service                  | main.ai\_search.tf            | Use azapi\_resource                     |
+| BYOR      | Storage Account                 | main.byor.tf                 | Use AVM Resource Module                |
+| BYOR      | CosmosDB                        | main.byor.tf                 | Use AVM Resource Module                |
+
+- **Required**: Resources needed to deploy the basic example
+- **Dependent**: Resources needed to deploy examples beyond basic
+- **BYOR**: Resources identified as "Bring Your Own Resources" with conditional deployment
+
+## Example Deployments
+
+| Example | Description | Use Case | Key Features |
+|---------|-------------|----------|--------------|
+| **basic** | Minimal AI Foundry deployment | Development, PoC, Testing | AI Foundry + Project only, public access |
+| **standard-public** | Full-featured public deployment | Production workloads | All services, public endpoints, complete setup |
+| **standard-public-byor** | Public deployment with existing resources | Hybrid scenarios | Uses existing Storage/KeyVault/Cosmos/Search |
+| **standard-private** | Enterprise-grade private deployment | Regulated industries | Private endpoints, VNet isolation, Bastion access |
+| **standard-private-byor** | Private deployment with existing resources | Enterprise hybrid | Private + existing resources combination |
 
 ## Integration
 
