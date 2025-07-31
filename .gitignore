@@ -54,3 +54,6 @@ avm.tflint_module.merged.hcl
 
 # conftest policy
 examples/*/policy
+
+# env files
+.env
