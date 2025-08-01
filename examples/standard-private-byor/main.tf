@@ -453,12 +453,6 @@ module "cosmosdb" {
     max_interval_in_seconds = 300
     max_staleness_prefix    = 100001
   }
-  diagnostic_settings = {
-    cosmosdb = {
-      name                  = "sendToLogAnalytics-cosmosdb-${module.naming.log_analytics_workspace.name_unique}"
-      workspace_resource_id = azurerm_log_analytics_workspace.this.id
-    }
-  }
   ip_range_filter = [
     "168.125.123.255",
     "170.0.0.0/24",                                                                 #TODO: check 0.0.0.0 for validity
