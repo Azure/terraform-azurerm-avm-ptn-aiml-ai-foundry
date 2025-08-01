@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 1.9, < 2.0"
 
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.0"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
@@ -19,8 +23,13 @@ provider "azurerm" {
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
+    cognitive_account {
+      purge_soft_delete_on_destroy = true
+    }
   }
 }
+
+data "azurerm_client_config" "current" {}
 
 locals {
   base_name = "public"
@@ -68,6 +77,7 @@ module "ai_foundry" {
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service = false
+    name                    = module.naming.cognitive_account.name_unique
   }
   ai_model_deployments = {
     "gpt-4o" = {
@@ -110,6 +120,7 @@ module "ai_foundry" {
       enable_diagnostic_settings = false
     }
   }
+  create_byor              = true
   create_private_endpoints = false # default: false
   key_vault_definition = {
     this = {
@@ -121,4 +132,13 @@ module "ai_foundry" {
       enable_diagnostic_settings = false
     }
   }
+
+  depends_on = [azapi_resource_action.purge_ai_foundry]
+}
+
+resource "azapi_resource_action" "purge_ai_foundry" {
+  method      = "DELETE"
+  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
+  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2021-04-30"
+  when        = "destroy"
 }

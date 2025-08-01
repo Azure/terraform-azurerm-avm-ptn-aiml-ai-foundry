@@ -1,5 +1,5 @@
 locals {
-  ai_foundry_name   = coalesce(var.ai_foundry.name, "aif-${var.base_name}-${local.base_name_storage}-${local.resource_token}")
+  ai_foundry_name   = coalesce(var.ai_foundry.name, "aif-${var.base_name}-${local.resource_token}")
   base_name_storage = substr(replace(var.base_name, "-", ""), 0, 18)
   location          = var.location
   resource_names = {

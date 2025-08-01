@@ -30,17 +30,14 @@ provider "azurerm" {
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
-    cognitive_account {
-      purge_soft_delete_on_destroy = true
-    }
   }
 }
 
-data "azurerm_client_config" "current" {}
-
 locals {
-  base_name = "public"
+  base_name = "pubbyor"
 }
+
+data "azurerm_client_config" "current" {}
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
@@ -76,6 +73,107 @@ resource "azurerm_log_analytics_workspace" "this" {
   sku                 = "PerGB2018"
 }
 
+# BYOR
+
+resource "azapi_resource" "ai_search" {
+  location  = azurerm_resource_group.this.location
+  name      = module.naming.search_service.name_unique
+  parent_id = azurerm_resource_group.this.id
+  type      = "Microsoft.Search/searchServices@2024-06-01-preview"
+  body = {
+    sku = {
+      name = "standard"
+    }
+
+    identity = {
+      type = "SystemAssigned"
+    }
+
+    properties = {
+
+      # Search-specific properties
+      replicaCount   = 2
+      partitionCount = 1
+      hostingMode    = "default"
+      semanticSearch = "disabled"
+
+      # Identity-related controls
+      disableLocalAuth = false
+      authOptions = {
+        aadOrApiKey = {
+          aadAuthFailureMode = "http401WithBearerChallenge"
+        }
+      }
+      # Networking-related controls
+      publicNetworkAccess = "Enabled"
+      networkRuleSet = {
+        bypass = "None"
+      }
+    }
+  }
+  schema_validation_enabled = true
+}
+
+module "key_vault" {
+  source  = "Azure/avm-res-keyvault-vault/azurerm"
+  version = "0.10.0"
+
+  location                        = azurerm_resource_group.this.location
+  name                            = module.naming.key_vault.name_unique
+  resource_group_name             = azurerm_resource_group.this.name
+  tenant_id                       = data.azurerm_client_config.current.tenant_id
+  enabled_for_deployment          = true
+  enabled_for_disk_encryption     = true
+  enabled_for_template_deployment = true
+  network_acls = {
+    default_action = "Allow"
+    bypass         = "AzureServices"
+  }
+}
+
+module "storage_account" {
+  source  = "Azure/avm-res-storage-storageaccount/azurerm"
+  version = "0.6.3"
+
+  location                 = azurerm_resource_group.this.location
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = azurerm_resource_group.this.name
+  access_tier              = "Hot"
+  account_kind             = "StorageV2"
+  account_replication_type = "ZRS"
+  account_tier             = "Standard"
+}
+
+module "cosmosdb" {
+  source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
+  version = "0.8.0"
+
+  location                   = azurerm_resource_group.this.location
+  name                       = module.naming.cosmosdb_account.name_unique
+  resource_group_name        = azurerm_resource_group.this.name
+  analytical_storage_enabled = true
+  automatic_failover_enabled = true
+  capacity = {
+    total_throughput_limit = -1
+  }
+  consistency_policy = {
+    consistency_level       = "Session"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 100001
+  }
+  ip_range_filter = [
+    "168.125.123.255",
+    "170.0.0.0/24",                                                                 #TODO: check 0.0.0.0 for validity
+    "0.0.0.0",                                                                      #Accept connections from within public Azure datacenters. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal
+    "104.42.195.92", "40.76.54.131", "52.176.6.30", "52.169.50.45", "52.187.184.26" #Allow access from the Azure portal. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure
+  ]
+  local_authentication_disabled         = true
+  multiple_write_locations_enabled      = false
+  network_acl_bypass_for_azure_services = true
+  partition_merge_enabled               = false
+  public_network_access_enabled         = true
+}
+
 module "ai_foundry" {
   source = "../../"
 
@@ -108,34 +206,46 @@ module "ai_foundry" {
       create_project_connections = true
       cosmos_db_connection = {
         new_resource_map_key = "this"
+        existing_resource_id = module.cosmosdb.resource_id
       }
       ai_search_connection = {
         new_resource_map_key = "this"
+        existing_resource_id = azapi_resource.ai_search.id
       }
       storage_account_connection = {
         new_resource_map_key = "this"
+        existing_resource_id = module.storage_account.resource_id
       }
     }
   }
   ai_search_definition = {
     this = {
+      existing_resource_id       = azapi_resource.ai_search.id
       enable_diagnostic_settings = false
     }
   }
   cosmosdb_definition = {
     this = {
+      existing_resource_id       = module.cosmosdb.resource_id
       enable_diagnostic_settings = false
     }
   }
-  create_byor              = true
+  create_byor              = false # default: false
   create_private_endpoints = false # default: false
   key_vault_definition = {
     this = {
+      existing_resource_id       = module.key_vault.resource_id
       enable_diagnostic_settings = false
+    }
+  }
+  law_definition = {
+    this = {
+      existing_resource_id = azurerm_log_analytics_workspace.this.id
     }
   }
   storage_account_definition = {
     this = {
+      existing_resource_id       = module.storage_account.resource_id
       enable_diagnostic_settings = false
     }
   }
@@ -168,6 +278,7 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azapi_resource.ai_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource_action.purge_ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) (resource)
 - [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
@@ -197,6 +308,18 @@ Source: ../../
 
 Version:
 
+### <a name="module_cosmosdb"></a> [cosmosdb](#module\_cosmosdb)
+
+Source: Azure/avm-res-documentdb-databaseaccount/azurerm
+
+Version: 0.8.0
+
+### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
+
+Source: Azure/avm-res-keyvault-vault/azurerm
+
+Version: 0.10.0
+
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
@@ -208,6 +331,12 @@ Version: 0.4.2
 Source: Azure/avm-utl-regions/azurerm
 
 Version: 0.5.2
+
+### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
+
+Source: Azure/avm-res-storage-storageaccount/azurerm
+
+Version: 0.6.3
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

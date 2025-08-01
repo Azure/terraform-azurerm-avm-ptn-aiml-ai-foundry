@@ -12,7 +12,7 @@ output "ai_foundry_id" {
 
 output "ai_foundry_name" {
   description = "The name of the AI Foundry account."
-  value       = var.ai_foundry.name
+  value       = azapi_resource.ai_foundry.name
 }
 
 output "ai_foundry_project_id" {

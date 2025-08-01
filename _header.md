@@ -1,28 +1,46 @@
-# Azure AI Foundry Terraform Pattern Module
+# Azure AI Foundry Pattern Module
 
-This Azure Verified Module (AVM) Pattern deploys a complete AI Foundry infrastructure on Azure, providing a production-ready platform for AI applications with supporting services and configurable network isolation.
+This Azure Verified Module (AVM) deploys Azure AI Foundry along with essential and optional supporting services to enable scalable AI application development. It provisions core resources such as the AI Foundry account, projects, agent service, RBACs, and resource locks, which are always deployed for baseline functionality. The module also supports supplemental infrastructure, like networking, compute, and monitoring, through dependent resources, and offers flexibility to either deploy or integrate existing services (BYOR) such as Key Vault, Storage Account, Cosmos DB, and AI Search. These BYOR resources can be provided externally or deployed via the module itself. Example deployment configurations range from minimal public setups to enterprise-grade private environments with VNet isolation and Bastion access, ensuring adaptability across different workload and security requirements.
 
-## Key Features
+## Resource Classification
 
-- **AI Foundry Account & Project**: Core cognitive services with project workspace and OpenAI model deployments
-- **Bring Your Own Resources (BYOR)**: Conditional deployment of Storage, Key Vault, Cosmos DB, and AI Search
-- **Network Isolation**: Private endpoints and VNet integration support for enterprise security
-- **Three Example Configurations**: Basic (minimal), Standard Public (full features), Standard Private (enterprise-grade)
+- **Required**: Core resources that are always deployed by this module to ensure baseline functionality of Azure AI Foundry. These include the AI Foundry account, projects, agent service, RBACs, and resource locks.
 
-## Architecture
+- **Dependent**: Infrastructure components that support the AI Foundry environment, typically deployed in example configurations. These include networking (e.g., virtual networks, subnets, private DNS zones), compute (e.g., virtual machines, Bastion), and monitoring (e.g., Log Analytics Workspace). These resources are not part of the core module but are necessary for full functionality in specific deployment scenarios. This module is designed to work seamlessly with the [AI Landing Zone Accelerator](https://github.com/Azure/terraform-azurerm-avm-ptn-aiml-landing-zone), which provides broader platform capabilities and complements the dependent infrastructure setup.
 
-The module uses a conditional deployment pattern where dependent services can be:
-- **Created new** (`*_resource_id = null`) - Creates new resources (default behavior)
-- **Use existing** (`*_resource_id = "/subscriptions/.../resource-id"`) - Uses provided existing resources
+- **BYOR (Bring Your Own Resource)**: Optional services that can either be provisioned by this module or integrated as existing resources. These include Key Vault, Storage Account, Cosmos DB, and AI Search. Users can choose to deploy these via the module or reference pre-existing infrastructure to align with organizational standards or reuse existing assets.
 
-| Feature | Basic | Standard Public | Standard Private |
-|---------|-------|-----------------|------------------|
-| **AI Foundry** | ✅ Public | ✅ Public | ✅ Private |
-| **Storage/Key Vault/Cosmos/Search** | ❌ Not created | ✅ New Public | ✅ New Private |
-| **Private Endpoints** | ❌ | ❌ | ✅ All services |
-| **VNet & Management** | ❌ | ❌ | ✅ Bastion & VM |
-| **Use Case** | Development, PoC | Production | Enterprise, regulated |
+## Resource Types
 
-## Integration
+This module deploys resources in three categories:
 
-This module can be used independently or as part of the broader AI/ML platform when combined with the [AI Landing Zone Accelerator](https://github.com/Azure/terraform-azurerm-avm-ptn-aiml-landing-zone) module.
+| Type      | Resource                       | Code Location     | Code / Deployment Notes                    |
+| --------- | ------------------------------ | ----------------- | ------------------------------------------ |
+| Required  | AI Foundry                     | Root module       | Always deployed via module                 |
+| Required  | AI Foundry Connections         | Root module       | Always deployed (BYOR dependency)          |
+| Required  | AI Foundry Project             | Root module       | Always deployed                            |
+| Required  | AI Foundry Project Connections | Root module       | Always deployed (BYOR dependency)          |
+| Required  | AI Foundry Agent Service       | Root module       | Private deployment only? (TB and TBT)      |
+| Required  | RBACs                          | Root module       | Always deployed even if BYOR (TBC and TBT) |
+| Required  | Resource Lock                  | Root module       | Always deployed                            |
+| Dependent | Virtual Network                | Example main.tf   | Use resource block, not AVM res module     |
+| Dependent | Subnets                        | Example main.tf   | Use resource block, not AVM res module     |
+| Dependent | Private DNS Zones              | Example main.tf   | Use resource block, not AVM res module     |
+| Dependent | Private DNS Zone vNet Links    | Example main.tf   | Use resource block, not AVM res module     |
+| Dependent | Bastion                        | Example main.tf   | Use AVM Resource Module                    |
+| Dependent | Virtual Machine                | Example main.tf   | Use AVM Resource Module                    |
+| Dependent | Log Analytics Workspace        | Example main.tf   | Use resource block, not AVM res module     |
+| BYOR      | Key Vault                      | main.byor.tf      | Deployed via module (AVM) or BYOR          |
+| BYOR      | Search Service                 | main.ai_search.tf | Deployed via module (azapi) or BYOR        |
+| BYOR      | Storage Account                | main.byor.tf      | Deployed via module (AVM) or BYOR          |
+| BYOR      | CosmosDB                       | main.byor.tf      | Deployed via module (AVM) or BYOR          |
+
+## Example Deployments
+
+| Example                   | Description                                | Key Features                                      |
+| ------------------------- | ------------------------------------------ | ------------------------------------------------- |
+| **basic**                 | Minimal AI Foundry deployment              | AI Foundry + Project only, public access          |
+| **standard-public**       | Full-featured public deployment            | All services, public endpoints, complete setup    |
+| **standard-public-byor**  | Public deployment with existing resources  | Uses existing Storage/KeyVault/Cosmos/Search      |
+| **standard-private**      | Enterprise-grade private deployment        | Private endpoints, VNet isolation, Bastion access |
+| **standard-private-byor** | Private deployment with existing resources | Private + existing resources combination          |

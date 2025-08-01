@@ -7,22 +7,22 @@ module "avm_utl_regions" {
 }
 
 module "log_analytics_workspace" {
-  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version = "0.4.2"
-  count   = var.law_definition.existing_resource_id == null ? 1 : 0
+  source   = "Azure/avm-res-operationalinsights-workspace/azurerm"
+  version  = "0.4.2"
+  for_each = { for k, v in var.law_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                                  = var.location
   name                                      = local.log_analytics_workspace_name
   resource_group_name                       = local.resource_group_name
   enable_telemetry                          = var.enable_telemetry
-  log_analytics_workspace_retention_in_days = var.law_definition.retention
-  log_analytics_workspace_sku               = var.law_definition.sku
+  log_analytics_workspace_retention_in_days = each.value.retention
+  log_analytics_workspace_sku               = each.value.sku
 }
 
 module "key_vault" {
   source   = "Azure/avm-res-keyvault-vault/azurerm"
   version  = "0.10.0"
-  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
+  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location            = var.location
   name                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-kv-${random_string.resource_token.result}" : "kv-fndry-${random_string.resource_token.result}")
@@ -59,42 +59,6 @@ module "key_vault" {
   }
 }
 
-
-
-
-/*
-module "ai_search" {
-  source   = "Azure/avm-res-search-searchservice/azurerm"
-  version  = "0.1.5"
-  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
-
-  location            = var.location
-  name                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-${each.key}-ai-foundry-ai-search-${random_string.resource_token.result}" : "${each.key}-ai-foundry-ai-search-${random_string.resource_token.result}")
-  resource_group_name = local.resource_group_name
-  diagnostic_settings = each.value.enable_diagnostic_settings ? {
-    search = {
-      name                  = "sendToLogAnalytics-search-${random_string.resource_token.result}"
-      workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
-    }
-  } : {}
-  enable_telemetry             = var.enable_telemetry # see variables.tf
-  local_authentication_enabled = each.value.local_authentication_enabled
-  partition_count              = each.value.partition_count
-  private_endpoints = var.create_private_endpoints ? {
-    "searchService" = {
-      private_dns_zone_resource_ids = [each.value.private_dns_zone_resource_id]
-      subnet_resource_id            = var.private_endpoint_subnet_resource_id
-      subresource_name              = "searchService"
-    }
-  } : {}
-  public_network_access_enabled = var.create_private_endpoints ? false : true
-  replica_count                 = each.value.replica_count
-  role_assignments              = each.value.role_assignments
-  semantic_search_sku           = each.value.semantic_search_sku
-  sku                           = each.value.sku
-}
-*/
-
 #TODO:
 # Implement subservice passthrough in variables and here
 # removing for testing PE DNS zone strategy when platform flag is false
@@ -102,7 +66,7 @@ module "ai_search" {
 module "storage_account" {
   source   = "Azure/avm-res-storage-storageaccount/azurerm"
   version  = "0.6.3"
-  for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
+  for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location = var.location
   #name                     = local.storage_account_name
@@ -143,7 +107,7 @@ module "storage_account" {
 module "cosmosdb" {
   source   = "Azure/avm-res-documentdb-databaseaccount/azurerm"
   version  = "0.8.0"
-  for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.include_dependent_resources == true }
+  for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                   = var.location
   name                       = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-${each.key}-foundry-cosmosdb-${random_string.resource_token.result}" : "${each.key}-foundry-cosmosdb-${random_string.resource_token.result}")
@@ -191,5 +155,3 @@ module "cosmosdb" {
   role_assignments              = each.value.role_assignments
   tags                          = each.value.tags
 }
-
-
