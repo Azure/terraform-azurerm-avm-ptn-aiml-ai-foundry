@@ -16,10 +16,10 @@ graph TB
         end
         
         subgraph "External BYOR Services"
-            KV[Key Vault<br/>(External)]
-            SA[Storage Account<br/>(External)]
-            CDB[Cosmos DB<br/>(External)]
-            AIS[AI Search<br/>(External)]
+            KV[Key Vault]
+            SA[Storage Account]
+            CDB[Cosmos DB]
+            AIS[AI Search]
         end
         
         subgraph "Supporting Services"
