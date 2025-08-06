@@ -65,7 +65,7 @@ module "key_vault" {
 
 module "storage_account" {
   source   = "Azure/avm-res-storage-storageaccount/azurerm"
-  version  = "0.6.3"
+  version  = "0.6.4"
   for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location = var.location
@@ -80,6 +80,7 @@ module "storage_account" {
     storage = {
       name                  = "sendToLogAnalytics-sa-${random_string.resource_token.result}"
       workspace_resource_id = length(var.law_definition) > 0 && try(values(var.law_definition)[0].existing_resource_id, null) != null ? values(var.law_definition)[0].existing_resource_id : module.log_analytics_workspace[0].resource_id
+      metric_categories     = ["Transaction", "Capacity"]
     }
   } : {}
   enable_telemetry = var.enable_telemetry
@@ -106,7 +107,7 @@ module "storage_account" {
 
 module "cosmosdb" {
   source   = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version  = "0.8.0"
+  version  = "0.10.0"
   for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                   = var.location
@@ -128,6 +129,7 @@ module "cosmosdb" {
     to_law = {
       name                  = "sendToLogAnalytics-cosmosdb-${random_string.resource_token.result}"
       workspace_resource_id = length(var.law_definition) > 0 && try(values(var.law_definition)[0].existing_resource_id, null) != null ? values(var.law_definition)[0].existing_resource_id : module.log_analytics_workspace[0].resource_id
+      metric_categories     = ["SLI", "Requests"]
     }
   } : {}
   enable_telemetry = var.enable_telemetry

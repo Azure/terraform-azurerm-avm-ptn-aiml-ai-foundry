@@ -34,7 +34,7 @@ resource "azapi_resource" "ai_foundry" {
 
 
 resource "azapi_resource" "ai_agent_capability_host" {
-  count = var.ai_foundry.create_ai_agent_service ? 1 : 0
+  count = var.ai_foundry.create_ai_agent_service && var.create_private_endpoints == false ? 1 : 0
 
   name      = "ai-agent-service-${random_string.resource_token.result}"
   parent_id = azapi_resource.ai_foundry.id

@@ -74,6 +74,7 @@ resource "azurerm_log_analytics_workspace" "this" {
 }
 
 # BYOR
+## TODO: Add diagnostic settings to each BYOR resource
 
 resource "azapi_resource" "ai_search" {
   location  = azurerm_resource_group.this.location
@@ -181,7 +182,7 @@ module "ai_foundry" {
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
-    create_ai_agent_service = false
+    create_ai_agent_service = true
     name                    = module.naming.cognitive_account.name_unique
   }
   ai_model_deployments = {
@@ -220,22 +221,19 @@ module "ai_foundry" {
   }
   ai_search_definition = {
     this = {
-      existing_resource_id       = azapi_resource.ai_search.id
-      enable_diagnostic_settings = false
+      existing_resource_id = azapi_resource.ai_search.id
     }
   }
   cosmosdb_definition = {
     this = {
-      existing_resource_id       = module.cosmosdb.resource_id
-      enable_diagnostic_settings = false
+      existing_resource_id = module.cosmosdb.resource_id
     }
   }
   create_byor              = false # default: false
   create_private_endpoints = false # default: false
   key_vault_definition = {
     this = {
-      existing_resource_id       = module.key_vault.resource_id
-      enable_diagnostic_settings = false
+      existing_resource_id = module.key_vault.resource_id
     }
   }
   law_definition = {
@@ -245,8 +243,7 @@ module "ai_foundry" {
   }
   storage_account_definition = {
     this = {
-      existing_resource_id       = module.storage_account.resource_id
-      enable_diagnostic_settings = false
+      existing_resource_id = module.storage_account.resource_id
     }
   }
 

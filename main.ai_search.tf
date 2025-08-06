@@ -86,10 +86,9 @@ resource "azurerm_role_assignment" "this_aisearch" {
 resource "azurerm_monitor_diagnostic_setting" "this_aisearch" {
   for_each = { for k, v in var.ai_search_definition : k => v if v.enable_diagnostic_settings == true }
 
-  name                           = "diag-${azapi_resource.ai_search[each.key].name}"
-  target_resource_id             = azapi_resource.ai_search[each.key].id
-  log_analytics_destination_type = "Dedicated"
-  log_analytics_workspace_id     = length(var.law_definition) > 0 && try(values(var.law_definition)[0].existing_resource_id, null) != null ? values(var.law_definition)[0].existing_resource_id : module.log_analytics_workspace[0].resource_id
+  name                       = "diag-${azapi_resource.ai_search[each.key].name}"
+  target_resource_id         = azapi_resource.ai_search[each.key].id
+  log_analytics_workspace_id = length(var.law_definition) > 0 && try(values(var.law_definition)[0].existing_resource_id, null) != null ? values(var.law_definition)[0].existing_resource_id : module.log_analytics_workspace[0].resource_id
 
   enabled_log {
     category_group = "allLogs"

@@ -214,19 +214,19 @@ module "ai_foundry" {
   }
   ai_search_definition = {
     this = {
-      existing_resource_id       = azapi_resource.ai_search.id
+      existing_resource_id = azapi_resource.ai_search.id
     }
   }
   cosmosdb_definition = {
     this = {
-      existing_resource_id       = module.cosmosdb.resource_id
+      existing_resource_id = module.cosmosdb.resource_id
     }
   }
   create_byor              = false # default: false
   create_private_endpoints = false # default: false
   key_vault_definition = {
     this = {
-      existing_resource_id       = module.key_vault.resource_id
+      existing_resource_id = module.key_vault.resource_id
     }
   }
   law_definition = {
@@ -236,7 +236,7 @@ module "ai_foundry" {
   }
   storage_account_definition = {
     this = {
-      existing_resource_id       = module.storage_account.resource_id
+      existing_resource_id = module.storage_account.resource_id
     }
   }
 
