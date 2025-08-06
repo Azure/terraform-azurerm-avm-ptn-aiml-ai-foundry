@@ -4,6 +4,94 @@
 
 This Azure Verified Module (AVM) deploys Azure AI Foundry along with essential and optional supporting services to enable scalable AI application development. It provisions core resources such as the AI Foundry account, projects, agent service, RBACs, and resource locks, which are always deployed for baseline functionality. The module also supports supplemental infrastructure, like networking, compute, and monitoring, through dependent resources, and offers flexibility to either deploy or integrate existing services (BYOR) such as Key Vault, Storage Account, Cosmos DB, and AI Search. These BYOR resources can be provided externally or deployed via the module itself. Example deployment configurations range from minimal public setups to enterprise-grade private environments with VNet isolation and Bastion access, ensuring adaptability across different workload and security requirements.
 
+## Architecture
+
+The following diagram illustrates the key Azure services and components deployed by this pattern module:
+
+```mermaid
+graph TB
+    subgraph "Azure Resource Group"
+        subgraph "Core AI Foundry (Required)"
+            AF[AI Foundry<br/>Account]
+            AFP[AI Foundry<br/>Project]
+            AFS[AI Agent<br/>Service]
+            AFC[AI Foundry<br/>Connections]
+        end
+        
+        subgraph "BYOR Services (Optional)"
+            KV[Key Vault]
+            SA[Storage Account]
+            CDB[Cosmos DB]
+            AIS[AI Search<br/>Service]
+        end
+        
+        subgraph "Supporting Services"
+            LAW[Log Analytics<br/>Workspace]
+            RBAC[Role<br/>Assignments]
+            LOCK[Resource<br/>Locks]
+        end
+        
+        subgraph "Networking (Private Deployment)"
+            VNET[Virtual Network]
+            SNET[Subnets]
+            DNS[Private DNS<br/>Zones]
+            PE[Private<br/>Endpoints]
+            BAS[Bastion Host]
+            VM[Virtual Machine]
+        end
+    end
+    
+    %% Core relationships
+    AF --> AFP
+    AF --> AFC
+    AFP --> AFS
+    AFC --> KV
+    AFC --> SA
+    AFC --> CDB
+    AFC --> AIS
+    
+    %% Private networking
+    PE -.-> AF
+    PE -.-> KV
+    PE -.-> SA
+    PE -.-> CDB
+    PE -.-> AIS
+    SNET --> PE
+    VNET --> SNET
+    DNS --> PE
+    
+    %% Management and monitoring
+    RBAC -.-> AF
+    RBAC -.-> KV
+    RBAC -.-> SA
+    RBAC -.-> CDB
+    RBAC -.-> AIS
+    LOCK -.-> AF
+    LAW -.-> AF
+    LAW -.-> AIS
+    LAW -.-> CDB
+    
+    %% VM management
+    BAS --> VM
+    VNET --> BAS
+    
+    classDef required fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef byor fill:#f3e5f5,stroke:#4a148c,stroke-width:2px  
+    classDef dependent fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef support fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    
+    class AF,AFP,AFS,AFC required
+    class KV,SA,CDB,AIS byor
+    class VNET,SNET,DNS,PE,BAS,VM dependent
+    class LAW,RBAC,LOCK support
+```
+
+**Legend:**
+- 🔷 **Blue (Required)**: Core resources always deployed by this module
+- 🔶 **Purple (BYOR)**: Optional services that can be deployed by the module or brought from existing infrastructure  
+- 🔷 **Green (Dependent)**: Infrastructure components typically deployed in example configurations
+- 🔶 **Orange (Support)**: Management and monitoring resources
+
 ## Resource Classification
 
 - **Required**: Core resources that are always deployed by this module to ensure baseline functionality of Azure AI Foundry. These include the AI Foundry account, projects, agent service, RBACs, and resource locks.
