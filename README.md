@@ -104,26 +104,26 @@ graph TB
 
 This module deploys resources in three categories:
 
-| Type      | Resource                       | Code Location     | Code / Deployment Notes                    |
-| --------- | ------------------------------ | ----------------- | ------------------------------------------ |
-| Required  | AI Foundry                     | Root module       | Always deployed via module                 |
-| Required  | AI Foundry Connections         | Root module       | Always deployed (BYOR dependency)          |
-| Required  | AI Foundry Project             | Root module       | Always deployed                            |
-| Required  | AI Foundry Project Connections | Root module       | Always deployed (BYOR dependency)          |
-| Required  | AI Foundry Agent Service       | Root module       | Private deployment only? (TB and TBT)      |
-| Required  | RBACs                          | Root module       | Always deployed even if BYOR (TBC and TBT) |
-| Required  | Resource Lock                  | Root module       | Always deployed                            |
-| Dependent | Virtual Network                | Example main.tf   | Use resource block, not AVM res module     |
-| Dependent | Subnets                        | Example main.tf   | Use resource block, not AVM res module     |
-| Dependent | Private DNS Zones              | Example main.tf   | Use resource block, not AVM res module     |
-| Dependent | Private DNS Zone vNet Links    | Example main.tf   | Use resource block, not AVM res module     |
-| Dependent | Bastion                        | Example main.tf   | Use AVM Resource Module                    |
-| Dependent | Virtual Machine                | Example main.tf   | Use AVM Resource Module                    |
-| Dependent | Log Analytics Workspace        | Example main.tf   | Use resource block, not AVM res module     |
-| BYOR      | Key Vault                      | main.byor.tf      | Deployed via module (AVM) or BYOR          |
-| BYOR      | Search Service                 | main.ai\_search.tf | Deployed via module (azapi) or BYOR        |
-| BYOR      | Storage Account                | main.byor.tf      | Deployed via module (AVM) or BYOR          |
-| BYOR      | CosmosDB                       | main.byor.tf      | Deployed via module (AVM) or BYOR          |
+| Type      | Resource                         | Code Location     | Code / Deployment Notes             |
+| --------- | -------------------------------- | ----------------- | ----------------------------------- |
+| Required  | AI Foundry                       | Root module       | Always deployed                     |
+| Required  | AI Foundry Project               | Root module       | Always deployed                     |
+| Required  | RBACs                            | Root module       | BYOR dependency                     |
+| Optional  | AI Foundry Connections           | Root module       | BYOR dependency                     |
+| Optional  | AI Foundry Project Connections   | Root module       | BYOR dependency                     |
+| Optional  | AI Foundry Agent Service         | Root module       | Public deployment only              |
+| Optional  | AI Foundry Project Agent Service | Root module       | Private deployment only             |
+| Dependent | Virtual Network                  | Example main.tf   | Private deployment only             |
+| Dependent | Subnets                          | Example main.tf   | Private deployment only             |
+| Dependent | Private DNS Zones                | Example main.tf   | Private deployment only             |
+| Dependent | Private DNS Zone vNet Links      | Example main.tf   | Private deployment only             |
+| Dependent | Bastion                          | Example main.tf   | Private deployment only             |
+| Dependent | Virtual Machine                  | Example main.tf   | Private deployment only             |
+| Dependent | Log Analytics Workspace          | Example main.tf   | Private or Public deployment        |
+| BYOR      | Key Vault                        | main.byor.tf      | Deployed via module (AVM) or BYOR   |
+| BYOR      | Search Service                   | main.ai\_search.tf | Deployed via module (azapi) or BYOR |
+| BYOR      | Storage Account                  | main.byor.tf      | Deployed via module (AVM) or BYOR   |
+| BYOR      | CosmosDB                         | main.byor.tf      | Deployed via module (AVM) or BYOR   |
 
 ## Example Deployments
 
