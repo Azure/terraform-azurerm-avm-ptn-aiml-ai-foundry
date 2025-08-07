@@ -118,23 +118,26 @@ module "ai_foundry" {
     }
   }
   ai_search_definition = {
-    this = {}
+    this = {
+      enable_diagnostic_settings = false
+    }
   }
   cosmosdb_definition = {
-    this = {}
+    this = {
+      enable_diagnostic_settings = false
+    }
   }
   create_byor              = true
   create_private_endpoints = false # default: false
   key_vault_definition = {
-    this = {}
-  }
-  law_definition = {
     this = {
-      existing_resource_id = azurerm_log_analytics_workspace.this.id
+      enable_diagnostic_settings = false
     }
   }
   storage_account_definition = {
-    this = {}
+    this = {
+      enable_diagnostic_settings = false
+    }
   }
 
   depends_on = [azapi_resource_action.purge_ai_foundry]

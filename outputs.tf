@@ -2,7 +2,7 @@
 
 output "ai_agent_account_capability_host_id" {
   description = "The resource ID of the account-level AI agent capability host."
-  value       = var.ai_foundry.create_ai_agent_service ? azapi_resource.ai_agent_capability_host[0].id : null
+  value       = var.ai_foundry.create_ai_agent_service && var.create_private_endpoints == false ? azapi_resource.ai_agent_capability_host[0].id : null
 }
 
 output "ai_agent_service_id" {
