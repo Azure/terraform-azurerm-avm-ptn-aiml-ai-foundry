@@ -17,20 +17,20 @@ graph TB
             AFS[AI Agent<br/>Service]
             AFC[AI Foundry<br/>Connections]
         end
-
+        
         subgraph "BYOR Services (Optional)"
             KV[Key Vault]
             SA[Storage Account]
             CDB[Cosmos DB]
             AIS[AI Search<br/>Service]
         end
-
+        
         subgraph "Supporting Services"
             LAW[Log Analytics<br/>Workspace]
             RBAC[Role<br/>Assignments]
             LOCK[Resource<br/>Locks]
         end
-
+        
         subgraph "Networking (Private Deployment)"
             VNET[Virtual Network]
             SNET[Subnets]
@@ -40,7 +40,7 @@ graph TB
             VM[Virtual Machine]
         end
     end
-
+    
     %% Core relationships
     AF --> AFP
     AF --> AFC
@@ -49,7 +49,7 @@ graph TB
     AFC --> SA
     AFC --> CDB
     AFC --> AIS
-
+    
     %% Private networking
     PE -.-> AF
     PE -.-> KV
@@ -59,7 +59,7 @@ graph TB
     SNET --> PE
     VNET --> SNET
     DNS --> PE
-
+    
     %% Management and monitoring
     RBAC -.-> AF
     RBAC -.-> KV
@@ -70,16 +70,16 @@ graph TB
     LAW -.-> AF
     LAW -.-> AIS
     LAW -.-> CDB
-
+    
     %% VM management
     BAS --> VM
     VNET --> BAS
-
+    
     classDef required fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef byor fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef byor fill:#f3e5f5,stroke:#4a148c,stroke-width:2px  
     classDef dependent fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
     classDef support fill:#fff3e0,stroke:#e65100,stroke-width:2px
-
+    
     class AF,AFP,AFS,AFC required
     class KV,SA,CDB,AIS byor
     class VNET,SNET,DNS,PE,BAS,VM dependent
@@ -88,7 +88,7 @@ graph TB
 
 **Legend:**
 - 🔷 **Blue (Required)**: Core resources always deployed by this module
-- 🔶 **Purple (BYOR)**: Optional services that can be deployed by the module or brought from existing infrastructure
+- 🔶 **Purple (BYOR)**: Optional services that can be deployed by the module or brought from existing infrastructure  
 - 🔷 **Green (Dependent)**: Infrastructure components typically deployed in example configurations
 - 🔶 **Orange (Support)**: Management and monitoring resources
 
@@ -102,7 +102,7 @@ graph TB
 
 ## Resource Types
 
-This module deploys resources in four categories:
+This module deploys resources in three categories:
 
 | Type      | Resource                         | Code Location     | Code / Deployment Notes             |
 | --------- | -------------------------------- | ----------------- | ----------------------------------- |
@@ -538,8 +538,8 @@ Default: `false`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
-Description: This variable controls whether or not telemetry is enabled for the module.
-For more information see <https://aka.ms/avm/telemetryinfo>.
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see <https://aka.ms/avm/telemetryinfo>.  
 If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
