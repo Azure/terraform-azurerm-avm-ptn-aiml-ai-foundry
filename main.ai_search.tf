@@ -88,8 +88,7 @@ resource "azurerm_monitor_diagnostic_setting" "this_aisearch" {
 
   name                       = "diag-${azapi_resource.ai_search[each.key].name}"
   target_resource_id         = azapi_resource.ai_search[each.key].id
-  log_analytics_workspace_id = workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
-
+  log_analytics_workspace_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
   enabled_log {
     category_group = "allLogs"
   }

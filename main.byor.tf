@@ -31,7 +31,7 @@ module "key_vault" {
   diagnostic_settings = each.value.enable_diagnostic_settings ? {
     to_law = {
       name                  = "sendToLogAnalytics-kv-${random_string.resource_token.result}"
-      workspace_resource_id = workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
+      workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
     }
   } : {}
   enabled_for_deployment          = true
@@ -79,7 +79,7 @@ module "storage_account" {
   diagnostic_settings_storage_account = each.value.enable_diagnostic_settings ? {
     storage = {
       name                  = "sendToLogAnalytics-sa-${random_string.resource_token.result}"
-      workspace_resource_id = workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
+      workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
       metric_categories     = ["Transaction", "Capacity"]
     }
   } : {}
@@ -128,7 +128,7 @@ module "cosmosdb" {
   diagnostic_settings = each.value.enable_diagnostic_settings ? {
     to_law = {
       name                  = "sendToLogAnalytics-cosmosdb-${random_string.resource_token.result}"
-      workspace_resource_id = workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
+      workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
       metric_categories     = ["SLI", "Requests"]
     }
   } : {}
