@@ -67,6 +67,7 @@ resource "azurerm_log_analytics_workspace" "this" {
 }
 
 # BYOR
+## TODO: Add diagnostic settings to each BYOR resource
 
 resource "azapi_resource" "ai_search" {
   location  = azurerm_resource_group.this.location
@@ -174,7 +175,7 @@ module "ai_foundry" {
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
-    create_ai_agent_service = false
+    create_ai_agent_service = true
     name                    = module.naming.cognitive_account.name_unique
   }
   ai_model_deployments = {

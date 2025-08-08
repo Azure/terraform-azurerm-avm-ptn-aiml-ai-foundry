@@ -104,26 +104,26 @@ graph TB
 
 This module deploys resources in three categories:
 
-| Type      | Resource                       | Code Location     | Code / Deployment Notes                    |
-| --------- | ------------------------------ | ----------------- | ------------------------------------------ |
-| Required  | AI Foundry                     | Root module       | Always deployed via module                 |
-| Required  | AI Foundry Connections         | Root module       | Always deployed (BYOR dependency)          |
-| Required  | AI Foundry Project             | Root module       | Always deployed                            |
-| Required  | AI Foundry Project Connections | Root module       | Always deployed (BYOR dependency)          |
-| Required  | AI Foundry Agent Service       | Root module       | Private deployment only? (TB and TBT)      |
-| Required  | RBACs                          | Root module       | Always deployed even if BYOR (TBC and TBT) |
-| Required  | Resource Lock                  | Root module       | Always deployed                            |
-| Dependent | Virtual Network                | Example main.tf   | Use resource block, not AVM res module     |
-| Dependent | Subnets                        | Example main.tf   | Use resource block, not AVM res module     |
-| Dependent | Private DNS Zones              | Example main.tf   | Use resource block, not AVM res module     |
-| Dependent | Private DNS Zone vNet Links    | Example main.tf   | Use resource block, not AVM res module     |
-| Dependent | Bastion                        | Example main.tf   | Use AVM Resource Module                    |
-| Dependent | Virtual Machine                | Example main.tf   | Use AVM Resource Module                    |
-| Dependent | Log Analytics Workspace        | Example main.tf   | Use resource block, not AVM res module     |
-| BYOR      | Key Vault                      | main.byor.tf      | Deployed via module (AVM) or BYOR          |
-| BYOR      | Search Service                 | main.ai\_search.tf | Deployed via module (azapi) or BYOR        |
-| BYOR      | Storage Account                | main.byor.tf      | Deployed via module (AVM) or BYOR          |
-| BYOR      | CosmosDB                       | main.byor.tf      | Deployed via module (AVM) or BYOR          |
+| Type      | Resource                         | Code Location     | Code / Deployment Notes             |
+| --------- | -------------------------------- | ----------------- | ----------------------------------- |
+| Required  | AI Foundry                       | Root module       | Always deployed                     |
+| Required  | AI Foundry Project               | Root module       | Always deployed                     |
+| Required  | RBACs                            | Root module       | BYOR dependency                     |
+| Optional  | AI Foundry Connections           | Root module       | BYOR dependency                     |
+| Optional  | AI Foundry Project Connections   | Root module       | BYOR dependency                     |
+| Optional  | AI Foundry Agent Service         | Root module       | Public deployment only              |
+| Optional  | AI Foundry Project Agent Service | Root module       | Private deployment only             |
+| Dependent | Virtual Network                  | Example main.tf   | Private deployment only             |
+| Dependent | Subnets                          | Example main.tf   | Private deployment only             |
+| Dependent | Private DNS Zones                | Example main.tf   | Private deployment only             |
+| Dependent | Private DNS Zone vNet Links      | Example main.tf   | Private deployment only             |
+| Dependent | Bastion                          | Example main.tf   | Private deployment only             |
+| Dependent | Virtual Machine                  | Example main.tf   | Private deployment only             |
+| Dependent | Log Analytics Workspace          | Example main.tf   | Private or Public deployment        |
+| BYOR      | Key Vault                        | main.byor.tf      | Deployed via module (AVM) or BYOR   |
+| BYOR      | Search Service                   | main.ai\_search.tf | Deployed via module (azapi) or BYOR |
+| BYOR      | Storage Account                  | main.byor.tf      | Deployed via module (AVM) or BYOR   |
+| BYOR      | CosmosDB                         | main.byor.tf      | Deployed via module (AVM) or BYOR   |
 
 ## Example Deployments
 
@@ -140,20 +140,21 @@ This module deploys resources in three categories:
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.12, < 2.0)
 
-- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.5)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.38)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
-- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
+- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.7)
 
 ## Resources
 
 The following resources are used by this module:
 
+- [azapi_resource.ai_agent_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_model_deployment](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
@@ -721,6 +722,10 @@ Default: `null`
 
 The following outputs are exported:
 
+### <a name="output_ai_agent_account_capability_host_id"></a> [ai\_agent\_account\_capability\_host\_id](#output\_ai\_agent\_account\_capability\_host\_id)
+
+Description: The resource ID of the account-level AI agent capability host.
+
 ### <a name="output_ai_agent_service_id"></a> [ai\_agent\_service\_id](#output\_ai\_agent\_service\_id)
 
 Description: The resource ID of the AI agent capability host.
@@ -821,7 +826,7 @@ Version: 0.5.2
 
 Source: Azure/avm-res-documentdb-databaseaccount/azurerm
 
-Version: 0.8.0
+Version: 0.10.0
 
 ### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
 
@@ -839,7 +844,7 @@ Version: 0.4.2
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.3
+Version: 0.6.4
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

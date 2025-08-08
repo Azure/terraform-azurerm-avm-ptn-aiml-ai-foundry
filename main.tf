@@ -29,9 +29,11 @@ module "ai_foundry_project" {
 
   depends_on = [
     azapi_resource.ai_foundry,
+    azapi_resource.ai_agent_capability_host,
     azurerm_private_endpoint.ai_foundry,
     azapi_resource.ai_search,
     azurerm_private_endpoint.pe_aisearch, #module.ai_search,
     module.cosmosdb,
-  module.storage_account]
+    module.storage_account
+  ]
 }

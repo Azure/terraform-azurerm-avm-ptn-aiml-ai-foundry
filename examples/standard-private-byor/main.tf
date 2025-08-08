@@ -400,7 +400,7 @@ module "key_vault" {
 
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.3"
+  version = "0.6.4"
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
@@ -438,7 +438,7 @@ module "storage_account" {
 
 module "cosmosdb" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "0.8.0"
+  version = "0.10.0"
 
   location                   = azurerm_resource_group.this.location
   name                       = module.naming.cosmosdb_account.name_unique
@@ -452,6 +452,13 @@ module "cosmosdb" {
     consistency_level       = "Session"
     max_interval_in_seconds = 300
     max_staleness_prefix    = 100001
+  }
+  diagnostic_settings = {
+    to_law = {
+      name                  = "diag"
+      workspace_resource_id = azurerm_log_analytics_workspace.this.id
+      metric_categories     = ["SLI", "Requests"]
+    }
   }
   ip_range_filter = [
     "168.125.123.255",
