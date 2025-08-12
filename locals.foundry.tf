@@ -1,16 +1,6 @@
 locals {
   foundry_default_role_assignments = {
-    /*
-    deployment_user_cognitive_services_user = {
-      role_definition_id_or_name             = "Cognitive Services User"
-      principal_id                           = data.azurerm_client_config.current.object_id
-      condition                              = null
-      condition_version                      = null
-      skip_service_principal_aad_check       = false
-      delegated_managed_identity_resource_id = null
-      principal_type                         = null
-    }
-    */
+    #holding this variable in the event we need to add static defaults in the future.
   }
   foundry_role_assignments = merge(
     local.foundry_default_role_assignments,
