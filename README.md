@@ -158,6 +158,7 @@ The following resources are used by this module:
 - [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_model_deployment](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azurerm_cognitive_account_customer_managed_key.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_account_customer_managed_key) (resource)
 - [azurerm_monitor_diagnostic_setting.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint.pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
@@ -168,6 +169,9 @@ The following resources are used by this module:
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [azurerm_key_vault_key.byor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_key) (data source)
+- [azurerm_key_vault_key.foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_key) (data source)
+- [azurerm_user_assigned_identity.foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -246,6 +250,18 @@ object({
       delegated_managed_identity_resource_id = optional(string, null)
       principal_type                         = optional(string, null)
     })), {})
+    managed_identities = optional(map(object({
+      system_assigned            = optional(bool, false)
+      user_assigned_resource_ids = optional(set(string), [])
+    })), {})
+    customer_managed_key = optional(map(object({
+      key_vault_resource_id = string
+      key_name              = string
+      key_version           = optional(string, null)
+      user_assigned_identity = optional(object({
+        resource_id = string
+      }), null)
+    })), null)
   })
 ```
 
@@ -461,6 +477,7 @@ Type:
 
 ```hcl
 map(object({
+    use_cmk                      = optional(bool, false)
     existing_resource_id         = optional(string, null)
     private_dns_zone_resource_id = optional(string, null)
     enable_diagnostic_settings   = optional(bool, true)
@@ -523,6 +540,14 @@ Default: `{}`
 ### <a name="input_create_byor"></a> [create\_byor](#input\_create\_byor)
 
 Description: Whether to create resources such as AI Search, Cosmos DB, Key Vault, and Storage Account in this deployment. If set to false, these resources will not be created or linked, and the module will only create the AI Foundry account and project.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_create_byor_cmk"></a> [create\_byor\_cmk](#input\_create\_byor\_cmk)
+
+Description: Whether to create a customer-managed key (CMK) in Key Vault for BYOR resources. If set to true, a Key Vault will be created and used for the CMK for all BYOR resources which get created as part of this module. Only works if `create_byor` is true.
 
 Type: `bool`
 

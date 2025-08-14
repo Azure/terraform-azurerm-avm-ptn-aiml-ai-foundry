@@ -194,9 +194,41 @@ module "key_vault" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  keys = {
+    cmk = {
+      key_opts = [
+        "decrypt",
+        "encrypt",
+        "sign",
+        "unwrapKey",
+        "verify",
+        "wrapKey"
+      ]
+      key_type = "RSA"
+      name     = "cmk"
+      key_size = 2048
+    }
+  }
   network_acls = {
     default_action = "Allow"
     bypass         = "AzureServices"
+    # ip_rules = ["${data.http.ip.response_body}/32"]
+  }
+  role_assignments = {
+    deployment_user_kv_admin = {
+      role_definition_id_or_name = "Key Vault Administrator"
+      principal_id               = data.azurerm_client_config.current.object_id
+    }
+    user_assigned_identity_kv_admin = {
+      role_definition_id_or_name = "Key Vault Administrator"
+      principal_id               = azapi_resource.ai_foundry.identity.principal_id
+    }
+  }
+  wait_for_rbac_before_key_operations = {
+    create = "60s"
+  }
+  wait_for_rbac_before_secret_operations = {
+    create = "60s"
   }
 }
 

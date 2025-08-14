@@ -20,11 +20,9 @@ module "log_analytics_workspace" {
 }
 
 module "key_vault" {
-  count = var.create_byor_cmk ? 1 : 0
-
   source   = "Azure/avm-res-keyvault-vault/azurerm"
   version  = "0.10.0"
-  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
+  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true && var.create_byor_cmk == true }
 
   location            = var.location
   name                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-kv-${random_string.resource_token.result}" : "kv-fndry-${random_string.resource_token.result}")
@@ -39,18 +37,6 @@ module "key_vault" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
-  network_acls = { #TODO check to see if we need to support custom network ACLs and if this should be deny by default.
-    default_action = "Allow"
-    bypass         = "AzureServices"
-    # ip_rules = ["${data.http.ip.response_body}/32"]
-  }
-  private_endpoints = var.create_private_endpoints ? {
-    "vault" = {
-      private_dns_zone_resource_ids = [each.value.private_dns_zone_resource_id]
-      subnet_resource_id            = var.private_endpoint_subnet_resource_id
-      subresource_name              = "vault"
-    }
-  } : {}
   keys = {
     cmk = {
       key_opts = [
@@ -66,6 +52,18 @@ module "key_vault" {
       key_size = 2048
     }
   }
+  network_acls = { #TODO check to see if we need to support custom network ACLs and if this should be deny by default.
+    default_action = "Allow"
+    bypass         = "AzureServices"
+    # ip_rules = ["${data.http.ip.response_body}/32"]
+  }
+  private_endpoints = var.create_private_endpoints ? {
+    "vault" = {
+      private_dns_zone_resource_ids = [each.value.private_dns_zone_resource_id]
+      subnet_resource_id            = var.private_endpoint_subnet_resource_id
+      subresource_name              = "vault"
+    }
+  } : {}
   public_network_access_enabled = var.create_private_endpoints ? false : true
   role_assignments              = local.key_vault_role_assignments[each.key]
   tags                          = each.value.tags
@@ -75,7 +73,6 @@ module "key_vault" {
   wait_for_rbac_before_secret_operations = {
     create = "60s"
   }
-  # TODO: Do we need to assign the user assigned identity to the Key Vault which then gets user to enabled CMK on all other resources?
 }
 
 #TODO:
@@ -94,6 +91,10 @@ module "storage_account" {
   account_kind             = each.value.account_kind
   account_replication_type = each.value.account_replication_type
   account_tier             = each.value.account_tier
+  customer_managed_key = var.create_byor_cmk ? {
+    key_vault_key_id = data.azurerm_key_vault_key.byor.id
+    key_name         = data.azurerm_key_vault_key.byor.name
+  } : null
   diagnostic_settings_storage_account = each.value.enable_diagnostic_settings ? {
     storage = {
       name                  = "sendToLogAnalytics-sa-${random_string.resource_token.result}"
@@ -117,10 +118,6 @@ module "storage_account" {
       subresource_name              = endpoint.type
     }
   } : {}
-  customer_managed_key = var.create_byor_cmk ? {
-    key_vault_key_id = data.azurerm_key_vault_key.byor.id
-    key_name         = data.azurerm_key_vault_key.byor.name
-  } : null
   public_network_access_enabled = var.create_private_endpoints ? false : true
   role_assignments              = local.storage_account_role_assignments[each.key] #assumes the same role assignments will be used for all storage accounts in the map.
   shared_access_key_enabled     = each.value.shared_access_key_enabled
@@ -147,6 +144,10 @@ module "cosmosdb" {
     max_staleness_prefix    = each.value.consistency_policy.max_staleness_prefix
   }
   cors_rule = each.value.cors_rule
+  customer_managed_key = var.create_byor_cmk ? {
+    key_vault_key_id = data.azurerm_key_vault_key.byor.id
+    key_name         = data.azurerm_key_vault_key.byor.name
+  } : null
   diagnostic_settings = each.value.enable_diagnostic_settings ? {
     to_law = {
       name                  = "sendToLogAnalytics-cosmosdb-${random_string.resource_token.result}"
@@ -175,10 +176,6 @@ module "cosmosdb" {
       ]
     }
   } : {}
-  customer_managed_key = var.create_byor_cmk ? {
-    key_vault_key_id = data.azurerm_key_vault_key.byor.id
-    key_name         = data.azurerm_key_vault_key.byor.name
-  } : null
   public_network_access_enabled = each.value.public_network_access_enabled
   role_assignments              = each.value.role_assignments
   tags                          = each.value.tags

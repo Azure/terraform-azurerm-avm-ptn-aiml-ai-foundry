@@ -119,11 +119,6 @@ module "key_vault" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
-  network_acls = {
-    default_action = "Allow"
-    bypass         = "AzureServices"
-    # ip_rules = ["${data.http.ip.response_body}/32"]
-  }
   keys = {
     cmk = {
       key_opts = [
@@ -138,6 +133,11 @@ module "key_vault" {
       name     = "cmk"
       key_size = 2048
     }
+  }
+  network_acls = {
+    default_action = "Allow"
+    bypass         = "AzureServices"
+    # ip_rules = ["${data.http.ip.response_body}/32"]
   }
   role_assignments = {
     deployment_user_kv_admin = {
