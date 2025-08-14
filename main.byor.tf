@@ -147,7 +147,8 @@ module "cosmosdb" {
   cors_rule = each.value.cors_rule
   customer_managed_key = var.create_byor_cmk ? {
     key_vault_key_id = data.azurerm_key_vault_key.byor.id
-    key_name         = data.azurerm_key_vault_key.byor.name
+    key_vault_key_id = try(data.azurerm_key_vault_key.byor.id, null)
+    key_name         = try(data.azurerm_key_vault_key.byor.name, null)
   } : null
   diagnostic_settings = each.value.enable_diagnostic_settings ? {
     to_law = {
