@@ -93,7 +93,8 @@ module "storage_account" {
   account_tier             = each.value.account_tier
   customer_managed_key = var.create_byor_cmk ? {
     key_vault_key_id = data.azurerm_key_vault_key.byor.id
-    key_name         = data.azurerm_key_vault_key.byor.name
+    key_vault_key_id = data.azurerm_key_vault_key.byor[0].id
+    key_name         = data.azurerm_key_vault_key.byor[0].name
   } : null
   diagnostic_settings_storage_account = each.value.enable_diagnostic_settings ? {
     storage = {
