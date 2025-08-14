@@ -27,7 +27,7 @@ provider "azurerm" {
 }
 
 locals {
-  base_name = "pubbyor"
+  base_name = "pubbyorcmk"
 }
 
 data "azurerm_client_config" "current" {}
@@ -68,6 +68,12 @@ resource "azurerm_log_analytics_workspace" "this" {
 
 # BYOR
 ## TODO: Add diagnostic settings to each BYOR resource
+
+resource "azurerm_user_assigned_identity" "this" {
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.user_assigned_identity.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+}
 
 resource "azapi_resource" "ai_search" {
   location  = azurerm_resource_group.this.location
@@ -146,7 +152,7 @@ module "key_vault" {
     }
     user_assigned_identity_kv_admin = {
       role_definition_id_or_name = "Key Vault Administrator"
-      principal_id               = azapi_resource.ai_foundry.identity.principal_id
+      principal_id               = azurerm_user_assigned_identity.this.principal_id
     }
   }
   wait_for_rbac_before_key_operations = {
@@ -155,6 +161,7 @@ module "key_vault" {
   wait_for_rbac_before_secret_operations = {
     create = "60s"
   }
+  # TODO: Do we need to assign the user assigned identity to the Key Vault which then gets user to enabled CMK on all other resources?
 }
 
 module "storage_account" {
@@ -168,6 +175,10 @@ module "storage_account" {
   account_kind             = "StorageV2"
   account_replication_type = "ZRS"
   account_tier             = "Standard"
+  customer_managed_key = {
+    key_vault_key_id = data.azurerm_key_vault_key.this.id
+    key_name         = data.azurerm_key_vault_key.this.name
+  }
 }
 
 module "cosmosdb" {
@@ -198,6 +209,10 @@ module "cosmosdb" {
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = false
   public_network_access_enabled         = true
+  customer_managed_key = {
+    key_vault_key_id = data.azurerm_key_vault_key.this.id
+    key_name         = data.azurerm_key_vault_key.this.name
+  }
 }
 
 module "ai_foundry" {
@@ -209,6 +224,17 @@ module "ai_foundry" {
   ai_foundry = {
     create_ai_agent_service = true
     name                    = module.naming.cognitive_account.name_unique
+    customer_managed_key = {
+      key_vault_resource_id = module.key_vault.this.id
+      key_name              = module.key_vault.keys.cmk.name
+      user_assigned_identity = {
+        resource_id = azurerm_user_assigned_identity.this.id
+      }
+    }
+    managed_identities = {
+      system_assigned            = true
+      user_assigned_resource_ids = toset([azurerm_user_assigned_identity.this.id])
+    }
   }
   ai_model_deployments = {
     "gpt-4o" = {
@@ -257,6 +283,7 @@ module "ai_foundry" {
     }
   }
   create_byor              = false # default: false
+  create_byor_cmk          = false # default: false
   create_private_endpoints = false # default: false
   key_vault_definition = {
     this = {

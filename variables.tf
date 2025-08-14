@@ -25,6 +25,12 @@ variable "create_byor" {
   description = "Whether to create resources such as AI Search, Cosmos DB, Key Vault, and Storage Account in this deployment. If set to false, these resources will not be created or linked, and the module will only create the AI Foundry account and project."
 }
 
+variable "create_byor_cmk" {
+  type        = bool
+  default     = false
+  description = "Whether to create a customer-managed key (CMK) in Key Vault for BYOR resources. If set to true, a Key Vault will be created and used for the CMK for all BYOR resources which get created as part of this module. Only works if `create_byor` is true."
+}
+
 variable "create_private_endpoints" {
   type        = bool
   default     = false
