@@ -107,7 +107,7 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 locals {
-  base_name = "public"
+  base_name = "pubcmk"
 }
 
 module "regions" {
@@ -153,6 +153,7 @@ module "ai_foundry" {
   ai_foundry = {
     create_ai_agent_service = true
     name                    = module.naming.cognitive_account.name_unique
+    customer_managed_key    = null
   }
   ai_model_deployments = {
     "gpt-4o" = {
@@ -196,6 +197,7 @@ module "ai_foundry" {
     }
   }
   create_byor              = true
+  create_byor_cmk          = true
   create_private_endpoints = false # default: false
   key_vault_definition = {
     this = {

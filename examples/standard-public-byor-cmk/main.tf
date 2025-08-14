@@ -125,11 +125,6 @@ module "key_vault" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
-  network_acls = {
-    default_action = "Allow"
-    bypass         = "AzureServices"
-    # ip_rules = ["${data.http.ip.response_body}/32"]
-  }
   keys = {
     cmk = {
       key_opts = [
@@ -144,6 +139,11 @@ module "key_vault" {
       name     = "cmk"
       key_size = 2048
     }
+  }
+  network_acls = {
+    default_action = "Allow"
+    bypass         = "AzureServices"
+    # ip_rules = ["${data.http.ip.response_body}/32"]
   }
   role_assignments = {
     deployment_user_kv_admin = {
@@ -161,7 +161,6 @@ module "key_vault" {
   wait_for_rbac_before_secret_operations = {
     create = "60s"
   }
-  # TODO: Do we need to assign the user assigned identity to the Key Vault which then gets user to enabled CMK on all other resources?
 }
 
 module "storage_account" {
@@ -198,6 +197,10 @@ module "cosmosdb" {
     max_interval_in_seconds = 300
     max_staleness_prefix    = 100001
   }
+  customer_managed_key = {
+    key_vault_key_id = data.azurerm_key_vault_key.this.id
+    key_name         = data.azurerm_key_vault_key.this.name
+  }
   ip_range_filter = [
     "168.125.123.255",
     "170.0.0.0/24",                                                                 #TODO: check 0.0.0.0 for validity
@@ -209,10 +212,6 @@ module "cosmosdb" {
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = false
   public_network_access_enabled         = true
-  customer_managed_key = {
-    key_vault_key_id = data.azurerm_key_vault_key.this.id
-    key_name         = data.azurerm_key_vault_key.this.name
-  }
 }
 
 module "ai_foundry" {

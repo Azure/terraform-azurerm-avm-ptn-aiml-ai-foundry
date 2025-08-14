@@ -1,5 +1,19 @@
 
 locals {
+  cosmosdb_default_role_assignments = {
+    # holding this variable in the event we need to add static defaults in the future.
+    deployment_user_cosmosdb_admin = {
+      role_definition_id_or_name = "Cosmos DB Account Administrator" # required to manage (add/update/remove) CMK in Cosmos DB, instead of least privilege, Key Vault Crypto Service Encryption User + Key Vault Crypto Officer
+      principal_id               = data.azurerm_client_config.current.object_id
+    }
+
+    # TODO:
+    # Do we need to add role assignment of the user assigned identity to the Cosmos DB account to enable CMK on the Cosmos DB?
+  }
+  cosmosdb_role_assignments = { for k, v in var.cosmosdb_definition : k => merge(
+    local.cosmosdb_default_role_assignments,
+    var.cosmosdb_definition[k].role_assignments
+  ) }
   cosmosdb_secondary_regions = { for k, v in var.cosmosdb_definition : k => (var.cosmosdb_definition[k].secondary_regions == null ? [] : (
     try(length(var.cosmosdb_definition[k].secondary_regions) == 0, false) ? [
       {
@@ -14,11 +28,6 @@ locals {
       }
     ] : var.cosmosdb_definition[k].secondary_regions)
   ) }
-
-  #################################################################
-  # Key Vault specific local variables
-  #################################################################
-
   key_vault_default_role_assignments = {
     #holding this variable in the event we need to add static defaults in the future.
     deployment_user_kv_admin = {
@@ -30,18 +39,12 @@ locals {
     local.key_vault_default_role_assignments,
     var.key_vault_definition[k].role_assignments
   ) }
-
   #################################################################
   # Log Analytics specific local variables
   #################################################################
   log_analytics_workspace_name = length(var.law_definition) > 0 ? try(values(var.law_definition)[0].name, null) != null ? values(var.law_definition)[0].name : (try(var.base_name, null) != null ? "${var.base_name}-law" : "ai-foundry-law") : "ai-foundry-law"
   paired_region                = [for region in module.avm_utl_regions.regions : region if(lower(region.name) == lower(var.location) || (lower(region.display_name) == lower(var.location)))][0].paired_region_name
   resource_group_name          = basename(var.resource_group_resource_id) #assumes resource group id is required.
-
-  #################################################################
-  # Storage Account specific local variables
-  #################################################################
-
   storage_account_default_role_assignments = {
     # holding this variable in the event we need to add static defaults in the future.
     deployment_user_sa_admin = {
@@ -55,23 +58,5 @@ locals {
   storage_account_role_assignments = { for k, v in var.storage_account_definition : k => merge(
     local.storage_account_default_role_assignments,
     var.storage_account_definition[k].role_assignments
-  ) }
-  #################################################################
-  # Cosmos DB specific local variables
-  #################################################################
-
-  cosmosdb_default_role_assignments = {
-    # holding this variable in the event we need to add static defaults in the future.
-    deployment_user_cosmosdb_admin = {
-      role_definition_id_or_name = "Cosmos DB Account Administrator" # required to manage (add/update/remove) CMK in Cosmos DB, instead of least privilege, Key Vault Crypto Service Encryption User + Key Vault Crypto Officer
-      principal_id               = data.azurerm_client_config.current.object_id
-    }
-
-    # TODO:
-    # Do we need to add role assignment of the user assigned identity to the Cosmos DB account to enable CMK on the Cosmos DB?
-  }
-  cosmosdb_role_assignments = { for k, v in var.cosmosdb_definition : k => merge(
-    local.cosmosdb_default_role_assignments,
-    var.cosmosdb_definition[k].role_assignments
   ) }
 }
