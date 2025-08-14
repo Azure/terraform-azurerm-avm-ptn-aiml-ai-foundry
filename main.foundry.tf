@@ -122,3 +122,22 @@ resource "azurerm_role_assignment" "foundry_role_assignments" {
   role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }
+
+resource "azurerm_cognitive_account_customer_managed_key" "this" {
+  count = var.customer_managed_key != null ? 1 : 0
+
+  cognitive_account_id = local.resource_id
+  key_vault_key_id     = data.azurerm_key_vault_key.this[0].id
+  identity_client_id   = local.managed_key_identity_client_id
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
+    }
+  }
+}

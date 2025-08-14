@@ -19,43 +19,6 @@ variable "resource_group_resource_id" {
   description = "The resource group resource id where the module resources will be deployed."
 }
 
-variable "ai_model_deployments" {
-  type = map(object({
-    name                   = string
-    rai_policy_name        = optional(string)
-    version_upgrade_option = optional(string, "OnceNewDefaultVersionAvailable")
-    model = object({
-      format  = string
-      name    = string
-      version = string
-    })
-    scale = object({
-      capacity = optional(number)
-      family   = optional(string)
-      size     = optional(string)
-      tier     = optional(string)
-      type     = string
-    })
-  }))
-  default     = {}
-  description = <<DESCRIPTION
-Configuration for AI model deployments (including OpenAI). Each deployment includes:
-- `name` - The name of the deployment
-- `rai_policy_name` - (Optional) The name of the RAI policy
-- `version_upgrade_option` - (Optional) How to handle version upgrades (default: "OnceNewDefaultVersionAvailable")
-- `model` - The model configuration:
-  - `format` - The format of the model (e.g., "OpenAI")
-  - `name` - The name of the model to deploy
-  - `version` - The version of the model
-- `scale` - The scaling configuration:
-  - `type` - The scaling type (e.g., "Standard")
-  - `capacity` - (Optional) The capacity of the deployment
-  - `family` - (Optional) The family of the deployment
-  - `size` - (Optional) The size of the deployment
-  - `tier` - (Optional) The pricing tier for the deployment
-DESCRIPTION
-}
-
 variable "create_byor" {
   type        = bool
   default     = false
