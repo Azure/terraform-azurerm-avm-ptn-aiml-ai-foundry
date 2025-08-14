@@ -33,6 +33,22 @@ resource "azapi_resource" "ai_foundry" {
 }
 
 
+resource "azapi_resource" "ai_agent_capability_host" {
+  count = var.ai_foundry.create_ai_agent_service && var.ai_foundry.network_injections == null ? 1 : 0
+
+  name      = "ai-agent-service-${random_string.resource_token.result}"
+  parent_id = azapi_resource.ai_foundry.id
+  type      = "Microsoft.CognitiveServices/accounts/capabilityHosts@2025-04-01-preview"
+  body = {
+    properties = {
+      capabilityHostKind = "Agents"
+    }
+  }
+  schema_validation_enabled = false
+
+  depends_on = [azapi_resource.ai_foundry]
+}
+
 resource "azapi_resource" "ai_model_deployment" {
   for_each = var.ai_model_deployments
 
