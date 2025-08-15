@@ -1,12 +1,5 @@
 
 locals {
-  # cosmosdb_default_role_assignments = {
-  #   # holding this variable in the event we need to add static defaults in the future.
-  #   deployment_user_cosmosdb_admin = {
-  #     role_definition_id_or_name = "Cosmos DB Account Administrator" # required to manage (add/update/remove) CMK in Cosmos DB, instead of least privilege, Key Vault Crypto Service Encryption User + Key Vault Crypto Officer
-  #     principal_id               = data.azurerm_client_config.current.object_id
-  #   }
-
   #   # TODO:
   #   # Do we need to add role assignment of the user assigned identity to the Cosmos DB account to enable CMK on the Cosmos DB?
   # }

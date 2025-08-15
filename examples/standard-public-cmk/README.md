@@ -153,7 +153,6 @@ module "ai_foundry" {
   ai_foundry = {
     create_ai_agent_service = true
     name                    = module.naming.cognitive_account.name_unique
-    customer_managed_key    = null
   }
   ai_model_deployments = {
     "gpt-4o" = {
