@@ -250,18 +250,22 @@ object({
       delegated_managed_identity_resource_id = optional(string, null)
       principal_type                         = optional(string, null)
     })), {})
-    managed_identities = optional(map(object({
+    # Managed identities configuration for the Cognitive Services account
+    # This is a single object (not a map). It aligns with how the value is referenced in the module.
+    managed_identities = optional(object({
       system_assigned            = optional(bool, false)
       user_assigned_resource_ids = optional(set(string), [])
-    })), {})
-    customer_managed_key = optional(map(object({
+    }), {})
+    # Customer managed key configuration for the Cognitive Services account
+    # This is a single object (not a map). It aligns with how the value is referenced in the module.
+    customer_managed_key = optional(object({
       key_vault_resource_id = string
       key_name              = string
       key_version           = optional(string, null)
       user_assigned_identity = optional(object({
         resource_id = string
       }), null)
-    })), null)
+    }), null)
   })
 ```
 
