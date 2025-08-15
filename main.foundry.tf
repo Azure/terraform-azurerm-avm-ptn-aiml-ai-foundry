@@ -9,9 +9,6 @@ resource "azapi_resource" "ai_foundry" {
     sku = {
       name = var.ai_foundry.sku
     }
-    identity = {
-      type = "SystemAssigned"
-    }
 
     properties = {
       disableLocalAuth       = var.ai_foundry.disable_local_auth
@@ -30,6 +27,15 @@ resource "azapi_resource" "ai_foundry" {
   }
   schema_validation_enabled = false
   tags                      = var.tags
+
+  dynamic "identity" {
+    for_each = (var.ai_foundry.managed_identities.system_assigned || length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0) ? ["identity"] : []
+
+    content {
+      type         = var.ai_foundry.managed_identities.system_assigned && length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" : length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0 ? "UserAssigned" : "SystemAssigned"
+      identity_ids = var.ai_foundry.managed_identities.user_assigned_resource_ids
+    }
+  }
 }
 
 
@@ -110,3 +116,19 @@ resource "azurerm_role_assignment" "foundry_role_assignments" {
   role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }
+
+resource "azurerm_cognitive_account_customer_managed_key" "foundry" {
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
+
+  cognitive_account_id = resource.azapi_resource.ai_foundry.id
+  key_vault_key_id     = data.azurerm_key_vault_key.foundry[0].id
+  identity_client_id   = data.azurerm_user_assigned_identity.foundry[0].client_id
+}
+
+resource "azurerm_cognitive_account_customer_managed_key" "byor" {
+  count = var.create_byor_cmk ? 1 : 0
+
+  cognitive_account_id = resource.azapi_resource.ai_foundry.id
+  key_vault_key_id     = data.azurerm_key_vault_key.byor[0].id
+}
+

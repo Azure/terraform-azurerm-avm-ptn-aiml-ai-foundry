@@ -19,47 +19,16 @@ variable "resource_group_resource_id" {
   description = "The resource group resource id where the module resources will be deployed."
 }
 
-variable "ai_model_deployments" {
-  type = map(object({
-    name                   = string
-    rai_policy_name        = optional(string)
-    version_upgrade_option = optional(string, "OnceNewDefaultVersionAvailable")
-    model = object({
-      format  = string
-      name    = string
-      version = string
-    })
-    scale = object({
-      capacity = optional(number)
-      family   = optional(string)
-      size     = optional(string)
-      tier     = optional(string)
-      type     = string
-    })
-  }))
-  default     = {}
-  description = <<DESCRIPTION
-Configuration for AI model deployments (including OpenAI). Each deployment includes:
-- `name` - The name of the deployment
-- `rai_policy_name` - (Optional) The name of the RAI policy
-- `version_upgrade_option` - (Optional) How to handle version upgrades (default: "OnceNewDefaultVersionAvailable")
-- `model` - The model configuration:
-  - `format` - The format of the model (e.g., "OpenAI")
-  - `name` - The name of the model to deploy
-  - `version` - The version of the model
-- `scale` - The scaling configuration:
-  - `type` - The scaling type (e.g., "Standard")
-  - `capacity` - (Optional) The capacity of the deployment
-  - `family` - (Optional) The family of the deployment
-  - `size` - (Optional) The size of the deployment
-  - `tier` - (Optional) The pricing tier for the deployment
-DESCRIPTION
-}
-
 variable "create_byor" {
   type        = bool
   default     = false
   description = "Whether to create resources such as AI Search, Cosmos DB, Key Vault, and Storage Account in this deployment. If set to false, these resources will not be created or linked, and the module will only create the AI Foundry account and project."
+}
+
+variable "create_byor_cmk" {
+  type        = bool
+  default     = false
+  description = "Whether to create a customer-managed key (CMK) in Key Vault for BYOR resources. If set to true, a Key Vault will be created and used for the CMK for all BYOR resources which get created as part of this module. Only works if `create_byor` is true."
 }
 
 variable "create_private_endpoints" {

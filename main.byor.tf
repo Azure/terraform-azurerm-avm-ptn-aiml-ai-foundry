@@ -22,7 +22,7 @@ module "log_analytics_workspace" {
 module "key_vault" {
   source   = "Azure/avm-res-keyvault-vault/azurerm"
   version  = "0.10.0"
-  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
+  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true && var.create_byor_cmk == true }
 
   location            = var.location
   name                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-kv-${random_string.resource_token.result}" : "kv-fndry-${random_string.resource_token.result}")
@@ -37,9 +37,25 @@ module "key_vault" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  keys = {
+    cmk = {
+      key_opts = [
+        "decrypt",
+        "encrypt",
+        "sign",
+        "unwrapKey",
+        "verify",
+        "wrapKey"
+      ]
+      key_type = "RSA"
+      name     = "cmk"
+      key_size = 2048
+    }
+  }
   network_acls = { #TODO check to see if we need to support custom network ACLs and if this should be deny by default.
     default_action = "Allow"
     bypass         = "AzureServices"
+    # ip_rules = ["${data.http.ip.response_body}/32"]
   }
   private_endpoints = var.create_private_endpoints ? {
     "vault" = {
@@ -68,14 +84,17 @@ module "storage_account" {
   version  = "0.6.4"
   for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
-  location = var.location
-  #name                     = local.storage_account_name
+  location                 = var.location
   name                     = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${local.base_name_storage}${lower(each.key)}fndrysa${random_string.resource_token.result}" : "${lower(each.key)}fndrysa${random_string.resource_token.result}")
   resource_group_name      = local.resource_group_name
   access_tier              = each.value.access_tier
   account_kind             = each.value.account_kind
   account_replication_type = each.value.account_replication_type
   account_tier             = each.value.account_tier
+  customer_managed_key = var.create_byor_cmk ? {
+    key_vault_resource_id = values(module.key_vault.resource_id)[0]
+    key_name              = data.azurerm_key_vault_key.byor[0].name
+  } : null
   diagnostic_settings_storage_account = each.value.enable_diagnostic_settings ? {
     storage = {
       name                  = "sendToLogAnalytics-sa-${random_string.resource_token.result}"
@@ -125,6 +144,10 @@ module "cosmosdb" {
     max_staleness_prefix    = each.value.consistency_policy.max_staleness_prefix
   }
   cors_rule = each.value.cors_rule
+  customer_managed_key = var.create_byor_cmk ? {
+    key_vault_resource_id = values(module.key_vault.resource_id)[0]
+    key_name              = data.azurerm_key_vault_key.byor[0].name
+  } : null
   diagnostic_settings = each.value.enable_diagnostic_settings ? {
     to_law = {
       name                  = "sendToLogAnalytics-cosmosdb-${random_string.resource_token.result}"
