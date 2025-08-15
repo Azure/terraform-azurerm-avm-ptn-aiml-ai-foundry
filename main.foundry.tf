@@ -133,6 +133,6 @@ resource "azurerm_cognitive_account_customer_managed_key" "this" {
   count = var.ai_foundry.customer_managed_key != null ? 1 : 0
 
   cognitive_account_id = resource.azapi_resource.ai_foundry.id
-  key_vault_key_id     = data.azurerm_key_vault_key.foundry.id
-  identity_client_id   = try(data.azurerm_user_assigned_identity.foundry.client_id, null)
+  key_vault_key_id     = data.azurerm_key_vault_key.foundry[0].id
+  identity_client_id   = data.azurerm_user_assigned_identity.foundry[0].client_id
 }
