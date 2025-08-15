@@ -92,7 +92,6 @@ module "storage_account" {
   account_replication_type = each.value.account_replication_type
   account_tier             = each.value.account_tier
   customer_managed_key = var.create_byor_cmk ? {
-    key_vault_key_id = data.azurerm_key_vault_key.byor.id
     key_vault_key_id = data.azurerm_key_vault_key.byor[0].id
     key_name         = data.azurerm_key_vault_key.byor[0].name
   } : null
@@ -146,9 +145,8 @@ module "cosmosdb" {
   }
   cors_rule = each.value.cors_rule
   customer_managed_key = var.create_byor_cmk ? {
-    key_vault_key_id = data.azurerm_key_vault_key.byor.id
-    key_vault_key_id = try(data.azurerm_key_vault_key.byor.id, null)
-    key_name         = try(data.azurerm_key_vault_key.byor.name, null)
+    key_vault_key_id = data.azurerm_key_vault_key.byor[0].id
+    key_name         = data.azurerm_key_vault_key.byor[0].name
   } : null
   diagnostic_settings = each.value.enable_diagnostic_settings ? {
     to_law = {
