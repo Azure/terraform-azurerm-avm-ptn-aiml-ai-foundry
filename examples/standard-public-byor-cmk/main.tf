@@ -27,7 +27,7 @@ provider "azurerm" {
 }
 
 locals {
-  base_name = "pubbyorcmk"
+  base_name = "pbycmk"
 }
 
 data "azurerm_client_config" "current" {}
@@ -165,7 +165,7 @@ module "key_vault" {
 
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.3"
+  version = "0.6.4"
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
@@ -175,14 +175,17 @@ module "storage_account" {
   account_replication_type = "ZRS"
   account_tier             = "Standard"
   customer_managed_key = {
-    key_vault_key_id = data.azurerm_key_vault_key.this.id
-    key_name         = data.azurerm_key_vault_key.this.name
+    key_vault_resource_id = module.key_vault.resource_id
+    key_name              = "cmk"
+    user_assigned_identity = {
+      resource_id = azurerm_user_assigned_identity.this.id
+    }
   }
 }
 
 module "cosmosdb" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "0.8.0"
+  version = "0.10.0"
 
   location                   = azurerm_resource_group.this.location
   name                       = module.naming.cosmosdb_account.name_unique
@@ -198,8 +201,11 @@ module "cosmosdb" {
     max_staleness_prefix    = 100001
   }
   customer_managed_key = {
-    key_vault_key_id = data.azurerm_key_vault_key.this.id
-    key_name         = data.azurerm_key_vault_key.this.name
+    key_vault_resource_id = module.key_vault.resource_id
+    key_name              = "cmk"
+    user_assigned_identity = {
+      resource_id = azurerm_user_assigned_identity.this.id
+    }
   }
   ip_range_filter = [
     "168.125.123.255",
@@ -224,8 +230,8 @@ module "ai_foundry" {
     create_ai_agent_service = true
     name                    = module.naming.cognitive_account.name_unique
     customer_managed_key = {
-      key_vault_resource_id = module.key_vault.this.id
-  key_name              = "cmk"
+      key_vault_resource_id = module.key_vault.resource_id
+      key_name              = "cmk"
       user_assigned_identity = {
         resource_id = azurerm_user_assigned_identity.this.id
       }
