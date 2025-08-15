@@ -129,10 +129,18 @@ resource "azurerm_role_assignment" "foundry_role_assignments" {
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }
 
-resource "azurerm_cognitive_account_customer_managed_key" "this" {
+resource "azurerm_cognitive_account_customer_managed_key" "foundry" {
   count = var.ai_foundry.customer_managed_key != null ? 1 : 0
 
   cognitive_account_id = resource.azapi_resource.ai_foundry.id
   key_vault_key_id     = data.azurerm_key_vault_key.foundry[0].id
   identity_client_id   = data.azurerm_user_assigned_identity.foundry[0].client_id
 }
+
+resource "azurerm_cognitive_account_customer_managed_key" "byor" {
+  count = var.create_byor_cmk ? 1 : 0
+
+  cognitive_account_id = resource.azapi_resource.ai_foundry.id
+  key_vault_key_id     = data.azurerm_key_vault_key.byor[0].id
+}
+
