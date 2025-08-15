@@ -225,7 +225,7 @@ module "ai_foundry" {
     name                    = module.naming.cognitive_account.name_unique
     customer_managed_key = {
       key_vault_resource_id = module.key_vault.this.id
-      key_name              = module.key_vault.keys.cmk.name
+  key_name              = "cmk"
       user_assigned_identity = {
         resource_id = azurerm_user_assigned_identity.this.id
       }
