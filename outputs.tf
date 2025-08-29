@@ -61,10 +61,10 @@ output "cosmos_db_id" {
   description = "The resource ID of the Cosmos DB account."
   value = {
     for k, v in var.cosmosdb_definition :
-    k => coalesce(
-      try(v.existing_resource_id, null),
-      try(module.cosmosdb[k].resource_id, null),
-      null
+    k => (
+      v.existing_resource_id != null
+      ? v.existing_resource_id
+      : try(module.cosmosdb[k].resource_id, null)
     )
   }
 }
@@ -73,10 +73,10 @@ output "cosmos_db_name" {
   description = "The name of the Cosmos DB account."
   value = {
     for k, v in var.cosmosdb_definition :
-    k => coalesce(
-      try(basename(v.existing_resource_id), null),
-      try(basename(module.cosmosdb[k].resource_id), null),
-      null
+    k => (
+      v.existing_resource_id != null
+      ? basename(v.existing_resource_id)
+      : try(basename(module.cosmosdb[k].resource_id), null)
     )
   }
 }
@@ -85,10 +85,10 @@ output "key_vault_id" {
   description = "The resource ID of the Key Vault."
   value = {
     for k, v in var.key_vault_definition :
-    k => coalesce(
-      try(v.existing_resource_id, null),
-      try(module.key_vault[k].resource_id, null),
-      null
+    k => (
+      v.existing_resource_id != null
+      ? v.existing_resource_id
+      : try(module.key_vault[k].resource_id, null)
     )
   }
 }
@@ -97,10 +97,10 @@ output "key_vault_name" {
   description = "The name of the Key Vault."
   value = {
     for k, v in var.key_vault_definition :
-    k => coalesce(
-      try(basename(v.existing_resource_id), null),
-      try(basename(module.key_vault[k].resource_id), null),
-      null
+    k => (
+      v.existing_resource_id != null
+      ? basename(v.existing_resource_id)
+      : try(basename(module.key_vault[k].resource_id), null)
     )
   }
 }
@@ -129,10 +129,10 @@ output "storage_account_id" {
   description = "The resource ID of the storage account."
   value = {
     for k, v in var.storage_account_definition :
-    k => coalesce(
-      try(v.existing_resource_id, null),
-      try(module.storage_account[k].resource_id, null),
-      null
+    k => (
+      v.existing_resource_id != null
+      ? v.existing_resource_id
+      : try(module.storage_account[k].resource_id, null)
     )
   }
 }
@@ -141,10 +141,10 @@ output "storage_account_name" {
   description = "The name of the storage account."
   value = {
     for k, v in var.storage_account_definition :
-    k => coalesce(
-      try(basename(v.existing_resource_id), null),
-      try(basename(module.storage_account[k].resource_id), null),
-      null
+    k => (
+      v.existing_resource_id != null
+      ? basename(v.existing_resource_id)
+      : try(basename(module.storage_account[k].resource_id), null)
     )
   }
 }
