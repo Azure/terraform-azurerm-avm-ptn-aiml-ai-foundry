@@ -63,7 +63,8 @@ output "cosmos_db_id" {
     for k, v in var.cosmosdb_definition :
     k => coalesce(
       try(v.existing_resource_id, null),
-      lookup({ for mk, mv in module.cosmosdb : mk => mv.resource_id }, k, null)
+      try(module.cosmosdb[k].resource_id, null),
+      null
     )
   }
 }
@@ -72,13 +73,9 @@ output "cosmos_db_name" {
   description = "The name of the Cosmos DB account."
   value = {
     for k, v in var.cosmosdb_definition :
-    k => try(
-      basename(
-        coalesce(
-          try(v.existing_resource_id, null),
-          lookup({ for mk, mv in module.cosmosdb : mk => mv.resource_id }, k, null)
-        )
-      ),
+    k => coalesce(
+      try(basename(v.existing_resource_id), null),
+      try(basename(module.cosmosdb[k].resource_id), null),
       null
     )
   }
@@ -90,7 +87,8 @@ output "key_vault_id" {
     for k, v in var.key_vault_definition :
     k => coalesce(
       try(v.existing_resource_id, null),
-      lookup({ for mk, mv in module.key_vault : mk => mv.resource_id }, k, null)
+      try(module.key_vault[k].resource_id, null),
+      null
     )
   }
 }
@@ -99,13 +97,9 @@ output "key_vault_name" {
   description = "The name of the Key Vault."
   value = {
     for k, v in var.key_vault_definition :
-    k => try(
-      basename(
-        coalesce(
-          try(v.existing_resource_id, null),
-          lookup({ for mk, mv in module.key_vault : mk => mv.resource_id }, k, null)
-        )
-      ),
+    k => coalesce(
+      try(basename(v.existing_resource_id), null),
+      try(basename(module.key_vault[k].resource_id), null),
       null
     )
   }
@@ -137,7 +131,8 @@ output "storage_account_id" {
     for k, v in var.storage_account_definition :
     k => coalesce(
       try(v.existing_resource_id, null),
-      lookup({ for mk, mv in module.storage_account : mk => mv.resource_id }, k, null)
+      try(module.storage_account[k].resource_id, null),
+      null
     )
   }
 }
@@ -146,13 +141,9 @@ output "storage_account_name" {
   description = "The name of the storage account."
   value = {
     for k, v in var.storage_account_definition :
-    k => try(
-      basename(
-        coalesce(
-          try(v.existing_resource_id, null),
-          lookup({ for mk, mv in module.storage_account : mk => mv.resource_id }, k, null)
-        )
-      ),
+    k => coalesce(
+      try(basename(v.existing_resource_id), null),
+      try(basename(module.storage_account[k].resource_id), null),
       null
     )
   }
