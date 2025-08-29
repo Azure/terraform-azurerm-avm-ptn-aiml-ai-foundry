@@ -59,22 +59,56 @@ output "ai_search_name" {
 
 output "cosmos_db_id" {
   description = "The resource ID of the Cosmos DB account."
-  value       = { for k, v in var.cosmosdb_definition : k => try(v.existing_resource_id, null) != null ? v.existing_resource_id : module.cosmosdb[k].resource_id }
+  value = {
+    for k, v in var.cosmosdb_definition :
+    k => coalesce(
+      try(v.existing_resource_id, null),
+      lookup({ for mk, mv in module.cosmosdb : mk => mv.resource_id }, k, null)
+    )
+  }
 }
 
 output "cosmos_db_name" {
   description = "The name of the Cosmos DB account."
-  value       = { for k, v in var.cosmosdb_definition : k => try(v.existing_resource_id, null) != null ? basename(v.existing_resource_id) : basename(module.cosmosdb[k].resource_id) }
+  value = {
+    for k, v in var.cosmosdb_definition :
+    k => try(
+      basename(
+        coalesce(
+          try(v.existing_resource_id, null),
+          lookup({ for mk, mv in module.cosmosdb : mk => mv.resource_id }, k, null)
+        )
+      ),
+      null
+    )
+  }
 }
 
 output "key_vault_id" {
   description = "The resource ID of the Key Vault."
-  value       = { for k, v in var.key_vault_definition : k => try(v.existing_resource_id, null) != null ? v.existing_resource_id : module.key_vault[k].resource_id }
+  value = {
+    for k, v in var.key_vault_definition :
+    k => coalesce(
+      try(v.existing_resource_id, null),
+      lookup({ for mk, mv in module.key_vault : mk => mv.resource_id }, k, null)
+    )
+  }
 }
 
 output "key_vault_name" {
   description = "The name of the Key Vault."
-  value       = { for k, v in var.key_vault_definition : k => try(v.existing_resource_id, null) != null ? basename(v.existing_resource_id) : basename(module.key_vault[k].resource_id) }
+  value = {
+    for k, v in var.key_vault_definition :
+    k => try(
+      basename(
+        coalesce(
+          try(v.existing_resource_id, null),
+          lookup({ for mk, mv in module.key_vault : mk => mv.resource_id }, k, null)
+        )
+      ),
+      null
+    )
+  }
 }
 
 output "project_id_guid" {
@@ -99,10 +133,27 @@ output "resource_id" {
 
 output "storage_account_id" {
   description = "The resource ID of the storage account."
-  value       = { for k, v in var.storage_account_definition : k => try(v.existing_resource_id, null) != null ? v.existing_resource_id : module.storage_account[k].resource_id }
+  value = {
+    for k, v in var.storage_account_definition :
+    k => coalesce(
+      try(v.existing_resource_id, null),
+      lookup({ for mk, mv in module.storage_account : mk => mv.resource_id }, k, null)
+    )
+  }
 }
 
 output "storage_account_name" {
   description = "The name of the storage account."
-  value       = { for k, v in var.storage_account_definition : k => try(v.existing_resource_id, null) != null ? basename(v.existing_resource_id) : basename(module.storage_account[k].resource_id) }
+  value = {
+    for k, v in var.storage_account_definition :
+    k => try(
+      basename(
+        coalesce(
+          try(v.existing_resource_id, null),
+          lookup({ for mk, mv in module.storage_account : mk => mv.resource_id }, k, null)
+        )
+      ),
+      null
+    )
+  }
 }
