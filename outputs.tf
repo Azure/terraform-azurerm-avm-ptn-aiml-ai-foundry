@@ -20,6 +20,11 @@ output "ai_foundry_name" {
   value       = azapi_resource.ai_foundry.name
 }
 
+output "ai_foundry_system_identity_principal_id" {
+  description = "The principal ID of the AI Foundry account's system-assigned managed identity."
+  value       = try(azapi_resource.ai_foundry.identity[0].principal_id, null)
+}
+
 output "ai_foundry_project_id" {
   description = "The resource ID of the AI Foundry Project."
   value       = { for project, value in var.ai_projects : project => module.ai_foundry_project[project].ai_foundry_project_id }
