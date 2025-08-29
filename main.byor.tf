@@ -92,8 +92,11 @@ module "storage_account" {
   account_replication_type = each.value.account_replication_type
   account_tier             = each.value.account_tier
   customer_managed_key = var.create_byor_cmk ? {
-    key_vault_resource_id = values(module.key_vault.resource_id)[0]
-    key_name              = data.azurerm_key_vault_key.byor[0].name
+    key_vault_resource_id = try(
+      module.key_vault.resource_id,
+      values({ for k, v in module.key_vault : k => v.resource_id })[0]
+    )
+    key_name = "cmk"
   } : null
   diagnostic_settings_storage_account = each.value.enable_diagnostic_settings ? {
     storage = {
@@ -145,8 +148,15 @@ module "cosmosdb" {
   }
   cors_rule = each.value.cors_rule
   customer_managed_key = var.create_byor_cmk ? {
-    key_vault_resource_id = values(module.key_vault.resource_id)[0]
-    key_name              = data.azurerm_key_vault_key.byor[0].name
+    key_vault_resource_id = try(
+      module.key_vault.resource_id,
+      values({ for k, v in module.key_vault : k => v.resource_id })[0]
+    )
+    key_name = "cmk"
+    # Cosmos DB requires a user-assigned identity when using CMK
+    user_assigned_identity = {
+      resource_id = element(tolist(var.ai_foundry.managed_identities.user_assigned_resource_ids), 0)
+    }
   } : null
   diagnostic_settings = each.value.enable_diagnostic_settings ? {
     to_law = {
@@ -163,7 +173,11 @@ module "cosmosdb" {
     "0.0.0.0",                                                                      #Accept connections from within public Azure datacenters. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal
     "104.42.195.92", "40.76.54.131", "52.176.6.30", "52.169.50.45", "52.187.184.26" #Allow access from the Azure portal. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure
   ]
-  local_authentication_disabled         = each.value.local_authentication_disabled
+  local_authentication_disabled = each.value.local_authentication_disabled
+  # Ensure the Cosmos DB account has the same UAI assigned so it can access the key
+  managed_identities = length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0 ? {
+    user_assigned_resource_ids = var.ai_foundry.managed_identities.user_assigned_resource_ids
+  } : {}
   multiple_write_locations_enabled      = each.value.multiple_write_locations_enabled
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = each.value.partition_merge_enabled
