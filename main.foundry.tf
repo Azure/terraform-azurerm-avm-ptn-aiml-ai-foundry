@@ -132,17 +132,17 @@ resource "azurerm_role_assignment" "foundry_role_assignments" {
 resource "azapi_resource_action" "foundry_cmk" {
   count = var.ai_foundry.customer_managed_key != null ? 1 : 0
 
-  type        = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
-  resource_id = azapi_resource.ai_foundry.id
   method      = "PATCH"
+  resource_id = azapi_resource.ai_foundry.id
+  type        = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
   body = {
     properties = {
       encryption = {
         keySource = "Microsoft.KeyVault"
         keyVaultProperties = {
-          keyName     = var.ai_foundry.customer_managed_key.key_name
-          keyVersion  = try(var.ai_foundry.customer_managed_key.key_version, data.azurerm_key_vault_key.foundry[0].version)
-          keyVaultUri = "https://${replace(basename(var.ai_foundry.customer_managed_key.key_vault_resource_id), "/", "")}.vault.azure.net"
+          keyName          = var.ai_foundry.customer_managed_key.key_name
+          keyVersion       = try(var.ai_foundry.customer_managed_key.key_version, data.azurerm_key_vault_key.foundry[0].version)
+          keyVaultUri      = "https://${replace(basename(var.ai_foundry.customer_managed_key.key_vault_resource_id), "/", "")}.vault.azure.net"
           identityClientId = data.azurerm_user_assigned_identity.foundry[0].client_id
         }
       }
@@ -159,9 +159,9 @@ resource "azapi_resource_action" "foundry_cmk" {
 resource "azapi_resource_action" "byor_cmk" {
   count = var.create_byor_cmk && length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0 ? 1 : 0
 
-  type        = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
-  resource_id = azapi_resource.ai_foundry.id
   method      = "PATCH"
+  resource_id = azapi_resource.ai_foundry.id
+  type        = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
   body = {
     properties = {
       encryption = {
