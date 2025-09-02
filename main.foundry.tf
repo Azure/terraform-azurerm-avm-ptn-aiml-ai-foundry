@@ -121,5 +121,5 @@ resource "azapi_resource_action" "purge_ai_foundry" {
 }
 
 resource "time_sleep" "purge_ai_foundry_cooldown" {
-  destroy_duration = "900s" # 10m
+  destroy_duration = "600s" # 10m
 }
