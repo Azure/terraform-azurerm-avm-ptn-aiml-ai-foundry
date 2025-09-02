@@ -104,6 +104,9 @@ module "ai_foundry" {
   ai_foundry = {
     create_ai_agent_service = false
     name                    = module.naming.cognitive_account.name_unique
+    managed_identities = {
+      system_assigned = true
+    }
   }
   ai_model_deployments = {
     "gpt-4o" = {
