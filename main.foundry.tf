@@ -30,6 +30,8 @@ resource "azapi_resource" "ai_foundry" {
   }
   schema_validation_enabled = false
   tags                      = var.tags
+
+  depends_on = [ azapi_resource_action.purge_ai_foundry ]
 }
 
 
