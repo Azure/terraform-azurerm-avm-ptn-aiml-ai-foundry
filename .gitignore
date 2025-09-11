@@ -57,3 +57,4 @@ examples/*/policy
 
 # env files
 .env
+.avm
