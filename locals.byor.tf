@@ -37,7 +37,7 @@ locals {
   storage_account_default_role_assignments = {
     # holding this variable in the event we need to add static defaults in the future.
     deployment_user_sa_admin = {
-      role_definition_id_or_name = "Storage Account Administrator" # required to manage (add/update/remove) CMK in Storage Account
+      role_definition_id_or_name = "Storage Account Contributor" # required to manage (add/update/remove) CMK in Storage Account
       principal_id               = data.azurerm_client_config.current.object_id
     }
 
