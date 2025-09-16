@@ -2,10 +2,6 @@ terraform {
   required_version = ">= 1.9, < 2.0"
 
   required_providers {
-    azapi = {
-      source  = "Azure/azapi"
-      version = "~> 2.0"
-    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
@@ -13,10 +9,6 @@ terraform {
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
-    }
-    time = {
-      source  = "hashicorp/time"
-      version = "~> 0.12"
     }
   }
 }
@@ -299,6 +291,9 @@ module "ai_foundry" {
   ai_foundry = {
     create_ai_agent_service       = true
     name                          = module.naming.cognitive_account.name_unique
+    managed_identities = {
+      system_assigned = true
+    }
     private_dns_zone_resource_ids = [azurerm_private_dns_zone.openai.id, azurerm_private_dns_zone.cognitiveservices.id, azurerm_private_dns_zone.ai_services.id]
     network_injections = [{
       scenario                   = "agent"
