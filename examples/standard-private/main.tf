@@ -2,10 +2,6 @@ terraform {
   required_version = ">= 1.9, < 2.0"
 
   required_providers {
-    azapi = {
-      source  = "Azure/azapi"
-      version = "~> 2.0"
-    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
@@ -13,10 +9,6 @@ terraform {
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
-    }
-    time = {
-      source  = "hashicorp/time"
-      version = "~> 0.12"
     }
   }
 }
@@ -273,6 +265,7 @@ module "virtual_machine" {
   admin_username                                         = "azureadmin"
   bypass_platform_safety_checks_on_user_schedule_enabled = false
   disable_password_authentication                        = false
+  encryption_at_host_enabled                             = false
   os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
@@ -371,21 +364,6 @@ module "ai_foundry" {
     }
   }
 
-  depends_on = [azapi_resource_action.purge_ai_foundry]
 }
 
-resource "azapi_resource_action" "purge_ai_foundry" {
-  method      = "DELETE"
-  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
-  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2021-04-30"
-  when        = "destroy"
-
-  depends_on = [time_sleep.purge_ai_foundry_cooldown]
-}
-
-resource "time_sleep" "purge_ai_foundry_cooldown" {
-  destroy_duration = "900s" # 10m
-
-  depends_on = [azurerm_subnet.agent_services]
-}
 
