@@ -35,7 +35,7 @@ resource "azapi_resource" "ai_foundry" {
   tags                      = var.tags
   update_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
-  depends_on = [ azapi_resource_action.purge_ai_foundry ]
+  depends_on = [azapi_resource_action.purge_ai_foundry]
 }
 
 

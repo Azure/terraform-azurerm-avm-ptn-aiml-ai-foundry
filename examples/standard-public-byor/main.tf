@@ -243,5 +243,4 @@ module "ai_foundry" {
       enable_diagnostic_settings = false
     }
   }
-
 }

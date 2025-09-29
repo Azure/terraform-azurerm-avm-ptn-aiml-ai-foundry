@@ -360,5 +360,4 @@ module "ai_foundry" {
       }
     }
   }
-
 }

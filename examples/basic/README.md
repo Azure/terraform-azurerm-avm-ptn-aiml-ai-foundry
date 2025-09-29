@@ -33,10 +33,6 @@ terraform {
   required_version = ">= 1.9, < 2.0"
 
   required_providers {
-    azapi = {
-      source  = "Azure/azapi"
-      version = "~> 2.0"
-    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
@@ -44,10 +40,6 @@ terraform {
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
-    }
-    time = {
-      source  = "hashicorp/time"
-      version = "~> 0.12"
     }
   }
 }
@@ -62,8 +54,6 @@ provider "azurerm" {
     }
   }
 }
-
-data "azurerm_client_config" "current" {}
 
 locals {
   base_name = "basic"
@@ -129,23 +119,6 @@ module "ai_foundry" {
   }
   create_byor              = false # default: false
   create_private_endpoints = false # default: false
-
-  depends_on = [azapi_resource_action.purge_ai_foundry]
-}
-
-resource "azapi_resource_action" "purge_ai_foundry" {
-  method      = "DELETE"
-  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
-  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2021-04-30"
-  when        = "destroy"
-
-  depends_on = [time_sleep.purge_ai_foundry_cooldown]
-}
-
-resource "time_sleep" "purge_ai_foundry_cooldown" {
-  destroy_duration = "300s" # 5m
-
-  depends_on = [azurerm_resource_group.this]
 }
 ```
 
@@ -156,23 +129,16 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
-- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.0)
-
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
-
-- <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.12)
 
 ## Resources
 
 The following resources are used by this module:
 
-- [azapi_resource_action.purge_ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
-- [time_sleep.purge_ai_foundry_cooldown](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
-- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs

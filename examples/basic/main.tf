@@ -88,5 +88,4 @@ module "ai_foundry" {
   }
   create_byor              = false # default: false
   create_private_endpoints = false # default: false
-
 }
