@@ -28,9 +28,6 @@ provider "azurerm" {
   }
 }
 
-# Get current subscription data
-data "azurerm_client_config" "current" {}
-
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.5.2"
@@ -365,5 +362,3 @@ module "ai_foundry" {
   }
 
 }
-
-

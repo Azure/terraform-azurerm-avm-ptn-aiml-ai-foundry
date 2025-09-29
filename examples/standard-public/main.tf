@@ -25,8 +25,6 @@ provider "azurerm" {
   }
 }
 
-data "azurerm_client_config" "current" {}
-
 locals {
   base_name = "public"
 }
