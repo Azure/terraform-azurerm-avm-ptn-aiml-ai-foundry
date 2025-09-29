@@ -369,8 +369,7 @@ module "ai_foundry" {
 }
 
 resource "time_sleep" "agent_services_deletion_wait" {
-  destroy_duration = "180s" # 3 minutes wait before deletion
+  destroy_duration = "180s" # 3 minutes wait
 
-  # This resource will be destroyed before the subnet
   depends_on = [azurerm_subnet.agent_services]
 }
