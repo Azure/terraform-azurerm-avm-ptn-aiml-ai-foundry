@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.5"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.12"
+    }
   }
 }
 
@@ -145,6 +149,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "cosmosdb" {
   private_dns_zone_name = azurerm_private_dns_zone.cosmosdb.name
   resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
+
+  depends_on = [time_sleep.agent_services_deletion_wait]
 }
 
 # AI Search Private DNS Zone
@@ -360,4 +366,11 @@ module "ai_foundry" {
       }
     }
   }
+}
+
+resource "time_sleep" "agent_services_deletion_wait" {
+  destroy_duration = "180s" # 3 minutes wait before deletion
+
+  # This resource will be destroyed before the subnet
+  depends_on = [azurerm_subnet.agent_services]
 }
