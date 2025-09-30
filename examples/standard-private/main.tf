@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 1.9, < 2.0"
 
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.0"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
@@ -368,8 +372,28 @@ module "ai_foundry" {
   }
 }
 
-resource "time_sleep" "agent_services_deletion_wait" {
-  destroy_duration = "180s" # 3 minutes wait
+# Explicitly remove service association links before subnet deletion
+resource "azapi_resource_action" "cleanup_service_association_links" {
+  type        = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
+  resource_id = azurerm_subnet.agent_services.id
+  method      = "DELETE"
+  when        = "destroy"
+  
+  body = jsonencode({
+    properties = {
+      serviceAssociationLinks = []
+    }
+  })
 
-  depends_on = [azurerm_subnet.agent_services]
+  depends_on = [module.ai_foundry]
+}
+
+# Update the time_sleep to depend on the cleanup action
+resource "time_sleep" "agent_services_deletion_wait" {
+  destroy_duration = "300s" # 5 minutes
+
+  depends_on = [
+    azapi_resource_action.cleanup_service_association_links,
+    azurerm_subnet.agent_services
+  ]
 }
