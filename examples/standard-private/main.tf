@@ -372,27 +372,12 @@ module "ai_foundry" {
   }
 }
 
-# Explicitly remove service association links before subnet deletion
-resource "azapi_resource_action" "cleanup_service_association_links" {
-  method      = "DELETE"
-  resource_id = azurerm_subnet.agent_services.id
-  type        = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
-  body = jsonencode({
-    properties = {
-      serviceAssociationLinks = []
-    }
-  })
-  when = "destroy"
-
-  depends_on = [module.ai_foundry]
-}
-
 # Update the time_sleep to depend on the cleanup action
 resource "time_sleep" "agent_services_deletion_wait" {
   destroy_duration = "300s" # 5 minutes
 
   depends_on = [
-    azapi_resource_action.cleanup_service_association_links,
+    module.ai_foundry,
     azurerm_subnet.agent_services
   ]
 }
