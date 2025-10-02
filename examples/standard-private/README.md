@@ -90,10 +90,6 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.5"
     }
-    time = {
-      source  = "hashicorp/time"
-      version = "~> 0.12"
-    }
   }
 }
 
@@ -447,16 +443,6 @@ module "ai_foundry" {
     }
   }
 }
-
-# Update the time_sleep to depend on the cleanup action
-resource "time_sleep" "agent_services_deletion_wait" {
-  destroy_duration = "300s" # 5 minutes
-
-  depends_on = [
-    module.ai_foundry,
-    azurerm_subnet.agent_services
-  ]
-}
 ```
 
 <!-- markdownlint-disable MD033 -->
@@ -469,8 +455,6 @@ The following requirements are needed by this module:
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
-
-- <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.12)
 
 ## Resources
 
@@ -500,7 +484,6 @@ The following resources are used by this module:
 - [azurerm_subnet.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
-- [time_sleep.agent_services_deletion_wait](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs

@@ -10,10 +10,6 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.5"
     }
-    time = {
-      source  = "hashicorp/time"
-      version = "~> 0.12"
-    }
   }
 }
 
@@ -366,14 +362,4 @@ module "ai_foundry" {
       }
     }
   }
-}
-
-# Update the time_sleep to depend on the cleanup action
-resource "time_sleep" "agent_services_deletion_wait" {
-  destroy_duration = "300s" # 5 minutes
-
-  depends_on = [
-    module.ai_foundry,
-    azurerm_subnet.agent_services
-  ]
 }
