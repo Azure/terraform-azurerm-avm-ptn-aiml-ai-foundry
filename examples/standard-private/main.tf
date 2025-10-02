@@ -145,8 +145,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "cosmosdb" {
   private_dns_zone_name = azurerm_private_dns_zone.cosmosdb.name
   resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
-
-  depends_on = [time_sleep.agent_services_deletion_wait]
 }
 
 # AI Search Private DNS Zone
