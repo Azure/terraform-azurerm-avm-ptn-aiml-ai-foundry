@@ -34,6 +34,8 @@ resource "azapi_resource" "ai_foundry" {
   schema_validation_enabled = false
   tags                      = var.tags
   update_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+
+  depends_on = [azapi_resource_action.purge_ai_foundry]
 }
 
 
@@ -133,11 +135,5 @@ resource "azapi_resource_action" "purge_ai_foundry" {
 }
 
 resource "time_sleep" "purge_ai_foundry_cooldown" {
-  destroy_duration = "600s" # 10m
-
-  depends_on = [
-    azapi_resource.ai_foundry,
-    azapi_resource.ai_agent_capability_host,
-    azapi_resource.ai_model_deployment
-  ]
+  destroy_duration = "900s" # 15m
 }
