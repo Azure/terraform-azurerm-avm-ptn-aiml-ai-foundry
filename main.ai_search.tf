@@ -16,27 +16,30 @@ resource "azapi_resource" "ai_search" {
       type = "SystemAssigned"
     }
 
-    properties = {
+    properties = merge(
+      {
+        replicaCount   = each.value.replica_count
+        partitionCount = each.value.partition_count
+        hostingMode    = each.value.hosting_mode
+        semanticSearch = each.value.semantic_search_enabled == true ? "enabled" : "disabled"
 
-      # Search-specific properties
-      replicaCount   = each.value.replica_count
-      partitionCount = each.value.partition_count
-      hostingMode    = each.value.hosting_mode
-      semanticSearch = each.value.semantic_search_enabled == true ? "enabled" : "disabled"
+        # Identity-related controls
+        disableLocalAuth = each.value.local_authentication_enabled ? false : true #inverted logic to match the variable definition
 
-      # Identity-related controls
-      disableLocalAuth = each.value.local_authentication_enabled ? false : true #inverted logic to match the variable definition
-      authOptions = {
-        aadOrApiKey = {
-          aadAuthFailureMode = "http401WithBearerChallenge"
+        # Networking-related controls
+        publicNetworkAccess = var.create_private_endpoints ? "Disabled" : "Enabled"
+        networkRuleSet = {
+          bypass = "None"
         }
-      }
-      # Networking-related controls
-      publicNetworkAccess = var.create_private_endpoints ? "Disabled" : "Enabled"
-      networkRuleSet = {
-        bypass = "None"
-      }
-    }
+      },
+      each.value.local_authentication_enabled ? {
+        authOptions = {
+          aadOrApiKey = {
+            aadAuthFailureMode = "http401WithBearerChallenge"
+          }
+        }
+      } : {}
+    )
   }
   create_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   delete_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
