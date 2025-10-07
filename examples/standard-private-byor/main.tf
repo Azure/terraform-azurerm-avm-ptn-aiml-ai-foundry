@@ -495,6 +495,9 @@ module "ai_foundry" {
       subnetArmId                = azurerm_subnet.agent_services.id
       useMicrosoftManagedNetwork = false
     }]
+    managed_identities = {
+      system_assigned = true
+    }
   }
   ai_model_deployments = {
     "gpt-4o" = {

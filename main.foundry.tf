@@ -9,9 +9,6 @@ resource "azapi_resource" "ai_foundry" {
     sku = {
       name = var.ai_foundry.sku
     }
-    identity = {
-      type = "SystemAssigned"
-    }
 
     properties = {
       disableLocalAuth       = var.ai_foundry.disable_local_auth
@@ -34,6 +31,15 @@ resource "azapi_resource" "ai_foundry" {
   schema_validation_enabled = false
   tags                      = var.tags
   update_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+
+  dynamic "identity" {
+    for_each = (var.ai_foundry.managed_identities.system_assigned || length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0) ? ["identity"] : []
+
+    content {
+      type         = var.ai_foundry.managed_identities.system_assigned && length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" : length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0 ? "UserAssigned" : "SystemAssigned"
+      identity_ids = var.ai_foundry.managed_identities.user_assigned_resource_ids
+    }
+  }
 }
 
 
@@ -122,3 +128,58 @@ resource "azurerm_role_assignment" "foundry_role_assignments" {
   role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }
+
+resource "azapi_resource_action" "foundry_cmk" {
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
+
+  method      = "PATCH"
+  resource_id = azapi_resource.ai_foundry.id
+  type        = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
+  body = {
+    properties = {
+      encryption = {
+        keySource = "Microsoft.KeyVault"
+        keyVaultProperties = {
+          keyName          = var.ai_foundry.customer_managed_key.key_name
+          keyVersion       = try(var.ai_foundry.customer_managed_key.key_version, data.azurerm_key_vault_key.foundry[0].version)
+          keyVaultUri      = "https://${replace(basename(var.ai_foundry.customer_managed_key.key_vault_resource_id), "/", "")}.vault.azure.net"
+          identityClientId = data.azurerm_user_assigned_identity.foundry[0].client_id
+        }
+      }
+    }
+  }
+
+  depends_on = [
+    azapi_resource.ai_foundry,
+    data.azurerm_key_vault_key.foundry,
+    data.azurerm_user_assigned_identity.foundry
+  ]
+}
+
+resource "azapi_resource_action" "byor_cmk" {
+  count = var.create_byor_cmk && length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0 ? 1 : 0
+
+  method      = "PATCH"
+  resource_id = azapi_resource.ai_foundry.id
+  type        = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
+  body = {
+    properties = {
+      encryption = {
+        keySource = "Microsoft.KeyVault"
+        keyVaultProperties = {
+          keyName     = "cmk"
+          keyVersion  = data.azurerm_key_vault_key.byor[0].version
+          keyVaultUri = "https://${replace(basename(try(module.key_vault.resource_id, values({ for k, v in module.key_vault : k => v.resource_id })[0])), "/", "")}.vault.azure.net"
+          # Use the client ID from the AI Foundry resource identity
+          identityClientId = azapi_resource.ai_foundry.identity[0].principal_id
+        }
+      }
+    }
+  }
+
+  depends_on = [
+    azapi_resource.ai_foundry,
+    data.azurerm_key_vault_key.byor
+  ]
+}
+

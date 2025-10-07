@@ -22,7 +22,7 @@ module "log_analytics_workspace" {
 module "key_vault" {
   source   = "Azure/avm-res-keyvault-vault/azurerm"
   version  = "0.10.0"
-  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
+  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true && var.create_byor_cmk == true }
 
   location            = var.location
   name                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-kv-${random_string.resource_token.result}" : "kv-fndry-${random_string.resource_token.result}")
@@ -37,9 +37,25 @@ module "key_vault" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  keys = {
+    cmk = {
+      key_opts = [
+        "decrypt",
+        "encrypt",
+        "sign",
+        "unwrapKey",
+        "verify",
+        "wrapKey"
+      ]
+      key_type = "RSA"
+      name     = "cmk"
+      key_size = 2048
+    }
+  }
   network_acls = { #TODO check to see if we need to support custom network ACLs and if this should be deny by default.
     default_action = "Allow"
     bypass         = "AzureServices"
+    # ip_rules = ["${data.http.ip.response_body}/32"]
   }
   private_endpoints = var.create_private_endpoints ? {
     "vault" = {
@@ -68,14 +84,20 @@ module "storage_account" {
   version  = "0.6.4"
   for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
-  location = var.location
-  #name                     = local.storage_account_name
+  location                 = var.location
   name                     = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${local.base_name_storage}${lower(each.key)}fndrysa${random_string.resource_token.result}" : "${lower(each.key)}fndrysa${random_string.resource_token.result}")
   resource_group_name      = local.resource_group_name
   access_tier              = each.value.access_tier
   account_kind             = each.value.account_kind
   account_replication_type = each.value.account_replication_type
   account_tier             = each.value.account_tier
+  customer_managed_key = var.create_byor_cmk ? {
+    key_vault_resource_id = try(
+      module.key_vault.resource_id,
+      values({ for k, v in module.key_vault : k => v.resource_id })[0]
+    )
+    key_name = "cmk"
+  } : null
   diagnostic_settings_storage_account = each.value.enable_diagnostic_settings ? {
     storage = {
       name                  = "sendToLogAnalytics-sa-${random_string.resource_token.result}"
@@ -125,6 +147,17 @@ module "cosmosdb" {
     max_staleness_prefix    = each.value.consistency_policy.max_staleness_prefix
   }
   cors_rule = each.value.cors_rule
+  customer_managed_key = var.create_byor_cmk ? {
+    key_vault_resource_id = try(
+      module.key_vault.resource_id,
+      values({ for k, v in module.key_vault : k => v.resource_id })[0]
+    )
+    key_name = "cmk"
+    # Cosmos DB requires a user-assigned identity when using CMK
+    user_assigned_identity = {
+      resource_id = element(tolist(var.ai_foundry.managed_identities.user_assigned_resource_ids), 0)
+    }
+  } : null
   diagnostic_settings = each.value.enable_diagnostic_settings ? {
     to_law = {
       name                  = "sendToLogAnalytics-cosmosdb-${random_string.resource_token.result}"
@@ -140,7 +173,11 @@ module "cosmosdb" {
     "0.0.0.0",                                                                      #Accept connections from within public Azure datacenters. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal
     "104.42.195.92", "40.76.54.131", "52.176.6.30", "52.169.50.45", "52.187.184.26" #Allow access from the Azure portal. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure
   ]
-  local_authentication_disabled         = each.value.local_authentication_disabled
+  local_authentication_disabled = each.value.local_authentication_disabled
+  # Ensure the Cosmos DB account has the same UAI assigned so it can access the key
+  managed_identities = length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0 ? {
+    user_assigned_resource_ids = var.ai_foundry.managed_identities.user_assigned_resource_ids
+  } : {}
   multiple_write_locations_enabled      = each.value.multiple_write_locations_enabled
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = each.value.partition_merge_enabled

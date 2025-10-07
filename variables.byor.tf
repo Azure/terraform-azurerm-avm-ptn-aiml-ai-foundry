@@ -56,6 +56,7 @@ DESCRIPTION
 
 variable "cosmosdb_definition" {
   type = map(object({
+    use_cmk                      = optional(bool, false)
     existing_resource_id         = optional(string, null)
     private_dns_zone_resource_id = optional(string, null)
     enable_diagnostic_settings   = optional(bool, true)

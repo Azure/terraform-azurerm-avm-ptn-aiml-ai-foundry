@@ -21,6 +21,22 @@ variable "ai_foundry" {
       delegated_managed_identity_resource_id = optional(string, null)
       principal_type                         = optional(string, null)
     })), {})
+    # Managed identities configuration for the Cognitive Services account
+    # This is a single object (not a map). It aligns with how the value is referenced in the module.
+    managed_identities = optional(object({
+      system_assigned            = optional(bool, false)
+      user_assigned_resource_ids = optional(set(string), [])
+    }), {})
+    # Customer managed key configuration for the Cognitive Services account
+    # This is a single object (not a map). It aligns with how the value is referenced in the module.
+    customer_managed_key = optional(object({
+      key_vault_resource_id = string
+      key_name              = string
+      key_version           = optional(string, null)
+      user_assigned_identity = optional(object({
+        resource_id = string
+      }), null)
+    }), null)
   })
   default     = {}
   description = <<DESCRIPTION
@@ -45,5 +61,42 @@ Configuration object for the Azure AI Foundry service to be created for AI workl
   - `condition_version` - (Optional) Version of the condition.
   - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.
   - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
+DESCRIPTION
+}
+
+variable "ai_model_deployments" {
+  type = map(object({
+    name                   = string
+    rai_policy_name        = optional(string)
+    version_upgrade_option = optional(string, "OnceNewDefaultVersionAvailable")
+    model = object({
+      format  = string
+      name    = string
+      version = string
+    })
+    scale = object({
+      capacity = optional(number)
+      family   = optional(string)
+      size     = optional(string)
+      tier     = optional(string)
+      type     = string
+    })
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+Configuration for AI model deployments (including OpenAI). Each deployment includes:
+- `name` - The name of the deployment
+- `rai_policy_name` - (Optional) The name of the RAI policy
+- `version_upgrade_option` - (Optional) How to handle version upgrades (default: "OnceNewDefaultVersionAvailable")
+- `model` - The model configuration:
+  - `format` - The format of the model (e.g., "OpenAI")
+  - `name` - The name of the model to deploy
+  - `version` - The version of the model
+- `scale` - The scaling configuration:
+  - `type` - The scaling type (e.g., "Standard")
+  - `capacity` - (Optional) The capacity of the deployment
+  - `family` - (Optional) The family of the deployment
+  - `size` - (Optional) The size of the deployment
+  - `tier` - (Optional) The pricing tier for the deployment
 DESCRIPTION
 }

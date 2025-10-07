@@ -1,5 +1,8 @@
 
 locals {
+  #   # TODO:
+  #   # Do we need to add role assignment of the user assigned identity to the Cosmos DB account to enable CMK on the Cosmos DB?
+  # }
   cosmosdb_secondary_regions = { for k, v in var.cosmosdb_definition : k => (var.cosmosdb_definition[k].secondary_regions == null ? [] : (
     try(length(var.cosmosdb_definition[k].secondary_regions) == 0, false) ? [
       {
@@ -14,11 +17,12 @@ locals {
       }
     ] : var.cosmosdb_definition[k].secondary_regions)
   ) }
-  #################################################################
-  # Key Vault specific local variables
-  #################################################################
   key_vault_default_role_assignments = {
     #holding this variable in the event we need to add static defaults in the future.
+    deployment_user_kv_admin = {
+      role_definition_id_or_name = "Key Vault Administrator" # required to manage (add/update/remove) CMK in Key Vault
+      principal_id               = data.azurerm_client_config.current.object_id
+    }
   }
   key_vault_role_assignments = { for k, v in var.key_vault_definition : k => merge(
     local.key_vault_default_role_assignments,
@@ -31,14 +35,17 @@ locals {
   paired_region                = [for region in module.avm_utl_regions.regions : region if(lower(region.name) == lower(var.location) || (lower(region.display_name) == lower(var.location)))][0].paired_region_name
   resource_group_name          = basename(var.resource_group_resource_id) #assumes resource group id is required.
   storage_account_default_role_assignments = {
-    #holding this variable in the event we need to add static defaults in the future.
+    # holding this variable in the event we need to add static defaults in the future.
+    deployment_user_sa_admin = {
+      role_definition_id_or_name = "Storage Account Contributor" # required to manage (add/update/remove) CMK in Storage Account
+      principal_id               = data.azurerm_client_config.current.object_id
+    }
+
+    # TODO:
+    # Do we need to add role assignment of the user assigned identity to the storage account to enable CMK on the SA?
   }
-  #################################################################
-  # Storage Account specific local variables
-  #################################################################
   storage_account_role_assignments = { for k, v in var.storage_account_definition : k => merge(
     local.storage_account_default_role_assignments,
     var.storage_account_definition[k].role_assignments
   ) }
 }
-

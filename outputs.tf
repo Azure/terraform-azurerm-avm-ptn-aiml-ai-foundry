@@ -40,6 +40,11 @@ output "ai_foundry_project_system_identity_principal_id" {
   value       = { for project, value in var.ai_projects : project => module.ai_foundry_project[project].ai_foundry_project_system_identity_principal_id }
 }
 
+output "ai_foundry_system_identity_principal_id" {
+  description = "The principal ID of the AI Foundry account's system-assigned managed identity."
+  value       = try(azapi_resource.ai_foundry.identity[0].principal_id, null)
+}
+
 output "ai_model_deployment_ids" {
   description = "The resource IDs of all AI model deployments."
   value       = { for k, v in azapi_resource.ai_model_deployment : k => v.id }
@@ -59,22 +64,50 @@ output "ai_search_name" {
 
 output "cosmos_db_id" {
   description = "The resource ID of the Cosmos DB account."
-  value       = { for k, v in var.cosmosdb_definition : k => try(v.existing_resource_id, null) != null ? v.existing_resource_id : module.cosmosdb[k].resource_id }
+  value = {
+    for k, v in var.cosmosdb_definition :
+    k => (
+      v.existing_resource_id != null
+      ? v.existing_resource_id
+      : try(module.cosmosdb[k].resource_id, null)
+    )
+  }
 }
 
 output "cosmos_db_name" {
   description = "The name of the Cosmos DB account."
-  value       = { for k, v in var.cosmosdb_definition : k => try(v.existing_resource_id, null) != null ? basename(v.existing_resource_id) : basename(module.cosmosdb[k].resource_id) }
+  value = {
+    for k, v in var.cosmosdb_definition :
+    k => (
+      v.existing_resource_id != null
+      ? basename(v.existing_resource_id)
+      : try(basename(module.cosmosdb[k].resource_id), null)
+    )
+  }
 }
 
 output "key_vault_id" {
   description = "The resource ID of the Key Vault."
-  value       = { for k, v in var.key_vault_definition : k => try(v.existing_resource_id, null) != null ? v.existing_resource_id : module.key_vault[k].resource_id }
+  value = {
+    for k, v in var.key_vault_definition :
+    k => (
+      v.existing_resource_id != null
+      ? v.existing_resource_id
+      : try(module.key_vault[k].resource_id, null)
+    )
+  }
 }
 
 output "key_vault_name" {
   description = "The name of the Key Vault."
-  value       = { for k, v in var.key_vault_definition : k => try(v.existing_resource_id, null) != null ? basename(v.existing_resource_id) : basename(module.key_vault[k].resource_id) }
+  value = {
+    for k, v in var.key_vault_definition :
+    k => (
+      v.existing_resource_id != null
+      ? basename(v.existing_resource_id)
+      : try(basename(module.key_vault[k].resource_id), null)
+    )
+  }
 }
 
 output "project_id_guid" {
@@ -99,10 +132,24 @@ output "resource_id" {
 
 output "storage_account_id" {
   description = "The resource ID of the storage account."
-  value       = { for k, v in var.storage_account_definition : k => try(v.existing_resource_id, null) != null ? v.existing_resource_id : module.storage_account[k].resource_id }
+  value = {
+    for k, v in var.storage_account_definition :
+    k => (
+      v.existing_resource_id != null
+      ? v.existing_resource_id
+      : try(module.storage_account[k].resource_id, null)
+    )
+  }
 }
 
 output "storage_account_name" {
   description = "The name of the storage account."
-  value       = { for k, v in var.storage_account_definition : k => try(v.existing_resource_id, null) != null ? basename(v.existing_resource_id) : basename(module.storage_account[k].resource_id) }
+  value = {
+    for k, v in var.storage_account_definition :
+    k => (
+      v.existing_resource_id != null
+      ? basename(v.existing_resource_id)
+      : try(basename(module.storage_account[k].resource_id), null)
+    )
+  }
 }
