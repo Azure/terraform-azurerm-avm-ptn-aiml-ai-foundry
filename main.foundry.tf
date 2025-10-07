@@ -123,19 +123,15 @@ resource "azurerm_role_assignment" "foundry_role_assignments" {
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }
 
-# Cooldown to allow network resources to detach before purge
-# This is critical for VNet injection scenarios where service association links need time to detach
+# Cooldown during destroy to delay module completion
+# This ensures network resources (service association links) have time to detach before subnet deletion
+# Also provides time for Azure to complete async soft-delete before purge attempts
 resource "time_sleep" "purge_ai_foundry_cooldown" {
-  destroy_duration = "900s" # 15m
-
-  depends_on = [
-    azapi_resource.ai_foundry,
-    azapi_resource.ai_agent_capability_host,
-    azapi_resource.ai_model_deployment
-  ]
+  destroy_duration = "1200s" # 20m - allows for soft-delete completion + network cleanup
 }
 
 # Purge soft-deleted AI Foundry accounts after cooldown
+# The cooldown ensures ai_foundry has been destroyed and soft-delete completed before purge runs
 resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
   resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${var.location}/resourceGroups/${basename(var.resource_group_resource_id)}/deletedAccounts/${local.ai_foundry_name}"
