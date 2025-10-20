@@ -353,6 +353,7 @@ module "virtual_machine" {
   admin_username                                         = "azureadmin"
   bypass_platform_safety_checks_on_user_schedule_enabled = false
   disable_password_authentication                        = false
+  encryption_at_host_enabled                             = false
   os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
@@ -385,6 +386,9 @@ module "ai_foundry" {
       subnetArmId                = azurerm_subnet.agent_services.id
       useMicrosoftManagedNetwork = false
     }]
+    managed_identities = {
+      system_assigned = true
+    }
   }
   ai_model_deployments = {
     "gpt-4o" = {
