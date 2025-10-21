@@ -141,8 +141,8 @@ resource "azapi_resource_action" "foundry_cmk" {
         keySource = "Microsoft.KeyVault"
         keyVaultProperties = {
           keyName          = var.ai_foundry.customer_managed_key.key_name
-          keyVersion       = try(var.ai_foundry.customer_managed_key.key_version, data.azurerm_key_vault_key.foundry[0].version)
-          keyVaultUri      = "https://${basename(var.ai_foundry.customer_managed_key.key_vault_resource_id)}.vault.azure.net/keys/${var.ai_foundry.customer_managed_key.key_name}/${try(var.ai_foundry.customer_managed_key.key_version, data.azurerm_key_vault_key.foundry[0].version)}"
+          keyVersion       = coalesce(var.ai_foundry.customer_managed_key.key_version, data.azurerm_key_vault_key.foundry[0].version)
+          keyVaultUri      = "https://${basename(var.ai_foundry.customer_managed_key.key_vault_resource_id)}.vault.azure.net/keys/${var.ai_foundry.customer_managed_key.key_name}/${coalesce(var.ai_foundry.customer_managed_key.key_version, data.azurerm_key_vault_key.foundry[0].version)}"
           identityClientId = data.azurerm_user_assigned_identity.foundry[0].client_id
         }
       }
