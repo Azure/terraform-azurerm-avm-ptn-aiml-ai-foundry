@@ -169,9 +169,9 @@ module "ai_foundry" {
 
 # Grant the AI Foundry system-assigned identity Key Vault access for CMK operations
 resource "azurerm_role_assignment" "ai_foundry_kv_access" {
+  principal_id         = module.ai_foundry.ai_foundry_system_identity_principal_id
   scope                = module.key_vault.resource_id
   role_definition_name = "Key Vault Crypto User"
-  principal_id         = module.ai_foundry.ai_foundry_system_identity_principal_id
 
   depends_on = [module.ai_foundry]
 }
