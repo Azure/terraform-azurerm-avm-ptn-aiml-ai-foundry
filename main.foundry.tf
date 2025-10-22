@@ -153,16 +153,16 @@ resource "azapi_resource_action" "foundry_cmk" {
     }
   }
 
+  timeouts {
+    create = "30m"
+    update = "30m"
+  }
+
   depends_on = [
     azapi_resource.ai_foundry,
     data.azurerm_key_vault_key.foundry,
     data.azurerm_user_assigned_identity.foundry
   ]
-
-  timeouts {
-    create = "30m"
-    update = "30m"
-  }
 }
 
 resource "azapi_resource_action" "byor_cmk" {
@@ -186,14 +186,14 @@ resource "azapi_resource_action" "byor_cmk" {
     }
   }
 
-  depends_on = [
-    azapi_resource.ai_foundry,
-    data.azurerm_key_vault_key.byor
-  ]
-
   timeouts {
     create = "30m"
     update = "30m"
   }
+
+  depends_on = [
+    azapi_resource.ai_foundry,
+    data.azurerm_key_vault_key.byor
+  ]
 }
 
