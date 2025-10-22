@@ -89,7 +89,11 @@ resource "azapi_resource" "ai_model_deployment" {
   read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
-  depends_on = [azapi_resource.ai_foundry]
+  depends_on = [
+    azapi_resource.ai_foundry,
+    azapi_resource_action.foundry_cmk,
+    azapi_resource_action.byor_cmk
+  ]
 }
 
 resource "azurerm_private_endpoint" "ai_foundry" {
@@ -154,6 +158,11 @@ resource "azapi_resource_action" "foundry_cmk" {
     data.azurerm_key_vault_key.foundry,
     data.azurerm_user_assigned_identity.foundry
   ]
+
+  timeouts {
+    create = "30m"
+    update = "30m"
+  }
 }
 
 resource "azapi_resource_action" "byor_cmk" {
@@ -181,5 +190,10 @@ resource "azapi_resource_action" "byor_cmk" {
     azapi_resource.ai_foundry,
     data.azurerm_key_vault_key.byor
   ]
+
+  timeouts {
+    create = "30m"
+    update = "30m"
+  }
 }
 
