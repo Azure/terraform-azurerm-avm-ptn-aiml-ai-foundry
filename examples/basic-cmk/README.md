@@ -137,8 +137,9 @@ module "key_vault" {
       role_definition_id_or_name = "Key Vault Administrator"
       principal_id               = data.azurerm_client_config.current.object_id
     }
-    user_assigned_identity_kv_admin = {
-      role_definition_id_or_name = "Key Vault Administrator"
+    # Grant the user-assigned identity Key Vault Crypto User role for CMK operations
+    user_assigned_identity_kv_crypto_user = {
+      role_definition_id_or_name = "Key Vault Crypto User"
       principal_id               = azurerm_user_assigned_identity.this.principal_id
     }
   }
@@ -162,11 +163,14 @@ module "ai_foundry" {
     customer_managed_key = {
       key_vault_resource_id = module.key_vault.resource_id
       key_name              = "cmk"
-      # Note: Service-side CMK with UAI is not supported yet, using system-assigned identity only
+      # Use the user-assigned identity for CMK operations
+      user_assigned_identity = {
+        resource_id = azurerm_user_assigned_identity.this.id
+      }
     }
     managed_identities = {
-      system_assigned            = true
-      user_assigned_resource_ids = toset([])
+      system_assigned            = false
+      user_assigned_resource_ids = toset([azurerm_user_assigned_identity.this.id])
     }
   }
   ai_model_deployments = {
@@ -196,15 +200,6 @@ module "ai_foundry" {
   create_private_endpoints = false # default: false
 
   depends_on = [azapi_resource_action.purge_ai_foundry, module.key_vault]
-}
-
-# Grant the AI Foundry system-assigned identity Key Vault access for CMK operations
-resource "azurerm_role_assignment" "ai_foundry_kv_access" {
-  principal_id         = module.ai_foundry.ai_foundry_system_identity_principal_id
-  scope                = module.key_vault.resource_id
-  role_definition_name = "Key Vault Crypto User"
-
-  depends_on = [module.ai_foundry]
 }
 
 resource "azapi_resource_action" "purge_ai_foundry" {
@@ -244,7 +239,6 @@ The following resources are used by this module:
 
 - [azapi_resource_action.purge_ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [azurerm_role_assignment.ai_foundry_kv_access](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_user_assigned_identity.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) (resource)
 - [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
 - [time_sleep.purge_ai_foundry_cooldown](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)

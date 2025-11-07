@@ -570,6 +570,26 @@ Type: `bool`
 
 Default: `false`
 
+### <a name="input_customer_managed_key_readiness"></a> [customer\_managed\_key\_readiness](#input\_customer\_managed\_key\_readiness)
+
+Description: (Optional) Map of dependencies to wait for before attempting customer-managed key (CMK) configuration.   
+This is useful when you need to ensure that role assignments or access policies have been applied and propagated   
+before the module attempts to configure encryption with customer-managed keys.
+
+Example:
+```
+customer_managed_key_readiness = {
+  kv_role_assignment = azurerm_role_assignment.ai_foundry_kv_access.id
+}
+```
+
+The map key is arbitrary and only used for identification. The map values should be resource IDs or any   
+attribute that will force Terraform to wait until those resources are created.
+
+Type: `map(any)`
+
+Default: `{}`
+
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
 Description: This variable controls whether or not telemetry is enabled for the module.  

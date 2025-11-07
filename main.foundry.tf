@@ -2,7 +2,7 @@ resource "azapi_resource" "ai_foundry" {
   location  = var.location
   name      = local.ai_foundry_name
   parent_id = var.resource_group_resource_id
-  type      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts@2025-10-01-preview"
   body = {
 
     kind = "AIServices",
@@ -49,6 +49,8 @@ resource "time_sleep" "wait_for_rbac_propagation" {
   create_duration = "60s"
   triggers = {
     identity_principal_id = try(azapi_resource.ai_foundry.identity[0].principal_id, "none")
+    # Trigger on external readiness dependencies (e.g., role assignments)
+    readiness_dependencies = jsonencode(var.customer_managed_key_readiness)
   }
 
   depends_on = [azapi_resource.ai_foundry]
@@ -59,7 +61,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
 
   name      = "ai-agent-service-${random_string.resource_token.result}"
   parent_id = azapi_resource.ai_foundry.id
-  type      = "Microsoft.CognitiveServices/accounts/capabilityHosts@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/capabilityHosts@2025-10-01-preview"
   body = {
     properties = {
       capabilityHostKind = "Agents"
@@ -79,7 +81,7 @@ resource "azapi_resource" "ai_model_deployment" {
 
   name      = each.value.name
   parent_id = azapi_resource.ai_foundry.id
-  type      = "Microsoft.CognitiveServices/accounts/deployments@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/deployments@2025-10-01-preview"
   body = {
     properties = {
       model = {
@@ -149,7 +151,7 @@ resource "azapi_resource_action" "foundry_cmk" {
 
   method      = "PATCH"
   resource_id = azapi_resource.ai_foundry.id
-  type        = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
+  type        = "Microsoft.CognitiveServices/accounts@2025-10-01-preview"
   body = {
     properties = {
       encryption = {
@@ -181,7 +183,7 @@ resource "azapi_resource_action" "byor_cmk" {
 
   method      = "PATCH"
   resource_id = azapi_resource.ai_foundry.id
-  type        = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
+  type        = "Microsoft.CognitiveServices/accounts@2025-10-01-preview"
   body = {
     properties = {
       encryption = {

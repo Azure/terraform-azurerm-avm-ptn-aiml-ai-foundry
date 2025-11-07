@@ -37,6 +37,26 @@ variable "create_private_endpoints" {
   description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created."
 }
 
+variable "customer_managed_key_readiness" {
+  type        = map(any)
+  default     = {}
+  description = <<DESCRIPTION
+(Optional) Map of dependencies to wait for before attempting customer-managed key (CMK) configuration. 
+This is useful when you need to ensure that role assignments or access policies have been applied and propagated 
+before the module attempts to configure encryption with customer-managed keys.
+
+Example:
+```
+customer_managed_key_readiness = {
+  kv_role_assignment = azurerm_role_assignment.ai_foundry_kv_access.id
+}
+```
+
+The map key is arbitrary and only used for identification. The map values should be resource IDs or any 
+attribute that will force Terraform to wait until those resources are created.
+DESCRIPTION
+}
+
 variable "enable_telemetry" {
   type        = bool
   default     = true
