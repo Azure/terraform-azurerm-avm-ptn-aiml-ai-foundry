@@ -42,6 +42,17 @@ resource "azapi_resource" "ai_foundry" {
   }
 }
 
+# Wait for identity creation and RBAC propagation before attempting CMK operations
+resource "time_sleep" "wait_for_rbac_propagation" {
+  count = var.ai_foundry.customer_managed_key != null || var.create_byor_cmk ? 1 : 0
+
+  create_duration = "60s"
+  triggers = {
+    identity_principal_id = try(azapi_resource.ai_foundry.identity[0].principal_id, "none")
+  }
+
+  depends_on = [azapi_resource.ai_foundry]
+}
 
 resource "azapi_resource" "ai_agent_capability_host" {
   count = var.ai_foundry.create_ai_agent_service && var.ai_foundry.network_injections == null ? 1 : 0
@@ -160,7 +171,8 @@ resource "azapi_resource_action" "foundry_cmk" {
 
   depends_on = [
     azapi_resource.ai_foundry,
-    data.azurerm_key_vault_key.foundry
+    data.azurerm_key_vault_key.foundry,
+    time_sleep.wait_for_rbac_propagation
   ]
 }
 
@@ -193,7 +205,8 @@ resource "azapi_resource_action" "byor_cmk" {
   depends_on = [
     azapi_resource.ai_foundry,
     data.azurerm_key_vault_key.byor,
-    data.azurerm_user_assigned_identity.byor
+    data.azurerm_user_assigned_identity.byor,
+    time_sleep.wait_for_rbac_propagation
   ]
 }
 
