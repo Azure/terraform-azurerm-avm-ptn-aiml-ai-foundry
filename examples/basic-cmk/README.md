@@ -144,10 +144,10 @@ module "key_vault" {
     }
   }
   wait_for_rbac_before_key_operations = {
-    create = "60s"
+    create = "120s"
   }
   wait_for_rbac_before_secret_operations = {
-    create = "60s"
+    create = "120s"
   }
 }
 
