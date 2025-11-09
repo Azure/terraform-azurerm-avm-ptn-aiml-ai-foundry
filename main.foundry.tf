@@ -40,13 +40,19 @@ resource "azapi_resource" "ai_foundry" {
       identity_ids = var.ai_foundry.managed_identities.user_assigned_resource_ids
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      body.properties.encryption
+    ]
+  }
 }
 
 # Wait for identity creation and RBAC propagation before attempting CMK operations
 resource "time_sleep" "wait_for_rbac_propagation" {
   count = var.ai_foundry.customer_managed_key != null || var.create_byor_cmk ? 1 : 0
 
-  create_duration = "60s"
+  create_duration = "30s"
   triggers = {
     identity_principal_id = try(azapi_resource.ai_foundry.identity[0].principal_id, "none")
     # Trigger on external readiness dependencies (e.g., role assignments)
@@ -104,8 +110,8 @@ resource "azapi_resource" "ai_model_deployment" {
 
   depends_on = [
     azapi_resource.ai_foundry,
-    azapi_resource_action.foundry_cmk,
-    azapi_resource_action.byor_cmk
+    azapi_update_resource.foundry_cmk,
+    azapi_update_resource.byor_cmk
   ]
 }
 
@@ -146,10 +152,20 @@ resource "azurerm_role_assignment" "foundry_role_assignments" {
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }
 
-resource "azapi_resource_action" "foundry_cmk" {
+resource "terraform_data" "foundry_cmk_trigger" {
   count = var.ai_foundry.customer_managed_key != null ? 1 : 0
 
-  method      = "PATCH"
+  triggers_replace = {
+    key_name    = var.ai_foundry.customer_managed_key.key_name
+    key_version = coalesce(var.ai_foundry.customer_managed_key.key_version, try(data.azurerm_key_vault_key.foundry[0].version, ""))
+    key_vault   = var.ai_foundry.customer_managed_key.key_vault_resource_id
+    identity    = try(data.azurerm_user_assigned_identity.foundry[0].client_id, "")
+  }
+}
+
+resource "azapi_update_resource" "foundry_cmk" {
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
+
   resource_id = azapi_resource.ai_foundry.id
   type        = "Microsoft.CognitiveServices/accounts@2025-10-01-preview"
   body = {
@@ -165,23 +181,37 @@ resource "azapi_resource_action" "foundry_cmk" {
       }
     }
   }
-
-  timeouts {
-    create = "30m"
-    update = "30m"
-  }
+  ignore_missing_property = true
+  read_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  update_headers          = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
   depends_on = [
     azapi_resource.ai_foundry,
     data.azurerm_key_vault_key.foundry,
+    terraform_data.foundry_cmk_trigger,
     time_sleep.wait_for_rbac_propagation
   ]
+
+  lifecycle {
+    ignore_changes       = all
+    replace_triggered_by = [terraform_data.foundry_cmk_trigger]
+  }
 }
 
-resource "azapi_resource_action" "byor_cmk" {
+resource "terraform_data" "byor_cmk_trigger" {
   count = var.create_byor_cmk && length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0 ? 1 : 0
 
-  method      = "PATCH"
+  triggers_replace = {
+    key_name    = "cmk"
+    key_version = try(data.azurerm_key_vault_key.byor[0].version, "")
+    key_vault   = try(module.key_vault.resource_id, values({ for k, v in module.key_vault : k => v.resource_id })[0], "")
+    identity    = try(data.azurerm_user_assigned_identity.byor[0].client_id, "")
+  }
+}
+
+resource "azapi_update_resource" "byor_cmk" {
+  count = var.create_byor_cmk && length(var.ai_foundry.managed_identities.user_assigned_resource_ids) > 0 ? 1 : 0
+
   resource_id = azapi_resource.ai_foundry.id
   type        = "Microsoft.CognitiveServices/accounts@2025-10-01-preview"
   body = {
@@ -198,17 +228,21 @@ resource "azapi_resource_action" "byor_cmk" {
       }
     }
   }
-
-  timeouts {
-    create = "30m"
-    update = "30m"
-  }
+  ignore_missing_property = true
+  read_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  update_headers          = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
   depends_on = [
     azapi_resource.ai_foundry,
     data.azurerm_key_vault_key.byor,
     data.azurerm_user_assigned_identity.byor,
+    terraform_data.byor_cmk_trigger,
     time_sleep.wait_for_rbac_propagation
   ]
+
+  lifecycle {
+    ignore_changes       = all
+    replace_triggered_by = [terraform_data.byor_cmk_trigger]
+  }
 }
 
