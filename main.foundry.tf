@@ -23,6 +23,8 @@ resource "azapi_resource" "ai_foundry" {
 
       # Enable VNet injection for Standard Agents
       networkInjections = var.ai_foundry.create_ai_agent_service ? var.ai_foundry.network_injections : null
+      # Initialize apiProperties to prevent null validation errors during CMK updates
+      apiProperties = {}
     }
   }
   create_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
@@ -182,6 +184,7 @@ resource "azapi_update_resource" "foundry_cmk" {
   type        = "Microsoft.CognitiveServices/accounts@2025-10-01-preview"
   body = {
     properties = {
+      customSubDomainName = local.ai_foundry_name
       encryption = {
         keySource = "Microsoft.KeyVault"
         keyVaultProperties = {
@@ -228,13 +231,13 @@ resource "azapi_update_resource" "byor_cmk" {
   type        = "Microsoft.CognitiveServices/accounts@2025-10-01-preview"
   body = {
     properties = {
+      customSubDomainName = local.ai_foundry_name
       encryption = {
         keySource = "Microsoft.KeyVault"
         keyVaultProperties = {
           keyName     = "cmk"
           keyVersion  = data.azurerm_key_vault_key.byor[0].version
           keyVaultUri = "https://${replace(basename(try(module.key_vault.resource_id, values({ for k, v in module.key_vault : k => v.resource_id })[0])), "/", "")}.vault.azure.net"
-          # Use the client ID from the user-assigned identity
           identityClientId = data.azurerm_user_assigned_identity.byor[0].client_id
         }
       }
