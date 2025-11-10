@@ -47,3 +47,36 @@ Configuration object for the Azure AI Foundry service to be created for AI workl
   - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
 DESCRIPTION
 }
+
+variable "customer_managed_key" {
+  type = object({
+    key_vault_resource_id = string
+    key_name              = string
+    key_version           = optional(string, null)
+    user_assigned_identity = optional(object({
+      resource_id = string
+    }), null)
+  })
+  default     = null
+  description = <<DESCRIPTION
+Controls the Customer Managed Key configuration for the AI Foundry account. When configured, the AI Foundry account will use customer-managed keys for encryption at rest.
+
+- `key_vault_resource_id` - (Required) Resource ID of the Key Vault that contains the customer managed key.
+- `key_name` - (Required) The name of the Key Vault Key to use for encryption.
+- `key_version` - (Optional) The version of the Key Vault Key. If not specified, the latest version will be used.
+- `user_assigned_identity` - (Optional) The User Assigned Identity that has access to the key. If not specified, the AI Foundry system-assigned identity will be used.
+  - `resource_id` - (Required) The resource ID of the User Assigned Identity that has access to the key.
+
+Example:
+```terraform
+customer_managed_key = {
+  key_vault_resource_id = azurerm_key_vault.example.id
+  key_name              = "my-cmk-key"
+  key_version           = null # Use latest version
+  user_assigned_identity = {
+    resource_id = azurerm_user_assigned_identity.example.id
+  }
+}
+```
+DESCRIPTION
+}
