@@ -48,18 +48,30 @@ resource "azapi_resource" "ai_foundry" {
   }
 }
 
+# Wait for AI Foundry resource to reach terminal provisioning state
+resource "time_sleep" "wait_for_ai_foundry_creation" {
+  count = var.ai_foundry.customer_managed_key != null || var.create_byor_cmk ? 1 : 0
+
+  create_duration = "60s"
+
+  depends_on = [azapi_resource.ai_foundry]
+}
+
 # Wait for identity creation and RBAC propagation before attempting CMK operations
 resource "time_sleep" "wait_for_rbac_propagation" {
   count = var.ai_foundry.customer_managed_key != null || var.create_byor_cmk ? 1 : 0
 
-  create_duration = "30s"
+  create_duration = "60s"
   triggers = {
     identity_principal_id = try(azapi_resource.ai_foundry.identity[0].principal_id, "none")
     # Trigger on external readiness dependencies (e.g., role assignments)
     readiness_dependencies = jsonencode(var.customer_managed_key_readiness)
   }
 
-  depends_on = [azapi_resource.ai_foundry]
+  depends_on = [
+    azapi_resource.ai_foundry,
+    time_sleep.wait_for_ai_foundry_creation
+  ]
 }
 
 resource "azapi_resource" "ai_agent_capability_host" {
