@@ -138,713 +138,97 @@ This module deploys resources in three categories:
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
-The following requirements are needed by this module:
-
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.12, < 2.0)
-
-- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.5)
-
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.38)
-
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
-
-- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.7)
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.12, < 2.0 |
+| <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) | ~> 2.5 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 4.38 |
+| <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) | ~> 0.3 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.7 |
 
 ## Resources
 
-The following resources are used by this module:
-
-- [azapi_resource.ai_agent_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.ai_model_deployment](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.ai_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azurerm_monitor_diagnostic_setting.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
-- [azurerm_private_endpoint.ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint.pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_role_assignment.foundry_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
-- [azurerm_role_assignment.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
-- [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
-- [random_string.resource_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) (resource)
-- [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
-- [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
-- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
-- [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
+| Name | Type |
+|------|------|
+| [azapi_resource.ai_agent_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) | resource |
+| [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) | resource |
+| [azapi_resource.ai_model_deployment](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) | resource |
+| [azapi_resource.ai_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) | resource |
+| [azurerm_cognitive_account_customer_managed_key.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_account_customer_managed_key) | resource |
+| [azurerm_monitor_diagnostic_setting.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) | resource |
+| [azurerm_private_endpoint.ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
+| [azurerm_private_endpoint.pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
+| [azurerm_role_assignment.foundry_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
+| [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) | resource |
+| [random_string.resource_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
+| [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) | resource |
+| [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) | data source |
+| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
+| [azurerm_key_vault_key.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_key) | data source |
+| [azurerm_user_assigned_identity.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) | data source |
+| [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) | data source |
 
 <!-- markdownlint-disable MD013 -->
-## Required Inputs
-
-The following input variables are required:
-
-### <a name="input_base_name"></a> [base\_name](#input\_base\_name)
-
-Description: The name prefix for the AI Foundry resources.
-
-Type: `string`
-
-### <a name="input_location"></a> [location](#input\_location)
-
-Description: Azure region where the resource should be deployed.
-
-Type: `string`
-
-### <a name="input_resource_group_resource_id"></a> [resource\_group\_resource\_id](#input\_resource\_group\_resource\_id)
-
-Description: The resource group resource id where the module resources will be deployed.
-
-Type: `string`
-
-## Optional Inputs
-
-The following input variables are optional (have default values):
-
-### <a name="input_ai_foundry"></a> [ai\_foundry](#input\_ai\_foundry)
-
-Description: Configuration object for the Azure AI Foundry service to be created for AI workloads and model management.
-
-- `name` - (Optional) The name of the AI Foundry service. If not provided, a name will be generated.
-- `disable_local_auth` - (Optional) Whether to disable local authentication for the AI Foundry service. Default is false.
-- `allow_project_management` - (Optional) Whether to allow project management capabilities in the AI Foundry service. Default is true.
-- `create_ai_agent_service` - (Optional) Whether to create an AI agent service as part of the AI Foundry deployment. Default is false.
-- `network_injections` - (Optional) List of network injection configurations for the AI Foundry service.
-  - `scenario` - (Optional) The scenario for the network injection. Default is "agent".
-  - `subnetArmId` - The subnet ARM ID for the AI agent service.
-  - `useMicrosoftManagedNetwork` - (Optional) Whether to use Microsoft managed network for the injection. Default is false.
-- `private_dns_zone_resource_ids` - (Optional) The resource IDs of the existing private DNS zones for AI Foundry. Required when `create_private_endpoints` is true.
-- `sku` - (Optional) The SKU of the AI Foundry service. Default is "S0".
-- `role_assignments` - (Optional) Map of role assignments to create on the AI Foundry service. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
-  - `role_definition_id_or_name` - The role definition ID or name to assign.
-  - `principal_id` - The principal ID to assign the role to.
-  - `description` - (Optional) Description of the role assignment.
-  - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.
-  - `condition` - (Optional) Condition for the role assignment.
-  - `condition_version` - (Optional) Version of the condition.
-  - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.
-  - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
-
-Type:
-
-```hcl
-object({
-    name                     = optional(string, null)
-    disable_local_auth       = optional(bool, false)
-    allow_project_management = optional(bool, true)
-    create_ai_agent_service  = optional(bool, false)
-    network_injections = optional(list(object({
-      scenario                   = optional(string, "agent")
-      subnetArmId                = string
-      useMicrosoftManagedNetwork = optional(bool, false)
-    })), null)
-    private_dns_zone_resource_ids = optional(list(string), [])
-    sku                           = optional(string, "S0")
-    role_assignments = optional(map(object({
-      role_definition_id_or_name             = string
-      principal_id                           = string
-      description                            = optional(string, null)
-      skip_service_principal_aad_check       = optional(bool, false)
-      condition                              = optional(string, null)
-      condition_version                      = optional(string, null)
-      delegated_managed_identity_resource_id = optional(string, null)
-      principal_type                         = optional(string, null)
-    })), {})
-  })
-```
-
-Default: `{}`
-
-### <a name="input_ai_model_deployments"></a> [ai\_model\_deployments](#input\_ai\_model\_deployments)
-
-Description: Configuration for AI model deployments (including OpenAI). Each deployment includes:
-- `name` - The name of the deployment
-- `rai_policy_name` - (Optional) The name of the RAI policy
-- `version_upgrade_option` - (Optional) How to handle version upgrades (default: "OnceNewDefaultVersionAvailable")
-- `model` - The model configuration:
-  - `format` - The format of the model (e.g., "OpenAI")
-  - `name` - The name of the model to deploy
-  - `version` - The version of the model
-- `scale` - The scaling configuration:
-  - `type` - The scaling type (e.g., "Standard")
-  - `capacity` - (Optional) The capacity of the deployment
-  - `family` - (Optional) The family of the deployment
-  - `size` - (Optional) The size of the deployment
-  - `tier` - (Optional) The pricing tier for the deployment
-
-Type:
-
-```hcl
-map(object({
-    name                   = string
-    rai_policy_name        = optional(string)
-    version_upgrade_option = optional(string, "OnceNewDefaultVersionAvailable")
-    model = object({
-      format  = string
-      name    = string
-      version = string
-    })
-    scale = object({
-      capacity = optional(number)
-      family   = optional(string)
-      size     = optional(string)
-      tier     = optional(string)
-      type     = string
-    })
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_ai_projects"></a> [ai\_projects](#input\_ai\_projects)
-
-Description: Configuration map for AI Foundry projects to be created. Each project can have its own settings and connections to dependent resources.
-
-- `map key` - The key for the map entry. This key should match the dependent resources keys when creating connections.
-  - `name` - The name of the AI Foundry project.
-  - `sku` - (Optional) The SKU of the AI Foundry project. Default is "S0".
-  - `display_name` - The display name of the AI Foundry project.
-  - `description` - The description of the AI Foundry project.
-  - `create_project_connections` - (Optional) Whether to create connections to dependent resources. Default is false.
-  - `cosmos_db_connection` - (Optional) Configuration for Cosmos DB connection.
-    - `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to connect to.
-    - `new_resource_map_key` - (Optional) The map key of a new Cosmos DB account to be created and connected.
-  - `ai_search_connection` - (Optional) Configuration for AI Search connection.
-    - `existing_resource_id` - (Optional) The resource ID of an existing AI Search service to connect to.
-    - `new_resource_map_key` - (Optional) The map key of a new AI Search service to be created and connected.
-  - `key_vault_connection` - (Optional) Configuration for Key Vault connection.
-    - `existing_resource_id` - (Optional) The resource ID of an existing Key Vault to connect to.
-    - `new_resource_map_key` - (Optional) The map key of a new Key Vault to be created and connected.
-  - `storage_account_connection` - (Optional) Configuration for Storage Account connection.
-    - `existing_resource_id` - (Optional) The resource ID of an existing Storage Account to connect to.
-    - `new_resource_map_key` - (Optional) The map key of a new Storage Account to be created and connected.
-
-Type:
-
-```hcl
-map(object({
-    name                       = string
-    sku                        = optional(string, "S0")
-    display_name               = string
-    description                = string
-    create_project_connections = optional(bool, false)
-    cosmos_db_connection = optional(object({
-      existing_resource_id = optional(string, null)
-      new_resource_map_key = optional(string, null)
-    }), {})
-    ai_search_connection = optional(object({
-      existing_resource_id = optional(string, null)
-      new_resource_map_key = optional(string, null)
-    }), {})
-    key_vault_connection = optional(object({
-      existing_resource_id = optional(string, null)
-      new_resource_map_key = optional(string, null)
-    }), {})
-    storage_account_connection = optional(object({
-      existing_resource_id = optional(string, null)
-      new_resource_map_key = optional(string, null)
-    }), {})
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_ai_search_definition"></a> [ai\_search\_definition](#input\_ai\_search\_definition)
-
-Description: Configuration object for the Azure AI Search service to be created as part of the enterprise and public knowledge services.
-
-- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple AI search services.
-  - `existing_resource_id` - (Optional) The resource ID of an existing AI Search service to use. If provided, the service will not be created and the other inputs will be ignored.
-  - `name` - (Optional) The name of the AI Search service. If not provided, a name will be generated.
-  - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for AI Search. If not provided, a private endpoint will not be created.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
-  - `sku` - (Optional) The SKU of the AI Search service. Default is "standard".
-  - `local_authentication_enabled` - (Optional) Whether local authentication is enabled. Default is true.
-  - `partition_count` - (Optional) The number of partitions for the search service. Default is 1.
-  - `replica_count` - (Optional) The number of replicas for the search service. Default is 2.
-  - `semantic_search_sku` - (Optional) The SKU for semantic search capabilities. Default is "standard".
-  - `semantic_search_enabled` - (Optional) Whether semantic search is enabled. Default is false.
-  - `hosting_mode` - (Optional) The hosting mode for the search service. Default is "default".
-  - `tags` - (Optional) Map of tags to assign to the AI Search service.
-  - `role_assignments` - (Optional) Map of role assignments to create on the AI Search service. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
-    - `role_definition_id_or_name` - The role definition ID or name to assign.
-    - `principal_id` - The principal ID to assign the role to.
-    - `description` - (Optional) Description of the role assignment.
-    - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.
-    - `condition` - (Optional) Condition for the role assignment.
-    - `condition_version` - (Optional) Version of the condition.
-    - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.
-    - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
-  - `enable_telemetry` - (Optional) Whether telemetry is enabled for the AI Search module. Default is true.
-
-Type:
-
-```hcl
-map(object({
-    existing_resource_id         = optional(string, null)
-    name                         = optional(string)
-    private_dns_zone_resource_id = optional(string, null)
-    enable_diagnostic_settings   = optional(bool, true)
-    sku                          = optional(string, "standard")
-    local_authentication_enabled = optional(bool, true)
-    partition_count              = optional(number, 1)
-    replica_count                = optional(number, 2)
-    semantic_search_sku          = optional(string, "standard")
-    semantic_search_enabled      = optional(bool, false)
-    hosting_mode                 = optional(string, "default")
-    tags                         = optional(map(string), {})
-    role_assignments = optional(map(object({
-      role_definition_id_or_name             = string
-      principal_id                           = string
-      description                            = optional(string, null)
-      skip_service_principal_aad_check       = optional(bool, false)
-      condition                              = optional(string, null)
-      condition_version                      = optional(string, null)
-      delegated_managed_identity_resource_id = optional(string, null)
-      principal_type                         = optional(string, null)
-    })), {})
-    enable_telemetry = optional(bool, true)
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_cosmosdb_definition"></a> [cosmosdb\_definition](#input\_cosmosdb\_definition)
-
-Description: Configuration object for the Azure Cosmos DB account to be created for GenAI services.
-
-- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects and multiple CosmosDB accounts.
-  - `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to use. If provided, the account will not be created and the other inputs will be ignored.
-  - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Cosmos DB. If one is not provided a private endpoint will not be created.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
-  - `name` - (Optional) The name of the Cosmos DB account. If not provided, a name will be generated.
-  - `secondary_regions` - (Optional) List of secondary regions for geo-replication.
-    - `location` - The Azure region for the secondary location.
-    - `zone_redundant` - (Optional) Whether zone redundancy is enabled for the secondary region. Default is true.
-    - `failover_priority` - (Optional) The failover priority for the secondary region. Default is 0.
-  - `public_network_access_enabled` - (Optional) Whether public network access is enabled. Default is false.
-  - `analytical_storage_enabled` - (Optional) Whether analytical storage is enabled. Default is true.
-  - `automatic_failover_enabled` - (Optional) Whether automatic failover is enabled. Default is false.
-  - `local_authentication_disabled` - (Optional) Whether local authentication is disabled. Default is true.
-  - `partition_merge_enabled` - (Optional) Whether partition merge is enabled. Default is false.
-  - `multiple_write_locations_enabled` - (Optional) Whether multiple write locations are enabled. Default is false.
-  - `analytical_storage_config` - (Optional) Analytical storage configuration.
-    - `schema_type` - The schema type for analytical storage.
-  - `consistency_policy` - (Optional) Consistency policy configuration.
-    - `max_interval_in_seconds` - (Optional) Maximum staleness interval in seconds. Default is 300.
-    - `max_staleness_prefix` - (Optional) Maximum staleness prefix. Default is 100001.
-    - `consistency_level` - (Optional) The consistency level. Default is "Session".
-  - `backup` - (Optional) Backup configuration.
-    - `retention_in_hours` - (Optional) Backup retention in hours.
-    - `interval_in_minutes` - (Optional) Backup interval in minutes.
-    - `storage_redundancy` - (Optional) Storage redundancy for backups.
-    - `type` - (Optional) The backup type.
-    - `tier` - (Optional) The backup tier.
-  - `capabilities` - (Optional) Set of capabilities to enable on the Cosmos DB account.
-    - `name` - The name of the capability.
-  - `capacity` - (Optional) Capacity configuration.
-    - `total_throughput_limit` - (Optional) Total throughput limit. Default is -1 (unlimited).
-  - `cors_rule` - (Optional) CORS rule configuration.
-    - `allowed_headers` - Set of allowed headers.
-    - `allowed_methods` - Set of allowed HTTP methods.
-    - `allowed_origins` - Set of allowed origins.
-    - `exposed_headers` - Set of exposed headers.
-    - `max_age_in_seconds` - (Optional) Maximum age in seconds for CORS.
-  - `role_assignments` - (Optional) Map of role assignments to create on the Cosmos DB account. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
-    - `role_definition_id_or_name` - The role definition ID or name to assign.
-    - `principal_id` - The principal ID to assign the role to.
-    - `description` - (Optional) Description of the role assignment.
-    - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.
-    - `condition` - (Optional) Condition for the role assignment.
-    - `condition_version` - (Optional) Version of the condition.
-    - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.
-    - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
-  - `tags` - (Optional) Map of tags to assign to the Cosmos DB account.
-
-Type:
-
-```hcl
-map(object({
-    existing_resource_id         = optional(string, null)
-    private_dns_zone_resource_id = optional(string, null)
-    enable_diagnostic_settings   = optional(bool, true)
-    name                         = optional(string)
-    secondary_regions = optional(list(object({
-      location          = string
-      zone_redundant    = optional(bool, true)
-      failover_priority = optional(number, 0)
-    })), [])
-    public_network_access_enabled    = optional(bool, false)
-    analytical_storage_enabled       = optional(bool, true)
-    automatic_failover_enabled       = optional(bool, true)
-    local_authentication_disabled    = optional(bool, true)
-    partition_merge_enabled          = optional(bool, false)
-    multiple_write_locations_enabled = optional(bool, false)
-    analytical_storage_config = optional(object({
-      schema_type = string
-    }), null)
-    consistency_policy = optional(object({
-      max_interval_in_seconds = optional(number, 300)
-      max_staleness_prefix    = optional(number, 100001)
-      consistency_level       = optional(string, "Session")
-    }), {})
-    backup = optional(object({
-      retention_in_hours  = optional(number)
-      interval_in_minutes = optional(number)
-      storage_redundancy  = optional(string)
-      type                = optional(string)
-      tier                = optional(string)
-    }), {})
-    capabilities = optional(set(object({
-      name = string
-    })), [])
-    capacity = optional(object({
-      total_throughput_limit = optional(number, -1)
-    }), {})
-    cors_rule = optional(object({
-      allowed_headers    = set(string)
-      allowed_methods    = set(string)
-      allowed_origins    = set(string)
-      exposed_headers    = set(string)
-      max_age_in_seconds = optional(number, null)
-    }), null)
-    role_assignments = optional(map(object({
-      role_definition_id_or_name             = string
-      principal_id                           = string
-      description                            = optional(string, null)
-      skip_service_principal_aad_check       = optional(bool, false)
-      condition                              = optional(string, null)
-      condition_version                      = optional(string, null)
-      delegated_managed_identity_resource_id = optional(string, null)
-      principal_type                         = optional(string, null)
-    })), {})
-    tags = optional(map(string), {})
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_create_byor"></a> [create\_byor](#input\_create\_byor)
-
-Description: Whether to create resources such as AI Search, Cosmos DB, Key Vault, and Storage Account in this deployment. If set to false, these resources will not be created or linked, and the module will only create the AI Foundry account and project.
-
-Type: `bool`
-
-Default: `false`
-
-### <a name="input_create_private_endpoints"></a> [create\_private\_endpoints](#input\_create\_private\_endpoints)
-
-Description: Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created.
-
-Type: `bool`
-
-Default: `false`
-
-### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
-
-Description: This variable controls whether or not telemetry is enabled for the module.  
-For more information see <https://aka.ms/avm/telemetryinfo>.  
-If it is set to false, then no telemetry will be collected.
-
-Type: `bool`
-
-Default: `true`
-
-### <a name="input_key_vault_definition"></a> [key\_vault\_definition](#input\_key\_vault\_definition)
-
-Description: Configuration object for the Azure Key Vault to be created for GenAI services.
-
-- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Key Vaults. This can be used in naming, so short alphanumeric keys are required to avoid hitting naming length limits for the Key Vault when using the base name naming option.
-  - `existing_resource_id` - (Optional) The resource ID of an existing Key Vault to use. If provided, the vault will not be created and the other inputs will be ignored.
-  - `name` - (Optional) The name of the Key Vault. If not provided, a name will be generated.
-  - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Key Vault. If one is not provided a private endpoint will not be created.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
-  - `sku` - (Optional) The SKU of the Key Vault. Default is "standard".
-  - `tenant_id` - (Optional) The tenant ID for the Key Vault. If not provided, the current tenant will be used.
-  - `role_assignments` - (Optional) Map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
-    - `role_definition_id_or_name` - The role definition ID or name to assign.
-    - `principal_id` - The principal ID to assign the role to.
-    - `description` - (Optional) Description of the role assignment.
-    - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.
-    - `condition` - (Optional) Condition for the role assignment.
-    - `condition_version` - (Optional) Version of the condition.
-    - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.
-    - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
-  - `tags` - (Optional) Map of tags to assign to the Key Vault.
-
-Type:
-
-```hcl
-map(object({
-    existing_resource_id         = optional(string, null)
-    name                         = optional(string)
-    private_dns_zone_resource_id = optional(string, null)
-    enable_diagnostic_settings   = optional(bool, true)
-    sku                          = optional(string, "standard")
-    tenant_id                    = optional(string)
-    role_assignments = optional(map(object({
-      role_definition_id_or_name             = string
-      principal_id                           = string
-      description                            = optional(string, null)
-      skip_service_principal_aad_check       = optional(bool, false)
-      condition                              = optional(string, null)
-      condition_version                      = optional(string, null)
-      delegated_managed_identity_resource_id = optional(string, null)
-      principal_type                         = optional(string, null)
-    })), {})
-    tags = optional(map(string), {})
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_law_definition"></a> [law\_definition](#input\_law\_definition)
-
-Description: Configuration object for the Log Analytics Workspace to be created for monitoring and logging.
-
-- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Log Analytics Workspaces.
-  - `existing_resource_id` - (Optional) The resource ID of an existing Log Analytics Workspace to use. If provided, the workspace will not be created and the other inputs will be ignored.
-  - `name` - (Optional) The name of the Log Analytics Workspace. If not provided, a name will be generated.
-  - `retention` - (Optional) The data retention period in days for the workspace. Default is 30.
-  - `sku` - (Optional) The SKU of the Log Analytics Workspace. Default is "PerGB2018".
-  - `tags` - (Optional) Map of tags to assign to the Log Analytics Workspace.
-
-Type:
-
-```hcl
-map(object({
-    existing_resource_id = optional(string, null)
-    name                 = optional(string)
-    retention            = optional(number, 30)
-    sku                  = optional(string, "PerGB2018")
-    tags                 = optional(map(string), {})
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_private_endpoint_subnet_resource_id"></a> [private\_endpoint\_subnet\_resource\_id](#input\_private\_endpoint\_subnet\_resource\_id)
-
-Description: (Optional) The subnet ID for private endpoints.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_resource_names"></a> [resource\_names](#input\_resource\_names)
-
-Description: Custom names for each resource. If not provided, names will be generated using base\_name or name.
-
-Type:
-
-```hcl
-object({
-    ai_agent_host                   = optional(string)
-    ai_foundry                      = optional(string)
-    ai_foundry_project              = optional(string)
-    ai_foundry_project_display_name = optional(string)
-  })
-```
-
-Default: `{}`
-
-### <a name="input_storage_account_definition"></a> [storage\_account\_definition](#input\_storage\_account\_definition)
-
-Description: Configuration object for the Azure Storage Account to be created for GenAI services.
-
-- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Storage Accounts. This can be used in naming, so short alphanumeric keys are required to avoid hitting naming length limits for the Storage Account when using the base name naming option.
-  - `existing_resource_id` - (Optional) The resource ID of an existing Storage Account to use. If provided, the account will not be created and the other inputs will be ignored.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
-  - `name` - (Optional) The name of the Storage Account. If not provided, a name will be generated.
-  - `account_kind` - (Optional) The kind of storage account. Default is "StorageV2".
-  - `account_tier` - (Optional) The performance tier of the storage account. Default is "Standard".
-  - `account_replication_type` - (Optional) The replication type for the storage account. Default is "ZRS".
-  - `endpoints` - (Optional) Map of endpoint configurations to enable. Default includes blob endpoint.
-    - `type` - The type of endpoint (e.g., "blob", "file", "queue", "table").
-    - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for the endpoint. If not provided, a private endpoint will not be created.
-  - `access_tier` - (Optional) The access tier for the storage account. Default is "Hot".
-  - `shared_access_key_enabled` - (Optional) Whether shared access keys are enabled. Default is false.
-  - `role_assignments` - (Optional) Map of role assignments to create on the Storage Account. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
-    - `role_definition_id_or_name` - The role definition ID or name to assign.
-    - `principal_id` - The principal ID to assign the role to.
-    - `description` - (Optional) Description of the role assignment.
-    - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.
-    - `condition` - (Optional) Condition for the role assignment.
-    - `condition_version` - (Optional) Version of the condition.
-    - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.
-    - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
-  - `tags` - (Optional) Map of tags to assign to the Storage Account.
-
-Type:
-
-```hcl
-map(object({
-    existing_resource_id       = optional(string, null)
-    enable_diagnostic_settings = optional(bool, true)
-    name                       = optional(string, null)
-    account_kind               = optional(string, "StorageV2")
-    account_tier               = optional(string, "Standard")
-    account_replication_type   = optional(string, "ZRS")
-    endpoints = optional(map(object({
-      type                         = string
-      private_dns_zone_resource_id = optional(string, null)
-      })), {
-      blob = {
-        type = "blob"
-      }
-    })
-    access_tier               = optional(string, "Hot")
-    shared_access_key_enabled = optional(bool, false)
-    role_assignments = optional(map(object({
-      role_definition_id_or_name             = string
-      principal_id                           = string
-      description                            = optional(string, null)
-      skip_service_principal_aad_check       = optional(bool, false)
-      condition                              = optional(string, null)
-      condition_version                      = optional(string, null)
-      delegated_managed_identity_resource_id = optional(string, null)
-      principal_type                         = optional(string, null)
-    })), {})
-    tags = optional(map(string), {})
-
-    #TODO:
-    # Implement subservice passthrough here
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_tags"></a> [tags](#input\_tags)
-
-Description: (Optional) Tags to be applied to all resources.
-
-Type: `map(string)`
-
-Default: `null`
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_base_name"></a> [base\_name](#input\_base\_name) | The name prefix for the AI Foundry resources. | `string` | n/a | yes |
+| <a name="input_location"></a> [location](#input\_location) | Azure region where the resource should be deployed. | `string` | n/a | yes |
+| <a name="input_resource_group_resource_id"></a> [resource\_group\_resource\_id](#input\_resource\_group\_resource\_id) | The resource group resource id where the module resources will be deployed. | `string` | n/a | yes |
+| <a name="input_ai_foundry"></a> [ai\_foundry](#input\_ai\_foundry) | Configuration object for the Azure AI Foundry service to be created for AI workloads and model management.<br/><br/>- `name` - (Optional) The name of the AI Foundry service. If not provided, a name will be generated.<br/>- `disable_local_auth` - (Optional) Whether to disable local authentication for the AI Foundry service. Default is false.<br/>- `allow_project_management` - (Optional) Whether to allow project management capabilities in the AI Foundry service. Default is true.<br/>- `create_ai_agent_service` - (Optional) Whether to create an AI agent service as part of the AI Foundry deployment. Default is false.<br/>- `network_injections` - (Optional) List of network injection configurations for the AI Foundry service.<br/>  - `scenario` - (Optional) The scenario for the network injection. Default is "agent".<br/>  - `subnetArmId` - The subnet ARM ID for the AI agent service.<br/>  - `useMicrosoftManagedNetwork` - (Optional) Whether to use Microsoft managed network for the injection. Default is false.<br/>- `private_dns_zone_resource_ids` - (Optional) The resource IDs of the existing private DNS zones for AI Foundry. Required when `create_private_endpoints` is true.<br/>- `sku` - (Optional) The SKU of the AI Foundry service. Default is "S0".<br/>- `role_assignments` - (Optional) Map of role assignments to create on the AI Foundry service. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.<br/>  - `role_definition_id_or_name` - The role definition ID or name to assign.<br/>  - `principal_id` - The principal ID to assign the role to.<br/>  - `description` - (Optional) Description of the role assignment.<br/>  - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.<br/>  - `condition` - (Optional) Condition for the role assignment.<br/>  - `condition_version` - (Optional) Version of the condition.<br/>  - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.<br/>  - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal). | <pre>object({<br/>    name                     = optional(string, null)<br/>    disable_local_auth       = optional(bool, false)<br/>    allow_project_management = optional(bool, true)<br/>    create_ai_agent_service  = optional(bool, false)<br/>    network_injections = optional(list(object({<br/>      scenario                   = optional(string, "agent")<br/>      subnetArmId                = string<br/>      useMicrosoftManagedNetwork = optional(bool, false)<br/>    })), null)<br/>    private_dns_zone_resource_ids = optional(list(string), [])<br/>    sku                           = optional(string, "S0")<br/>    role_assignments = optional(map(object({<br/>      role_definition_id_or_name             = string<br/>      principal_id                           = string<br/>      description                            = optional(string, null)<br/>      skip_service_principal_aad_check       = optional(bool, false)<br/>      condition                              = optional(string, null)<br/>      condition_version                      = optional(string, null)<br/>      delegated_managed_identity_resource_id = optional(string, null)<br/>      principal_type                         = optional(string, null)<br/>    })), {})<br/>  })</pre> | `{}` | no |
+| <a name="input_ai_model_deployments"></a> [ai\_model\_deployments](#input\_ai\_model\_deployments) | Configuration for AI model deployments (including OpenAI). Each deployment includes:<br/>- `name` - The name of the deployment<br/>- `rai_policy_name` - (Optional) The name of the RAI policy<br/>- `version_upgrade_option` - (Optional) How to handle version upgrades (default: "OnceNewDefaultVersionAvailable")<br/>- `model` - The model configuration:<br/>  - `format` - The format of the model (e.g., "OpenAI")<br/>  - `name` - The name of the model to deploy<br/>  - `version` - The version of the model<br/>- `scale` - The scaling configuration:<br/>  - `type` - The scaling type (e.g., "Standard")<br/>  - `capacity` - (Optional) The capacity of the deployment<br/>  - `family` - (Optional) The family of the deployment<br/>  - `size` - (Optional) The size of the deployment<br/>  - `tier` - (Optional) The pricing tier for the deployment | <pre>map(object({<br/>    name                   = string<br/>    rai_policy_name        = optional(string)<br/>    version_upgrade_option = optional(string, "OnceNewDefaultVersionAvailable")<br/>    model = object({<br/>      format  = string<br/>      name    = string<br/>      version = string<br/>    })<br/>    scale = object({<br/>      capacity = optional(number)<br/>      family   = optional(string)<br/>      size     = optional(string)<br/>      tier     = optional(string)<br/>      type     = string<br/>    })<br/>  }))</pre> | `{}` | no |
+| <a name="input_ai_projects"></a> [ai\_projects](#input\_ai\_projects) | Configuration map for AI Foundry projects to be created. Each project can have its own settings and connections to dependent resources.<br/><br/>- `map key` - The key for the map entry. This key should match the dependent resources keys when creating connections.<br/>  - `name` - The name of the AI Foundry project.<br/>  - `sku` - (Optional) The SKU of the AI Foundry project. Default is "S0".<br/>  - `display_name` - The display name of the AI Foundry project.<br/>  - `description` - The description of the AI Foundry project.<br/>  - `create_project_connections` - (Optional) Whether to create connections to dependent resources. Default is false.<br/>  - `cosmos_db_connection` - (Optional) Configuration for Cosmos DB connection.<br/>    - `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to connect to.<br/>    - `new_resource_map_key` - (Optional) The map key of a new Cosmos DB account to be created and connected.<br/>  - `ai_search_connection` - (Optional) Configuration for AI Search connection.<br/>    - `existing_resource_id` - (Optional) The resource ID of an existing AI Search service to connect to.<br/>    - `new_resource_map_key` - (Optional) The map key of a new AI Search service to be created and connected.<br/>  - `key_vault_connection` - (Optional) Configuration for Key Vault connection.<br/>    - `existing_resource_id` - (Optional) The resource ID of an existing Key Vault to connect to.<br/>    - `new_resource_map_key` - (Optional) The map key of a new Key Vault to be created and connected.<br/>  - `storage_account_connection` - (Optional) Configuration for Storage Account connection.<br/>    - `existing_resource_id` - (Optional) The resource ID of an existing Storage Account to connect to.<br/>    - `new_resource_map_key` - (Optional) The map key of a new Storage Account to be created and connected. | <pre>map(object({<br/>    name                       = string<br/>    sku                        = optional(string, "S0")<br/>    display_name               = string<br/>    description                = string<br/>    create_project_connections = optional(bool, false)<br/>    cosmos_db_connection = optional(object({<br/>      existing_resource_id = optional(string, null)<br/>      new_resource_map_key = optional(string, null)<br/>    }), {})<br/>    ai_search_connection = optional(object({<br/>      existing_resource_id = optional(string, null)<br/>      new_resource_map_key = optional(string, null)<br/>    }), {})<br/>    key_vault_connection = optional(object({<br/>      existing_resource_id = optional(string, null)<br/>      new_resource_map_key = optional(string, null)<br/>    }), {})<br/>    storage_account_connection = optional(object({<br/>      existing_resource_id = optional(string, null)<br/>      new_resource_map_key = optional(string, null)<br/>    }), {})<br/>  }))</pre> | `{}` | no |
+| <a name="input_ai_search_definition"></a> [ai\_search\_definition](#input\_ai\_search\_definition) | Configuration object for the Azure AI Search service to be created as part of the enterprise and public knowledge services.<br/><br/>- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple AI search services.<br/>  - `existing_resource_id` - (Optional) The resource ID of an existing AI Search service to use. If provided, the service will not be created and the other inputs will be ignored.<br/>  - `name` - (Optional) The name of the AI Search service. If not provided, a name will be generated.<br/>  - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for AI Search. If not provided, a private endpoint will not be created.<br/>  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.<br/>  - `sku` - (Optional) The SKU of the AI Search service. Default is "standard".<br/>  - `local_authentication_enabled` - (Optional) Whether local authentication is enabled. Default is true.<br/>  - `partition_count` - (Optional) The number of partitions for the search service. Default is 1.<br/>  - `replica_count` - (Optional) The number of replicas for the search service. Default is 2.<br/>  - `semantic_search_sku` - (Optional) The SKU for semantic search capabilities. Default is "standard".<br/>  - `semantic_search_enabled` - (Optional) Whether semantic search is enabled. Default is false.<br/>  - `hosting_mode` - (Optional) The hosting mode for the search service. Default is "default".<br/>  - `tags` - (Optional) Map of tags to assign to the AI Search service.<br/>  - `role_assignments` - (Optional) Map of role assignments to create on the AI Search service. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.<br/>    - `role_definition_id_or_name` - The role definition ID or name to assign.<br/>    - `principal_id` - The principal ID to assign the role to.<br/>    - `description` - (Optional) Description of the role assignment.<br/>    - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.<br/>    - `condition` - (Optional) Condition for the role assignment.<br/>    - `condition_version` - (Optional) Version of the condition.<br/>    - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.<br/>    - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).<br/>  - `enable_telemetry` - (Optional) Whether telemetry is enabled for the AI Search module. Default is true. | <pre>map(object({<br/>    existing_resource_id         = optional(string, null)<br/>    name                         = optional(string)<br/>    private_dns_zone_resource_id = optional(string, null)<br/>    enable_diagnostic_settings   = optional(bool, true)<br/>    sku                          = optional(string, "standard")<br/>    local_authentication_enabled = optional(bool, true)<br/>    partition_count              = optional(number, 1)<br/>    replica_count                = optional(number, 2)<br/>    semantic_search_sku          = optional(string, "standard")<br/>    semantic_search_enabled      = optional(bool, false)<br/>    hosting_mode                 = optional(string, "default")<br/>    tags                         = optional(map(string), {})<br/>    role_assignments = optional(map(object({<br/>      role_definition_id_or_name             = string<br/>      principal_id                           = string<br/>      description                            = optional(string, null)<br/>      skip_service_principal_aad_check       = optional(bool, false)<br/>      condition                              = optional(string, null)<br/>      condition_version                      = optional(string, null)<br/>      delegated_managed_identity_resource_id = optional(string, null)<br/>      principal_type                         = optional(string, null)<br/>    })), {})<br/>    enable_telemetry = optional(bool, true)<br/>  }))</pre> | `{}` | no |
+| <a name="input_cosmosdb_definition"></a> [cosmosdb\_definition](#input\_cosmosdb\_definition) | Configuration object for the Azure Cosmos DB account to be created for GenAI services.<br/><br/>- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects and multiple CosmosDB accounts.<br/>  - `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to use. If provided, the account will not be created and the other inputs will be ignored.<br/>  - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Cosmos DB. If one is not provided a private endpoint will not be created.<br/>  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.<br/>  - `name` - (Optional) The name of the Cosmos DB account. If not provided, a name will be generated.<br/>  - `secondary_regions` - (Optional) List of secondary regions for geo-replication.<br/>    - `location` - The Azure region for the secondary location.<br/>    - `zone_redundant` - (Optional) Whether zone redundancy is enabled for the secondary region. Default is true.<br/>    - `failover_priority` - (Optional) The failover priority for the secondary region. Default is 0.<br/>  - `public_network_access_enabled` - (Optional) Whether public network access is enabled. Default is false.<br/>  - `analytical_storage_enabled` - (Optional) Whether analytical storage is enabled. Default is true.<br/>  - `automatic_failover_enabled` - (Optional) Whether automatic failover is enabled. Default is false.<br/>  - `local_authentication_disabled` - (Optional) Whether local authentication is disabled. Default is true.<br/>  - `partition_merge_enabled` - (Optional) Whether partition merge is enabled. Default is false.<br/>  - `multiple_write_locations_enabled` - (Optional) Whether multiple write locations are enabled. Default is false.<br/>  - `analytical_storage_config` - (Optional) Analytical storage configuration.<br/>    - `schema_type` - The schema type for analytical storage.<br/>  - `consistency_policy` - (Optional) Consistency policy configuration.<br/>    - `max_interval_in_seconds` - (Optional) Maximum staleness interval in seconds. Default is 300.<br/>    - `max_staleness_prefix` - (Optional) Maximum staleness prefix. Default is 100001.<br/>    - `consistency_level` - (Optional) The consistency level. Default is "Session".<br/>  - `backup` - (Optional) Backup configuration.<br/>    - `retention_in_hours` - (Optional) Backup retention in hours.<br/>    - `interval_in_minutes` - (Optional) Backup interval in minutes.<br/>    - `storage_redundancy` - (Optional) Storage redundancy for backups.<br/>    - `type` - (Optional) The backup type.<br/>    - `tier` - (Optional) The backup tier.<br/>  - `capabilities` - (Optional) Set of capabilities to enable on the Cosmos DB account.<br/>    - `name` - The name of the capability.<br/>  - `capacity` - (Optional) Capacity configuration.<br/>    - `total_throughput_limit` - (Optional) Total throughput limit. Default is -1 (unlimited).<br/>  - `cors_rule` - (Optional) CORS rule configuration.<br/>    - `allowed_headers` - Set of allowed headers.<br/>    - `allowed_methods` - Set of allowed HTTP methods.<br/>    - `allowed_origins` - Set of allowed origins.<br/>    - `exposed_headers` - Set of exposed headers.<br/>    - `max_age_in_seconds` - (Optional) Maximum age in seconds for CORS.<br/>  - `role_assignments` - (Optional) Map of role assignments to create on the Cosmos DB account. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.<br/>    - `role_definition_id_or_name` - The role definition ID or name to assign.<br/>    - `principal_id` - The principal ID to assign the role to.<br/>    - `description` - (Optional) Description of the role assignment.<br/>    - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.<br/>    - `condition` - (Optional) Condition for the role assignment.<br/>    - `condition_version` - (Optional) Version of the condition.<br/>    - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.<br/>    - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).<br/>  - `tags` - (Optional) Map of tags to assign to the Cosmos DB account. | <pre>map(object({<br/>    existing_resource_id         = optional(string, null)<br/>    private_dns_zone_resource_id = optional(string, null)<br/>    enable_diagnostic_settings   = optional(bool, true)<br/>    name                         = optional(string)<br/>    secondary_regions = optional(list(object({<br/>      location          = string<br/>      zone_redundant    = optional(bool, true)<br/>      failover_priority = optional(number, 0)<br/>    })), [])<br/>    public_network_access_enabled    = optional(bool, false)<br/>    analytical_storage_enabled       = optional(bool, true)<br/>    automatic_failover_enabled       = optional(bool, true)<br/>    local_authentication_disabled    = optional(bool, true)<br/>    partition_merge_enabled          = optional(bool, false)<br/>    multiple_write_locations_enabled = optional(bool, false)<br/>    analytical_storage_config = optional(object({<br/>      schema_type = string<br/>    }), null)<br/>    consistency_policy = optional(object({<br/>      max_interval_in_seconds = optional(number, 300)<br/>      max_staleness_prefix    = optional(number, 100001)<br/>      consistency_level       = optional(string, "Session")<br/>    }), {})<br/>    backup = optional(object({<br/>      retention_in_hours  = optional(number)<br/>      interval_in_minutes = optional(number)<br/>      storage_redundancy  = optional(string)<br/>      type                = optional(string)<br/>      tier                = optional(string)<br/>    }), {})<br/>    capabilities = optional(set(object({<br/>      name = string<br/>    })), [])<br/>    capacity = optional(object({<br/>      total_throughput_limit = optional(number, -1)<br/>    }), {})<br/>    cors_rule = optional(object({<br/>      allowed_headers    = set(string)<br/>      allowed_methods    = set(string)<br/>      allowed_origins    = set(string)<br/>      exposed_headers    = set(string)<br/>      max_age_in_seconds = optional(number, null)<br/>    }), null)<br/>    role_assignments = optional(map(object({<br/>      role_definition_id_or_name             = string<br/>      principal_id                           = string<br/>      description                            = optional(string, null)<br/>      skip_service_principal_aad_check       = optional(bool, false)<br/>      condition                              = optional(string, null)<br/>      condition_version                      = optional(string, null)<br/>      delegated_managed_identity_resource_id = optional(string, null)<br/>      principal_type                         = optional(string, null)<br/>    })), {})<br/>    tags = optional(map(string), {})<br/>  }))</pre> | `{}` | no |
+| <a name="input_create_byor"></a> [create\_byor](#input\_create\_byor) | Whether to create resources such as AI Search, Cosmos DB, Key Vault, and Storage Account in this deployment. If set to false, these resources will not be created or linked, and the module will only create the AI Foundry account and project. | `bool` | `false` | no |
+| <a name="input_create_private_endpoints"></a> [create\_private\_endpoints](#input\_create\_private\_endpoints) | Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created. | `bool` | `false` | no |
+| <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key) | Controls the Customer Managed Key configuration for the AI Foundry account. When configured, the AI Foundry account will use customer-managed keys for encryption at rest.<br/><br/>- `key_vault_resource_id` - (Required) Resource ID of the Key Vault that contains the customer managed key.<br/>- `key_name` - (Required) The name of the Key Vault Key to use for encryption.<br/>- `key_version` - (Optional) The version of the Key Vault Key. If not specified, the latest version will be used.<br/>- `user_assigned_identity` - (Optional) The User Assigned Identity that has access to the key. If not specified, the AI Foundry system-assigned identity will be used.<br/>  - `resource_id` - (Required) The resource ID of the User Assigned Identity that has access to the key.<br/><br/>Example:<pre>terraform<br/>customer_managed_key = {<br/>  key_vault_resource_id = azurerm_key_vault.example.id<br/>  key_name              = "my-cmk-key"<br/>  key_version           = null # Use latest version<br/>  user_assigned_identity = {<br/>    resource_id = azurerm_user_assigned_identity.example.id<br/>  }<br/>}</pre> | <pre>object({<br/>    key_vault_resource_id = string<br/>    key_name              = string<br/>    key_version           = optional(string, null)<br/>    user_assigned_identity = optional(object({<br/>      resource_id = string<br/>    }), null)<br/>  })</pre> | `null` | no |
+| <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry) | This variable controls whether or not telemetry is enabled for the module.<br/>For more information see <https://aka.ms/avm/telemetryinfo>.<br/>If it is set to false, then no telemetry will be collected. | `bool` | `true` | no |
+| <a name="input_key_vault_definition"></a> [key\_vault\_definition](#input\_key\_vault\_definition) | Configuration object for the Azure Key Vault to be created for GenAI services.<br/><br/>- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Key Vaults. This can be used in naming, so short alphanumeric keys are required to avoid hitting naming length limits for the Key Vault when using the base name naming option.<br/>  - `existing_resource_id` - (Optional) The resource ID of an existing Key Vault to use. If provided, the vault will not be created and the other inputs will be ignored.<br/>  - `name` - (Optional) The name of the Key Vault. If not provided, a name will be generated.<br/>  - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Key Vault. If one is not provided a private endpoint will not be created.<br/>  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.<br/>  - `sku` - (Optional) The SKU of the Key Vault. Default is "standard".<br/>  - `tenant_id` - (Optional) The tenant ID for the Key Vault. If not provided, the current tenant will be used.<br/>  - `role_assignments` - (Optional) Map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.<br/>    - `role_definition_id_or_name` - The role definition ID or name to assign.<br/>    - `principal_id` - The principal ID to assign the role to.<br/>    - `description` - (Optional) Description of the role assignment.<br/>    - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.<br/>    - `condition` - (Optional) Condition for the role assignment.<br/>    - `condition_version` - (Optional) Version of the condition.<br/>    - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.<br/>    - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).<br/>  - `tags` - (Optional) Map of tags to assign to the Key Vault. | <pre>map(object({<br/>    existing_resource_id         = optional(string, null)<br/>    name                         = optional(string)<br/>    private_dns_zone_resource_id = optional(string, null)<br/>    enable_diagnostic_settings   = optional(bool, true)<br/>    sku                          = optional(string, "standard")<br/>    tenant_id                    = optional(string)<br/>    role_assignments = optional(map(object({<br/>      role_definition_id_or_name             = string<br/>      principal_id                           = string<br/>      description                            = optional(string, null)<br/>      skip_service_principal_aad_check       = optional(bool, false)<br/>      condition                              = optional(string, null)<br/>      condition_version                      = optional(string, null)<br/>      delegated_managed_identity_resource_id = optional(string, null)<br/>      principal_type                         = optional(string, null)<br/>    })), {})<br/>    tags = optional(map(string), {})<br/>  }))</pre> | `{}` | no |
+| <a name="input_law_definition"></a> [law\_definition](#input\_law\_definition) | Configuration object for the Log Analytics Workspace to be created for monitoring and logging.<br/><br/>- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Log Analytics Workspaces.<br/>  - `existing_resource_id` - (Optional) The resource ID of an existing Log Analytics Workspace to use. If provided, the workspace will not be created and the other inputs will be ignored.<br/>  - `name` - (Optional) The name of the Log Analytics Workspace. If not provided, a name will be generated.<br/>  - `retention` - (Optional) The data retention period in days for the workspace. Default is 30.<br/>  - `sku` - (Optional) The SKU of the Log Analytics Workspace. Default is "PerGB2018".<br/>  - `tags` - (Optional) Map of tags to assign to the Log Analytics Workspace. | <pre>map(object({<br/>    existing_resource_id = optional(string, null)<br/>    name                 = optional(string)<br/>    retention            = optional(number, 30)<br/>    sku                  = optional(string, "PerGB2018")<br/>    tags                 = optional(map(string), {})<br/>  }))</pre> | `{}` | no |
+| <a name="input_private_endpoint_subnet_resource_id"></a> [private\_endpoint\_subnet\_resource\_id](#input\_private\_endpoint\_subnet\_resource\_id) | (Optional) The subnet ID for private endpoints. | `string` | `null` | no |
+| <a name="input_resource_names"></a> [resource\_names](#input\_resource\_names) | Custom names for each resource. If not provided, names will be generated using base\_name or name. | <pre>object({<br/>    ai_agent_host                   = optional(string)<br/>    ai_foundry                      = optional(string)<br/>    ai_foundry_project              = optional(string)<br/>    ai_foundry_project_display_name = optional(string)<br/>  })</pre> | `{}` | no |
+| <a name="input_storage_account_definition"></a> [storage\_account\_definition](#input\_storage\_account\_definition) | Configuration object for the Azure Storage Account to be created for GenAI services.<br/><br/>- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Storage Accounts. This can be used in naming, so short alphanumeric keys are required to avoid hitting naming length limits for the Storage Account when using the base name naming option.<br/>  - `existing_resource_id` - (Optional) The resource ID of an existing Storage Account to use. If provided, the account will not be created and the other inputs will be ignored.<br/>  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.<br/>  - `name` - (Optional) The name of the Storage Account. If not provided, a name will be generated.<br/>  - `account_kind` - (Optional) The kind of storage account. Default is "StorageV2".<br/>  - `account_tier` - (Optional) The performance tier of the storage account. Default is "Standard".<br/>  - `account_replication_type` - (Optional) The replication type for the storage account. Default is "ZRS".<br/>  - `endpoints` - (Optional) Map of endpoint configurations to enable. Default includes blob endpoint.<br/>    - `type` - The type of endpoint (e.g., "blob", "file", "queue", "table").<br/>    - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for the endpoint. If not provided, a private endpoint will not be created.<br/>  - `access_tier` - (Optional) The access tier for the storage account. Default is "Hot".<br/>  - `shared_access_key_enabled` - (Optional) Whether shared access keys are enabled. Default is false.<br/>  - `role_assignments` - (Optional) Map of role assignments to create on the Storage Account. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.<br/>    - `role_definition_id_or_name` - The role definition ID or name to assign.<br/>    - `principal_id` - The principal ID to assign the role to.<br/>    - `description` - (Optional) Description of the role assignment.<br/>    - `skip_service_principal_aad_check` - (Optional) Whether to skip AAD check for service principal.<br/>    - `condition` - (Optional) Condition for the role assignment.<br/>    - `condition_version` - (Optional) Version of the condition.<br/>    - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.<br/>    - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).<br/>  - `tags` - (Optional) Map of tags to assign to the Storage Account. | <pre>map(object({<br/>    existing_resource_id       = optional(string, null)<br/>    enable_diagnostic_settings = optional(bool, true)<br/>    name                       = optional(string, null)<br/>    account_kind               = optional(string, "StorageV2")<br/>    account_tier               = optional(string, "Standard")<br/>    account_replication_type   = optional(string, "ZRS")<br/>    endpoints = optional(map(object({<br/>      type                         = string<br/>      private_dns_zone_resource_id = optional(string, null)<br/>      })), {<br/>      blob = {<br/>        type = "blob"<br/>      }<br/>    })<br/>    access_tier               = optional(string, "Hot")<br/>    shared_access_key_enabled = optional(bool, false)<br/>    role_assignments = optional(map(object({<br/>      role_definition_id_or_name             = string<br/>      principal_id                           = string<br/>      description                            = optional(string, null)<br/>      skip_service_principal_aad_check       = optional(bool, false)<br/>      condition                              = optional(string, null)<br/>      condition_version                      = optional(string, null)<br/>      delegated_managed_identity_resource_id = optional(string, null)<br/>      principal_type                         = optional(string, null)<br/>    })), {})<br/>    tags = optional(map(string), {})<br/><br/>    #TODO:<br/>    # Implement subservice passthrough here<br/>  }))</pre> | `{}` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | (Optional) Tags to be applied to all resources. | `map(string)` | `null` | no |
 
 ## Outputs
 
-The following outputs are exported:
-
-### <a name="output_ai_agent_account_capability_host_id"></a> [ai\_agent\_account\_capability\_host\_id](#output\_ai\_agent\_account\_capability\_host\_id)
-
-Description: The resource ID of the account-level AI agent capability host.
-
-### <a name="output_ai_agent_service_id"></a> [ai\_agent\_service\_id](#output\_ai\_agent\_service\_id)
-
-Description: The resource ID of the AI agent capability host.
-
-### <a name="output_ai_foundry_id"></a> [ai\_foundry\_id](#output\_ai\_foundry\_id)
-
-Description: The resource ID of the AI Foundry account.
-
-### <a name="output_ai_foundry_name"></a> [ai\_foundry\_name](#output\_ai\_foundry\_name)
-
-Description: The name of the AI Foundry account.
-
-### <a name="output_ai_foundry_project_id"></a> [ai\_foundry\_project\_id](#output\_ai\_foundry\_project\_id)
-
-Description: The resource ID of the AI Foundry Project.
-
-### <a name="output_ai_foundry_project_internal_id"></a> [ai\_foundry\_project\_internal\_id](#output\_ai\_foundry\_project\_internal\_id)
-
-Description: The internal ID of the AI Foundry project used for container naming.
-
-### <a name="output_ai_foundry_project_name"></a> [ai\_foundry\_project\_name](#output\_ai\_foundry\_project\_name)
-
-Description: The name of the AI Foundry Project.
-
-### <a name="output_ai_foundry_project_system_identity_principal_id"></a> [ai\_foundry\_project\_system\_identity\_principal\_id](#output\_ai\_foundry\_project\_system\_identity\_principal\_id)
-
-Description: The principal ID of the AI Foundry project's system-assigned managed identity.
-
-### <a name="output_ai_model_deployment_ids"></a> [ai\_model\_deployment\_ids](#output\_ai\_model\_deployment\_ids)
-
-Description: The resource IDs of all AI model deployments.
-
-### <a name="output_ai_search_id"></a> [ai\_search\_id](#output\_ai\_search\_id)
-
-Description: The resource ID of the AI Search service.
-
-### <a name="output_ai_search_name"></a> [ai\_search\_name](#output\_ai\_search\_name)
-
-Description: The name of the AI Search service.
-
-### <a name="output_cosmos_db_id"></a> [cosmos\_db\_id](#output\_cosmos\_db\_id)
-
-Description: The resource ID of the Cosmos DB account.
-
-### <a name="output_cosmos_db_name"></a> [cosmos\_db\_name](#output\_cosmos\_db\_name)
-
-Description: The name of the Cosmos DB account.
-
-### <a name="output_key_vault_id"></a> [key\_vault\_id](#output\_key\_vault\_id)
-
-Description: The resource ID of the Key Vault.
-
-### <a name="output_key_vault_name"></a> [key\_vault\_name](#output\_key\_vault\_name)
-
-Description: The name of the Key Vault.
-
-### <a name="output_project_id_guid"></a> [project\_id\_guid](#output\_project\_id\_guid)
-
-Description: The project ID formatted as GUID for container naming (only available when AI agent service is enabled).
-
-### <a name="output_resource_group_id"></a> [resource\_group\_id](#output\_resource\_group\_id)
-
-Description: The resource ID of the resource group.
-
-### <a name="output_resource_group_name"></a> [resource\_group\_name](#output\_resource\_group\_name)
-
-Description: The name of the resource group.
-
-### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
-
-Description: The resource IDs of the AI Foundry resource.
-
-### <a name="output_storage_account_id"></a> [storage\_account\_id](#output\_storage\_account\_id)
-
-Description: The resource ID of the storage account.
-
-### <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name)
-
-Description: The name of the storage account.
+| Name | Description |
+|------|-------------|
+| <a name="output_ai_agent_account_capability_host_id"></a> [ai\_agent\_account\_capability\_host\_id](#output\_ai\_agent\_account\_capability\_host\_id) | The resource ID of the account-level AI agent capability host. |
+| <a name="output_ai_agent_service_id"></a> [ai\_agent\_service\_id](#output\_ai\_agent\_service\_id) | The resource ID of the AI agent capability host. |
+| <a name="output_ai_foundry_id"></a> [ai\_foundry\_id](#output\_ai\_foundry\_id) | The resource ID of the AI Foundry account. |
+| <a name="output_ai_foundry_name"></a> [ai\_foundry\_name](#output\_ai\_foundry\_name) | The name of the AI Foundry account. |
+| <a name="output_ai_foundry_project_id"></a> [ai\_foundry\_project\_id](#output\_ai\_foundry\_project\_id) | The resource ID of the AI Foundry Project. |
+| <a name="output_ai_foundry_project_internal_id"></a> [ai\_foundry\_project\_internal\_id](#output\_ai\_foundry\_project\_internal\_id) | The internal ID of the AI Foundry project used for container naming. |
+| <a name="output_ai_foundry_project_name"></a> [ai\_foundry\_project\_name](#output\_ai\_foundry\_project\_name) | The name of the AI Foundry Project. |
+| <a name="output_ai_foundry_project_system_identity_principal_id"></a> [ai\_foundry\_project\_system\_identity\_principal\_id](#output\_ai\_foundry\_project\_system\_identity\_principal\_id) | The principal ID of the AI Foundry project's system-assigned managed identity. |
+| <a name="output_ai_model_deployment_ids"></a> [ai\_model\_deployment\_ids](#output\_ai\_model\_deployment\_ids) | The resource IDs of all AI model deployments. |
+| <a name="output_ai_search_id"></a> [ai\_search\_id](#output\_ai\_search\_id) | The resource ID of the AI Search service. |
+| <a name="output_ai_search_name"></a> [ai\_search\_name](#output\_ai\_search\_name) | The name of the AI Search service. |
+| <a name="output_cosmos_db_id"></a> [cosmos\_db\_id](#output\_cosmos\_db\_id) | The resource ID of the Cosmos DB account. |
+| <a name="output_cosmos_db_name"></a> [cosmos\_db\_name](#output\_cosmos\_db\_name) | The name of the Cosmos DB account. |
+| <a name="output_key_vault_id"></a> [key\_vault\_id](#output\_key\_vault\_id) | The resource ID of the Key Vault. |
+| <a name="output_key_vault_name"></a> [key\_vault\_name](#output\_key\_vault\_name) | The name of the Key Vault. |
+| <a name="output_project_id_guid"></a> [project\_id\_guid](#output\_project\_id\_guid) | The project ID formatted as GUID for container naming (only available when AI agent service is enabled). |
+| <a name="output_resource_group_id"></a> [resource\_group\_id](#output\_resource\_group\_id) | The resource ID of the resource group. |
+| <a name="output_resource_group_name"></a> [resource\_group\_name](#output\_resource\_group\_name) | The name of the resource group. |
+| <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id) | The resource IDs of the AI Foundry resource. |
+| <a name="output_storage_account_id"></a> [storage\_account\_id](#output\_storage\_account\_id) | The resource ID of the storage account. |
+| <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name) | The name of the storage account. |
 
 ## Modules
 
-The following Modules are called:
-
-### <a name="module_ai_foundry_project"></a> [ai\_foundry\_project](#module\_ai\_foundry\_project)
-
-Source: ./modules/ai-foundry-project
-
-Version:
-
-### <a name="module_avm_utl_regions"></a> [avm\_utl\_regions](#module\_avm\_utl\_regions)
-
-Source: Azure/avm-utl-regions/azurerm
-
-Version: 0.5.2
-
-### <a name="module_cosmosdb"></a> [cosmosdb](#module\_cosmosdb)
-
-Source: Azure/avm-res-documentdb-databaseaccount/azurerm
-
-Version: 0.10.0
-
-### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
-
-Source: Azure/avm-res-keyvault-vault/azurerm
-
-Version: 0.10.0
-
-### <a name="module_log_analytics_workspace"></a> [log\_analytics\_workspace](#module\_log\_analytics\_workspace)
-
-Source: Azure/avm-res-operationalinsights-workspace/azurerm
-
-Version: 0.4.2
-
-### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
-
-Source: Azure/avm-res-storage-storageaccount/azurerm
-
-Version: 0.6.4
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_ai_foundry_project"></a> [ai\_foundry\_project](#module\_ai\_foundry\_project) | ./modules/ai-foundry-project | n/a |
+| <a name="module_avm_utl_regions"></a> [avm\_utl\_regions](#module\_avm\_utl\_regions) | Azure/avm-utl-regions/azurerm | 0.5.2 |
+| <a name="module_cosmosdb"></a> [cosmosdb](#module\_cosmosdb) | Azure/avm-res-documentdb-databaseaccount/azurerm | 0.10.0 |
+| <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault) | Azure/avm-res-keyvault-vault/azurerm | 0.10.0 |
+| <a name="module_log_analytics_workspace"></a> [log\_analytics\_workspace](#module\_log\_analytics\_workspace) | Azure/avm-res-operationalinsights-workspace/azurerm | 0.4.2 |
+| <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account) | Azure/avm-res-storage-storageaccount/azurerm | 0.6.4 |
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
