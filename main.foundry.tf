@@ -6,19 +6,6 @@ data "azurerm_key_vault_key" "cmk" {
   name         = var.customer_managed_key.key_name
 }
 
-# Data source for User Assigned Identity when CMK is enabled with UAI
-data "azurerm_user_assigned_identity" "cmk" {
-  count = try(var.customer_managed_key.user_assigned_identity != null, false) ? 1 : 0
-
-  name                = reverse(split("/", var.customer_managed_key.user_assigned_identity.resource_id))[0]
-  resource_group_name = split("/", var.customer_managed_key.user_assigned_identity.resource_id)[4]
-}
-
-# Local variable to determine the managed key identity client ID
-locals {
-  managed_key_identity_client_id = try(data.azurerm_user_assigned_identity.cmk[0].client_id, null)
-}
-
 resource "azapi_resource" "ai_foundry" {
   location  = var.location
   name      = local.ai_foundry_name
@@ -31,10 +18,7 @@ resource "azapi_resource" "ai_foundry" {
       name = var.ai_foundry.sku
     }
     identity = {
-      type = var.customer_managed_key != null && var.customer_managed_key.user_assigned_identity != null ? "SystemAssigned,UserAssigned" : "SystemAssigned"
-      userAssignedIdentities = var.customer_managed_key != null && var.customer_managed_key.user_assigned_identity != null ? {
-        (var.customer_managed_key.user_assigned_identity.resource_id) = {}
-      } : null
+      type = "SystemAssigned"
     }
 
     properties = {
@@ -61,16 +45,15 @@ resource "azapi_resource" "ai_foundry" {
 }
 
 # Customer Managed Key configuration for AI Foundry
+# Note: CMK can only be applied after the account is created and only works with System-Assigned Identity
 resource "azurerm_cognitive_account_customer_managed_key" "this" {
   count = var.customer_managed_key != null ? 1 : 0
 
   cognitive_account_id = azapi_resource.ai_foundry.id
   key_vault_key_id     = data.azurerm_key_vault_key.cmk[0].id
-  identity_client_id   = local.managed_key_identity_client_id
 
   depends_on = [azapi_resource.ai_foundry]
 }
-
 
 resource "azapi_resource" "ai_agent_capability_host" {
   count = var.ai_foundry.create_ai_agent_service && var.ai_foundry.network_injections == null ? 1 : 0
@@ -118,10 +101,7 @@ resource "azapi_resource" "ai_model_deployment" {
   read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
-  depends_on = [
-    azapi_resource.ai_foundry,
-    azurerm_cognitive_account_customer_managed_key.this
-  ]
+  depends_on = [azapi_resource.ai_foundry]
 }
 
 resource "azurerm_private_endpoint" "ai_foundry" {
