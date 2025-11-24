@@ -235,9 +235,9 @@ resource "azapi_update_resource" "byor_cmk" {
       encryption = {
         keySource = "Microsoft.KeyVault"
         keyVaultProperties = {
-          keyName     = "cmk"
-          keyVersion  = data.azurerm_key_vault_key.byor[0].version
-          keyVaultUri = "https://${replace(basename(try(module.key_vault.resource_id, values({ for k, v in module.key_vault : k => v.resource_id })[0])), "/", "")}.vault.azure.net"
+          keyName          = "cmk"
+          keyVersion       = data.azurerm_key_vault_key.byor[0].version
+          keyVaultUri      = "https://${replace(basename(try(module.key_vault.resource_id, values({ for k, v in module.key_vault : k => v.resource_id })[0])), "/", "")}.vault.azure.net"
           identityClientId = data.azurerm_user_assigned_identity.byor[0].client_id
         }
       }
