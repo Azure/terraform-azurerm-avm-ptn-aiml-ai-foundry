@@ -87,7 +87,7 @@ resource "azapi_resource" "ai_model_deployment" {
 }
 
 resource "azurerm_private_endpoint" "ai_foundry" {
-  count = var.create_private_endpoints ? 1 : 0
+  count = var.create_private_endpoints && var.private_endpoints_manage_dns_zone_groups ? 1 : 0
 
   location            = var.location
   name                = "pe-${azapi_resource.ai_foundry.name}"
@@ -107,6 +107,29 @@ resource "azurerm_private_endpoint" "ai_foundry" {
   }
 
   depends_on = [azapi_resource.ai_foundry]
+}
+
+resource "azurerm_private_endpoint" "unmanaged_ai_foundry" {
+  count = var.create_private_endpoints && var.private_endpoints_manage_dns_zone_groups ? 0 : 1
+
+  location            = var.location
+  name                = "pe-${azapi_resource.ai_foundry.name}"
+  resource_group_name = basename(var.resource_group_resource_id)
+  subnet_id           = var.private_endpoint_subnet_resource_id
+  tags                = var.tags
+
+  private_service_connection {
+    is_manual_connection           = false
+    name                           = "psc-${azapi_resource.ai_foundry.name}"
+    private_connection_resource_id = azapi_resource.ai_foundry.id
+    subresource_names              = ["account"]
+  }
+
+  depends_on = [azapi_resource.ai_foundry]
+
+  lifecycle {
+    ignore_changes = [private_dns_zone_group]
+  }
 }
 
 resource "azurerm_role_assignment" "foundry_role_assignments" {

@@ -85,6 +85,12 @@ variable "private_endpoint_subnet_resource_id" {
   description = "(Optional) The subnet ID for private endpoints."
 }
 
+variable "private_endpoints_manage_dns_zone_groups" {
+  type        = bool
+  default     = true
+  description = "Whether to manage private DNS zone groups for the private endpoints created by this module. If set to false, the private DNS zone groups will not be defined or managed."
+}
+
 #TODO: Move the project relating naming to a separate projects map so we can create multiple projects in the same module. (Then separate the remaining names into individual variables?)
 variable "resource_names" {
   type = object({
