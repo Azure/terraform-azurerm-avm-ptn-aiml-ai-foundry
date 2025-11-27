@@ -49,7 +49,12 @@ resource "azapi_resource" "ai_search" {
 }
 
 resource "azurerm_private_endpoint" "pe_aisearch" {
-  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.create_byor == true && var.create_private_endpoints == true && v.private_endpoints_manage_dns_zone_group == true }
+  for_each = { for k, v in var.ai_search_definition : k => v if alltrue([
+    v.existing_resource_id == null,
+    var.create_byor == true,
+    var.create_private_endpoints == true,
+    var.private_endpoints_manage_dns_zone_groups == true
+  ]) }
 
   location            = var.location
   name                = "${azapi_resource.ai_search[each.key].name}-private-endpoint"
@@ -80,8 +85,13 @@ resource "azurerm_private_endpoint" "pe_aisearch" {
   ]
 }
 
-resource "azurerm_private_endpoint" "pe_aisearch_unmanaged_dns_zone_groups" {
-  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.create_byor == true && var.create_private_endpoints == true && v.private_endpoints_manage_dns_zone_group == false }
+resource "azurerm_private_endpoint" "unmanaged_pe_aisearch" {
+  for_each = { for k, v in var.ai_search_definition : k => v if alltrue([
+    v.existing_resource_id == null,
+    var.create_byor == true,
+    var.create_private_endpoints == true,
+    var.private_endpoints_manage_dns_zone_groups == false
+  ]) }
 
   location            = var.location
   name                = "${azapi_resource.ai_search[each.key].name}-private-endpoint"
