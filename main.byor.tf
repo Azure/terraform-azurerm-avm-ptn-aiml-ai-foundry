@@ -4,6 +4,7 @@ module "avm_utl_regions" {
   version = "0.5.2"
 
   recommended_filter = false
+  enable_telemetry = var.enable_telemetry
 }
 
 module "log_analytics_workspace" {
