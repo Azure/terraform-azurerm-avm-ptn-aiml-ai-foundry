@@ -86,6 +86,12 @@ resource "azapi_resource" "ai_model_deployment" {
   depends_on = [azapi_resource.ai_foundry]
 }
 
+resource "time_sleep" "ai_foundry_wait" {
+  create_duration = "5m"
+
+  depends_on = [azapi_resource.ai_foundry]
+}
+
 resource "azurerm_private_endpoint" "ai_foundry" {
   count = var.create_private_endpoints ? 1 : 0
 
@@ -106,7 +112,7 @@ resource "azurerm_private_endpoint" "ai_foundry" {
     private_dns_zone_ids = var.ai_foundry.private_dns_zone_resource_ids
   }
 
-  depends_on = [azapi_resource.ai_foundry]
+  depends_on = [azapi_resource.ai_foundry, time_sleep.ai_foundry_wait]
 }
 
 resource "azurerm_role_assignment" "foundry_role_assignments" {
