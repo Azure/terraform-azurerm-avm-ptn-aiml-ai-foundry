@@ -79,6 +79,18 @@ DESCRIPTION
   nullable    = false
 }
 
+variable "private_endpoint_resource_group_location" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource group location for private endpoints."
+}
+
+variable "private_endpoint_resource_group_name" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource group name for private endpoints."
+}
+
 variable "private_endpoint_subnet_resource_id" {
   type        = string
   default     = null

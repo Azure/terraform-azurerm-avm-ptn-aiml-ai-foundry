@@ -56,9 +56,9 @@ resource "azurerm_private_endpoint" "pe_aisearch" {
     var.private_endpoints_manage_dns_zone_groups == true
   ]) }
 
-  location            = var.location
+  location            = coalesce(var.private_endpoint_resource_group_location, var.location)
   name                = "${azapi_resource.ai_search[each.key].name}-private-endpoint"
-  resource_group_name = local.resource_group_name
+  resource_group_name = coalesce(var.private_endpoint_resource_group_name, local.resource_group_name)
   subnet_id           = var.private_endpoint_subnet_resource_id
   tags                = var.tags
 
@@ -89,9 +89,9 @@ resource "azurerm_private_endpoint" "unmanaged_pe_aisearch" {
     var.private_endpoints_manage_dns_zone_groups == false
   ]) }
 
-  location            = var.location
+  location            = coalesce(var.private_endpoint_resource_group_location, var.location)
   name                = "${azapi_resource.ai_search[each.key].name}-private-endpoint"
-  resource_group_name = local.resource_group_name
+  resource_group_name = coalesce(var.private_endpoint_resource_group_name, local.resource_group_name)
   subnet_id           = var.private_endpoint_subnet_resource_id
   tags                = var.tags
 

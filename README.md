@@ -621,6 +621,22 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_private_endpoint_resource_group_location"></a> [private\_endpoint\_resource\_group\_location](#input\_private\_endpoint\_resource\_group\_location)
+
+Description: (Optional) The resource group location for private endpoints.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_endpoint_resource_group_name"></a> [private\_endpoint\_resource\_group\_name](#input\_private\_endpoint\_resource\_group\_name)
+
+Description: (Optional) The resource group name for private endpoints.
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_private_endpoint_subnet_resource_id"></a> [private\_endpoint\_subnet\_resource\_id](#input\_private\_endpoint\_subnet\_resource\_id)
 
 Description: (Optional) The subnet ID for private endpoints.
