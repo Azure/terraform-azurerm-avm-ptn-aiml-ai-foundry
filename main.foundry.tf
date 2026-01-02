@@ -168,10 +168,10 @@ resource "time_sleep" "ai_foundry_wait" {
 resource "azurerm_private_endpoint" "ai_foundry" {
   count = var.create_private_endpoints && var.private_endpoints_manage_dns_zone_groups ? 1 : 0
 
-  location            = local.foundry_pe_location
+  location            = coalesce(var.private_endpoint_resource_group_location, var.location)
   name                = "pe-${azapi_resource.ai_foundry.name}"
-  resource_group_name = local.foundry_pe_resource_group_name
-  subnet_id           = local.foundry_pe_subnet_id
+  resource_group_name = coalesce(var.private_endpoint_resource_group_name, basename(var.resource_group_resource_id))
+  subnet_id           = var.private_endpoint_subnet_resource_id
   tags                = var.tags
 
   private_service_connection {
@@ -195,9 +195,9 @@ resource "azurerm_private_endpoint" "ai_foundry" {
 resource "azurerm_private_endpoint" "unmanaged_ai_foundry" {
   count = var.create_private_endpoints && var.private_endpoints_manage_dns_zone_groups ? 0 : 1
 
-  location            = var.location
+  location            = coalesce(var.private_endpoint_resource_group_location, var.location)
   name                = "pe-${azapi_resource.ai_foundry.name}"
-  resource_group_name = basename(var.resource_group_resource_id)
+  resource_group_name = coalesce(var.private_endpoint_resource_group_name, basename(var.resource_group_resource_id))
   subnet_id           = var.private_endpoint_subnet_resource_id
   tags                = var.tags
 

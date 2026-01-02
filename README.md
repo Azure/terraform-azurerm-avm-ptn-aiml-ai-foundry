@@ -76,13 +76,9 @@ The following resources are used by this module:
 - [azurerm_monitor_diagnostic_setting.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint.pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-<<<<<<< HEAD
-- [azurerm_private_endpoint.pe_aisearch_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_role_assignment.cmk_key_vault_crypto_user](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
-=======
 - [azurerm_private_endpoint.unmanaged_ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint.unmanaged_pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
->>>>>>> d4afeb2 (add variable and logic to deploy seperate private endpoint resources for unmanaged dns)
+- [azurerm_role_assignment.cmk_key_vault_crypto_user](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.foundry_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
@@ -646,6 +642,48 @@ map(object({
 ```
 
 Default: `{}`
+
+### <a name="input_law_definition"></a> [law\_definition](#input\_law\_definition)
+
+Description: Configuration object for the Log Analytics Workspace to be created for monitoring and logging.
+
+- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Log Analytics Workspaces.
+  - `existing_resource_id` - (Optional) The resource ID of an existing Log Analytics Workspace to use. If provided, the workspace will not be created and the other inputs will be ignored.
+  - `name` - (Optional) The name of the Log Analytics Workspace. If not provided, a name will be generated.
+  - `retention` - (Optional) The data retention period in days for the workspace. Default is 30.
+  - `sku` - (Optional) The SKU of the Log Analytics Workspace. Default is "PerGB2018".
+  - `tags` - (Optional) Map of tags to assign to the Log Analytics Workspace.
+
+Type:
+
+```hcl
+map(object({
+    existing_resource_id = optional(string, null)
+    name                 = optional(string)
+    retention            = optional(number, 30)
+    sku                  = optional(string, "PerGB2018")
+    tags                 = optional(map(string), {})
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_private_endpoint_resource_group_location"></a> [private\_endpoint\_resource\_group\_location](#input\_private\_endpoint\_resource\_group\_location)
+
+Description: (Optional) The resource group location for private endpoints.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_endpoint_resource_group_name"></a> [private\_endpoint\_resource\_group\_name](#input\_private\_endpoint\_resource\_group\_name)
+
+Description: (Optional) The resource group name for private endpoints.
+
+Type: `string`
+
+Default: `null`
+
 
 ### <a name="input_private_endpoint_subnet_resource_id"></a> [private\_endpoint\_subnet\_resource\_id](#input\_private\_endpoint\_subnet\_resource\_id)
 
