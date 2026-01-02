@@ -48,9 +48,10 @@ module "key_vault" {
       subresource_name              = "vault"
     }
   } : {}
-  public_network_access_enabled = var.create_private_endpoints ? false : true
-  role_assignments              = local.key_vault_role_assignments[each.key]
-  tags                          = each.value.tags
+  private_endpoints_manage_dns_zone_group = var.private_endpoints_manage_dns_zone_groups
+  public_network_access_enabled           = var.create_private_endpoints ? false : true
+  role_assignments                        = local.key_vault_role_assignments[each.key]
+  tags                                    = each.value.tags
   wait_for_rbac_before_key_operations = {
     create = "60s"
   }
@@ -99,10 +100,11 @@ module "storage_account" {
       subresource_name              = endpoint.type
     }
   } : {}
-  public_network_access_enabled = var.create_private_endpoints ? false : true
-  role_assignments              = local.storage_account_role_assignments[each.key] #assumes the same role assignments will be used for all storage accounts in the map.
-  shared_access_key_enabled     = each.value.shared_access_key_enabled
-  tags                          = each.value.tags
+  private_endpoints_manage_dns_zone_group = var.private_endpoints_manage_dns_zone_groups
+  public_network_access_enabled           = var.create_private_endpoints ? false : true
+  role_assignments                        = local.storage_account_role_assignments[each.key] #assumes the same role assignments will be used for all storage accounts in the map.
+  shared_access_key_enabled               = each.value.shared_access_key_enabled
+  tags                                    = each.value.tags
 }
 
 module "cosmosdb" {
@@ -153,7 +155,8 @@ module "cosmosdb" {
       ]
     }
   } : {}
-  public_network_access_enabled = each.value.public_network_access_enabled
-  role_assignments              = each.value.role_assignments
-  tags                          = each.value.tags
+  private_endpoints_manage_dns_zone_group = var.private_endpoints_manage_dns_zone_groups
+  public_network_access_enabled           = each.value.public_network_access_enabled
+  role_assignments                        = each.value.role_assignments
+  tags                                    = each.value.tags
 }
