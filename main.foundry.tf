@@ -2,7 +2,7 @@ resource "azapi_resource" "ai_foundry" {
   location  = var.location
   name      = local.ai_foundry_name
   parent_id = var.resource_group_resource_id
-  type      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts@2025-10-01-preview"
   body = {
 
     kind = "AIServices",
@@ -42,7 +42,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
 
   name      = "ai-agent-service-${random_string.resource_token.result}"
   parent_id = azapi_resource.ai_foundry.id
-  type      = "Microsoft.CognitiveServices/accounts/capabilityHosts@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/capabilityHosts@2025-10-01-preview"
   body = {
     properties = {
       capabilityHostKind = "Agents"
@@ -62,7 +62,7 @@ resource "azapi_resource" "ai_model_deployment" {
 
   name      = each.value.name
   parent_id = azapi_resource.ai_foundry.id
-  type      = "Microsoft.CognitiveServices/accounts/deployments@2025-04-01-preview"
+  type      = "Microsoft.CognitiveServices/accounts/deployments@2025-10-01-preview"
   body = {
     properties = {
       model = {
@@ -82,6 +82,12 @@ resource "azapi_resource" "ai_model_deployment" {
   delete_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+
+  depends_on = [azapi_resource.ai_foundry]
+}
+
+resource "time_sleep" "ai_foundry_wait" {
+  create_duration = "5m"
 
   depends_on = [azapi_resource.ai_foundry]
 }
@@ -106,7 +112,7 @@ resource "azurerm_private_endpoint" "ai_foundry" {
     private_dns_zone_ids = var.ai_foundry.private_dns_zone_resource_ids
   }
 
-  depends_on = [azapi_resource.ai_foundry]
+  depends_on = [azapi_resource.ai_foundry, time_sleep.ai_foundry_wait]
 }
 
 resource "azurerm_private_endpoint" "unmanaged_ai_foundry" {
