@@ -163,6 +163,8 @@ The following resources are used by this module:
 - [azurerm_monitor_diagnostic_setting.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint.pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
+- [azurerm_private_endpoint.unmanaged_ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
+- [azurerm_private_endpoint.unmanaged_pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_role_assignment.foundry_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
@@ -622,6 +624,22 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_private_endpoint_resource_group_location"></a> [private\_endpoint\_resource\_group\_location](#input\_private\_endpoint\_resource\_group\_location)
+
+Description: (Optional) The resource group location for private endpoints.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_endpoint_resource_group_name"></a> [private\_endpoint\_resource\_group\_name](#input\_private\_endpoint\_resource\_group\_name)
+
+Description: (Optional) The resource group name for private endpoints.
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_private_endpoint_subnet_resource_id"></a> [private\_endpoint\_subnet\_resource\_id](#input\_private\_endpoint\_subnet\_resource\_id)
 
 Description: (Optional) The subnet ID for private endpoints.
@@ -629,6 +647,14 @@ Description: (Optional) The subnet ID for private endpoints.
 Type: `string`
 
 Default: `null`
+
+### <a name="input_private_endpoints_manage_dns_zone_groups"></a> [private\_endpoints\_manage\_dns\_zone\_groups](#input\_private\_endpoints\_manage\_dns\_zone\_groups)
+
+Description: Whether to manage private DNS zone groups for the private endpoints created by this module. If set to false, the private DNS zone groups will not be defined or managed.
+
+Type: `bool`
+
+Default: `true`
 
 ### <a name="input_resource_names"></a> [resource\_names](#input\_resource\_names)
 
