@@ -124,8 +124,8 @@ resource "azurerm_role_assignment" "cmk_key_vault_crypto_user" {
   count = var.ai_foundry.customer_managed_key != null ? 1 : 0
 
   principal_id         = data.azurerm_user_assigned_identity.cmk[0].principal_id
-  role_definition_name = "Key Vault Crypto User"
   scope                = var.ai_foundry.customer_managed_key.key_vault_resource_id
+  role_definition_name = "Key Vault Crypto User"
 
   depends_on = [azapi_resource.ai_foundry]
 }
@@ -158,6 +158,8 @@ resource "azapi_update_resource" "ai_foundry_cmk" {
       }
     }
   }
+  read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
   depends_on = [
     azapi_resource.ai_foundry,

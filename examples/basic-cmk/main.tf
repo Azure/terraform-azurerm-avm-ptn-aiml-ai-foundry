@@ -90,8 +90,8 @@ resource "azurerm_key_vault" "this" {
 # Grant current user Key Vault Administrator role
 resource "azurerm_role_assignment" "kv_admin_current_user" {
   principal_id         = data.azurerm_client_config.current.object_id
-  role_definition_name = "Key Vault Administrator"
   scope                = azurerm_key_vault.this.id
+  role_definition_name = "Key Vault Administrator"
 }
 
 # Wait for RBAC propagation
