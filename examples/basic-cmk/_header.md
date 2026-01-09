@@ -16,14 +16,14 @@ graph TB
         AFP[AI Foundry<br/>Project]
         AMD[AI Model<br/>Deployment]
     end
-    
+
     UAMI -->|Key Vault Crypto User| KV
     KV --> KVK
     AF -->|Uses UAMI| UAMI
     AF -->|Encrypted with| KVK
     AF --> AFP
     AF --> AMD
-    
+
     classDef security fill:#fff3e0,stroke:#e65100,stroke-width:2px
     classDef required fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     class UAMI,KV,KVK security
