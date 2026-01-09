@@ -20,6 +20,17 @@ output "ai_foundry_name" {
   value       = azapi_resource.ai_foundry.name
 }
 
+output "ai_foundry_encryption_status" {
+  description = "The encryption configuration status of the AI Foundry account."
+  value = var.ai_foundry.customer_managed_key != null ? {
+    enabled              = true
+    key_vault_uri        = data.azurerm_key_vault.cmk[0].vault_uri
+    key_name             = var.ai_foundry.customer_managed_key.key_name
+    key_version          = var.ai_foundry.customer_managed_key.key_version != null ? var.ai_foundry.customer_managed_key.key_version : data.azurerm_key_vault_key.cmk[0].version
+    identity_resource_id = var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id
+  } : { enabled = false }
+}
+
 output "ai_foundry_project_id" {
   description = "The resource ID of the AI Foundry Project."
   value       = { for project, value in var.ai_projects : project => module.ai_foundry_project[project].ai_foundry_project_id }

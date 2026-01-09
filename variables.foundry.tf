@@ -11,6 +11,12 @@ variable "ai_foundry" {
     })), null)
     private_dns_zone_resource_ids = optional(list(string), [])
     sku                           = optional(string, "S0")
+    customer_managed_key = optional(object({
+      key_vault_resource_id              = string
+      key_name                           = string
+      key_version                        = optional(string, null)
+      user_assigned_identity_resource_id = string
+    }), null)
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
       principal_id                           = string
@@ -36,6 +42,11 @@ Configuration object for the Azure AI Foundry service to be created for AI workl
   - `useMicrosoftManagedNetwork` - (Optional) Whether to use Microsoft managed network for the injection. Default is false.
 - `private_dns_zone_resource_ids` - (Optional) The resource IDs of the existing private DNS zones for AI Foundry. Required when `create_private_endpoints` is true.
 - `sku` - (Optional) The SKU of the AI Foundry service. Default is "S0".
+- `customer_managed_key` - (Optional) Customer-managed key encryption configuration. Requires a Key Vault with an existing key and a user-assigned managed identity with "Key Vault Crypto User" role on the Key Vault.
+  - `key_vault_resource_id` - Resource ID of the Key Vault containing the encryption key.
+  - `key_name` - Name of the Key Vault key to use for encryption.
+  - `key_version` - (Optional) Version of the Key Vault key. If not specified, uses the latest version.
+  - `user_assigned_identity_resource_id` - Resource ID of the user-assigned managed identity with access to the Key Vault.
 - `role_assignments` - (Optional) Map of role assignments to create on the AI Foundry service. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
   - `role_definition_id_or_name` - The role definition ID or name to assign.
   - `principal_id` - The principal ID to assign the role to.

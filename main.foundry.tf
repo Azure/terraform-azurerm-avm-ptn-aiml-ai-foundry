@@ -9,7 +9,12 @@ resource "azapi_resource" "ai_foundry" {
     sku = {
       name = var.ai_foundry.sku
     }
-    identity = {
+    identity = var.ai_foundry.customer_managed_key != null ? {
+      type = "SystemAssigned, UserAssigned"
+      userAssignedIdentities = {
+        (var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id) = {}
+      }
+      } : {
       type = "SystemAssigned"
     }
 
@@ -34,6 +39,12 @@ resource "azapi_resource" "ai_foundry" {
   schema_validation_enabled = false
   tags                      = var.tags
   update_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+
+  lifecycle {
+    ignore_changes = [
+      body.properties.encryption
+    ]
+  }
 }
 
 
@@ -86,10 +97,78 @@ resource "azapi_resource" "ai_model_deployment" {
   depends_on = [azapi_resource.ai_foundry]
 }
 
+# Data sources for CMK configuration
+data "azurerm_key_vault" "cmk" {
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
+
+  name                = split("/", var.ai_foundry.customer_managed_key.key_vault_resource_id)[8]
+  resource_group_name = split("/", var.ai_foundry.customer_managed_key.key_vault_resource_id)[4]
+}
+
+data "azurerm_key_vault_key" "cmk" {
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
+
+  key_vault_id = var.ai_foundry.customer_managed_key.key_vault_resource_id
+  name         = var.ai_foundry.customer_managed_key.key_name
+}
+
+data "azurerm_user_assigned_identity" "cmk" {
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
+
+  name                = split("/", var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id)[8]
+  resource_group_name = split("/", var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id)[4]
+}
+
+# Role assignment for UAMI to access Key Vault
+resource "azurerm_role_assignment" "cmk_key_vault_crypto_user" {
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
+
+  principal_id         = data.azurerm_user_assigned_identity.cmk[0].principal_id
+  role_definition_name = "Key Vault Crypto User"
+  scope                = var.ai_foundry.customer_managed_key.key_vault_resource_id
+
+  depends_on = [azapi_resource.ai_foundry]
+}
+
+# Wait for role assignment propagation
+resource "time_sleep" "cmk_rbac_wait" {
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
+
+  create_duration = "60s"
+
+  depends_on = [azurerm_role_assignment.cmk_key_vault_crypto_user]
+}
+
+# Update AI Foundry with CMK encryption
+resource "azapi_update_resource" "ai_foundry_cmk" {
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
+
+  resource_id = azapi_resource.ai_foundry.id
+  type        = "Microsoft.CognitiveServices/accounts@2025-10-01-preview"
+  body = {
+    properties = {
+      encryption = {
+        keySource = "Microsoft.KeyVault"
+        keyVaultProperties = {
+          keyVaultUri      = data.azurerm_key_vault.cmk[0].vault_uri
+          keyName          = var.ai_foundry.customer_managed_key.key_name
+          keyVersion       = var.ai_foundry.customer_managed_key.key_version != null ? var.ai_foundry.customer_managed_key.key_version : data.azurerm_key_vault_key.cmk[0].version
+          identityClientId = data.azurerm_user_assigned_identity.cmk[0].client_id
+        }
+      }
+    }
+  }
+
+  depends_on = [
+    azapi_resource.ai_foundry,
+    time_sleep.cmk_rbac_wait
+  ]
+}
+
 resource "time_sleep" "ai_foundry_wait" {
   create_duration = "5m"
 
-  depends_on = [azapi_resource.ai_foundry]
+  depends_on = [azapi_resource.ai_foundry, azapi_update_resource.ai_foundry_cmk]
 }
 
 resource "azurerm_private_endpoint" "ai_foundry" {
