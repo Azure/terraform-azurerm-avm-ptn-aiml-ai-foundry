@@ -450,7 +450,26 @@ module "ai_foundry" {
       }
     }
   }
+
+  depends_on = [azapi_resource_action.purge_ai_foundry]
 }
+
+# Purge deleted AI Foundry account to release service association links
+resource "azapi_resource_action" "purge_ai_foundry" {
+  method      = "DELETE"
+  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
+  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2025-09-01"
+  when        = "destroy"
+
+  depends_on = [time_sleep.purge_ai_foundry_cooldown]
+}
+
+resource "time_sleep" "purge_ai_foundry_cooldown" {
+  destroy_duration = "60s"
+
+  depends_on = [azurerm_subnet.agent_services]
+}
+
 
 ```
 
@@ -473,6 +492,7 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azapi_resource_action.purge_ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) (resource)
 - [azurerm_private_dns_zone.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.cognitiveservices](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
@@ -497,6 +517,7 @@ The following resources are used by this module:
 - [azurerm_subnet.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
+- [time_sleep.purge_ai_foundry_cooldown](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->

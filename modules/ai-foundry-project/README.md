@@ -81,6 +81,14 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
+### <a name="input_account_capability_host_id"></a> [account\_capability\_host\_id](#input\_account\_capability\_host\_id)
+
+Description: Resource ID of the account-level capability host (if exists) to ensure it completes before project capability host creation
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_ai_search_id"></a> [ai\_search\_id](#input\_ai\_search\_id)
 
 Description: Resource ID of the AI Search service

@@ -29,6 +29,12 @@ variable "name" {
   description = "Name of the AI Foundry project"
 }
 
+variable "account_capability_host_id" {
+  type        = string
+  default     = null
+  description = "Resource ID of the account-level capability host (if exists) to ensure it completes before project capability host creation"
+}
+
 variable "ai_search_id" {
   type        = string
   default     = null
