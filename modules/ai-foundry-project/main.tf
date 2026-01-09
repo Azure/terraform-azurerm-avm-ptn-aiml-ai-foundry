@@ -143,7 +143,8 @@ resource "azapi_resource" "ai_agent_capability_host" {
     azapi_resource.connection_storage,
     azapi_resource.connection_cosmos,
     azapi_resource.connection_search,
-    time_sleep.wait_rbac_before_capability_host
+    time_sleep.wait_rbac_before_capability_host,
+    var.account_capability_host_id
   ]
 }
 

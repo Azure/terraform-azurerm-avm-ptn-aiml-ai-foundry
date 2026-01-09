@@ -8,89 +8,36 @@ This Azure Verified Module (AVM) deploys Azure AI Foundry along with essential a
 
 The following diagram illustrates the key Azure services and components deployed by this pattern module:
 
-```mermaid
-graph TB
-    subgraph "Azure Resource Group"
-        subgraph "Core AI Foundry (Required)"
-            AF[AI Foundry<br/>Account]
-            AFP[AI Foundry<br/>Project]
-            AFS[AI Agent<br/>Service]
-            AFC[AI Foundry<br/>Connections]
-        end
-        
-        subgraph "BYOR Services (Optional)"
-            KV[Key Vault]
-            SA[Storage Account]
-            CDB[Cosmos DB]
-            AIS[AI Search<br/>Service]
-        end
-        
-        subgraph "Supporting Services"
-            LAW[Log Analytics<br/>Workspace]
-            RBAC[Role<br/>Assignments]
-            LOCK[Resource<br/>Locks]
-        end
-        
-        subgraph "Networking (Private Deployment)"
-            VNET[Virtual Network]
-            SNET[Subnets]
-            DNS[Private DNS<br/>Zones]
-            PE[Private<br/>Endpoints]
-            BAS[Bastion Host]
-            VM[Virtual Machine]
-        end
-    end
-    
-    %% Core relationships
-    AF --> AFP
-    AF --> AFC
-    AFP --> AFS
-    AFC --> KV
-    AFC --> SA
-    AFC --> CDB
-    AFC --> AIS
-    
-    %% Private networking
-    PE -.-> AF
-    PE -.-> KV
-    PE -.-> SA
-    PE -.-> CDB
-    PE -.-> AIS
-    SNET --> PE
-    VNET --> SNET
-    DNS --> PE
-    
-    %% Management and monitoring
-    RBAC -.-> AF
-    RBAC -.-> KV
-    RBAC -.-> SA
-    RBAC -.-> CDB
-    RBAC -.-> AIS
-    LOCK -.-> AF
-    LAW -.-> AF
-    LAW -.-> AIS
-    LAW -.-> CDB
-    
-    %% VM management
-    BAS --> VM
-    VNET --> BAS
-    
-    classDef required fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef byor fill:#f3e5f5,stroke:#4a148c,stroke-width:2px  
-    classDef dependent fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
-    classDef support fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    
-    class AF,AFP,AFS,AFC required
-    class KV,SA,CDB,AIS byor
-    class VNET,SNET,DNS,PE,BAS,VM dependent
-    class LAW,RBAC,LOCK support
-```
+**Core AI Foundry (Always Deployed):**
+- AI Foundry Account - Central hub for AI workloads and model management
+- AI Foundry Projects - Workspace for development teams with project-specific settings
+- AI Agent Service - Optional capability host for AI agents
+- AI Foundry Connections - Links to dependent resources (Key Vault, Storage, Cosmos DB, AI Search)
+
+**BYOR Services (Bring Your Own Resource - Optional):**
+- Key Vault - Manages secrets, keys, and certificates with optional CMK encryption support
+- Storage Account - Provides blob storage for project data and artifacts
+- Cosmos DB - NoSQL database for application data with optional diagnostics
+- AI Search - Full-text search service for knowledge bases and semantic search
+
+**Supporting Infrastructure:**
+- Role Assignments - RBAC controls for service access
+- Resource Locks - Prevents accidental deletion of critical resources
+- Log Analytics Workspace - Monitoring and diagnostics for all services
+
+**Networking (Private Deployments Only):**
+- Virtual Network - Network isolation and security boundary
+- Subnets - Logical network segments
+- Private DNS Zones - Name resolution for private endpoints
+- Private Endpoints - Private connectivity to Azure services
+- Bastion Host - Secure remote access to virtual machines
+- Virtual Machines - Compute resources for private deployments
 
 **Legend:**
-- 🔷 **Blue (Required)**: Core resources always deployed by this module
-- 🔶 **Purple (BYOR)**: Optional services that can be deployed by the module or brought from existing infrastructure  
-- 🔷 **Green (Dependent)**: Infrastructure components typically deployed in example configurations
-- 🔶 **Orange (Support)**: Management and monitoring resources
+- **Blue (Required)**: Core resources always deployed
+- **Purple (BYOR)**: Optional services for data and knowledge
+- **Green (Dependent)**: Infrastructure for private/enterprise deployments
+- **Orange (Support)**: Management and monitoring resources
 
 ## Resource Classification
 
@@ -160,17 +107,23 @@ The following resources are used by this module:
 - [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_model_deployment](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_update_resource.ai_foundry_cmk](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/update_resource) (resource)
 - [azurerm_monitor_diagnostic_setting.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint.pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
+- [azurerm_role_assignment.cmk_key_vault_crypto_user](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.foundry_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_string.resource_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [time_sleep.ai_foundry_wait](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
+- [time_sleep.cmk_rbac_wait](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [azurerm_key_vault.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) (data source)
+- [azurerm_key_vault_key.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_key) (data source)
+- [azurerm_user_assigned_identity.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -214,6 +167,11 @@ Description: Configuration object for the Azure AI Foundry service to be created
   - `useMicrosoftManagedNetwork` - (Optional) Whether to use Microsoft managed network for the injection. Default is false.
 - `private_dns_zone_resource_ids` - (Optional) The resource IDs of the existing private DNS zones for AI Foundry. Required when `create_private_endpoints` is true.
 - `sku` - (Optional) The SKU of the AI Foundry service. Default is "S0".
+- `customer_managed_key` - (Optional) Customer-managed key encryption configuration. Requires a Key Vault with an existing key and a user-assigned managed identity with "Key Vault Crypto User" role on the Key Vault.
+  - `key_vault_resource_id` - Resource ID of the Key Vault containing the encryption key.
+  - `key_name` - Name of the Key Vault key to use for encryption.
+  - `key_version` - (Optional) Version of the Key Vault key. If not specified, uses the latest version.
+  - `user_assigned_identity_resource_id` - Resource ID of the user-assigned managed identity with access to the Key Vault.
 - `role_assignments` - (Optional) Map of role assignments to create on the AI Foundry service. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
   - `role_definition_id_or_name` - The role definition ID or name to assign.
   - `principal_id` - The principal ID to assign the role to.
@@ -239,6 +197,12 @@ object({
     })), null)
     private_dns_zone_resource_ids = optional(list(string), [])
     sku                           = optional(string, "S0")
+    customer_managed_key = optional(object({
+      key_vault_resource_id              = string
+      key_name                           = string
+      key_version                        = optional(string, null)
+      user_assigned_identity_resource_id = string
+    }), null)
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
       principal_id                           = string
@@ -732,6 +696,10 @@ Description: The resource ID of the account-level AI agent capability host.
 ### <a name="output_ai_agent_service_id"></a> [ai\_agent\_service\_id](#output\_ai\_agent\_service\_id)
 
 Description: The resource ID of the AI agent capability host.
+
+### <a name="output_ai_foundry_encryption_status"></a> [ai\_foundry\_encryption\_status](#output\_ai\_foundry\_encryption\_status)
+
+Description: The encryption configuration status of the AI Foundry account.
 
 ### <a name="output_ai_foundry_id"></a> [ai\_foundry\_id](#output\_ai\_foundry\_id)
 
