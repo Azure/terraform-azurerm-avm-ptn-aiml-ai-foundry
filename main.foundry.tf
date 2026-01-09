@@ -15,7 +15,8 @@ resource "azapi_resource" "ai_foundry" {
         (var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id) = {}
       }
       } : {
-      type = "SystemAssigned"
+      type                   = "SystemAssigned"
+      userAssignedIdentities = {}
     }
 
     properties = {

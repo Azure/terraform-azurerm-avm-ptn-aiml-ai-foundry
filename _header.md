@@ -6,89 +6,36 @@ This Azure Verified Module (AVM) deploys Azure AI Foundry along with essential a
 
 The following diagram illustrates the key Azure services and components deployed by this pattern module:
 
-```mermaid
-graph TB
-    subgraph "Azure Resource Group"
-        subgraph "Core AI Foundry (Required)"
-            AF[AI Foundry<br/>Account]
-            AFP[AI Foundry<br/>Project]
-            AFS[AI Agent<br/>Service]
-            AFC[AI Foundry<br/>Connections]
-        end
-        
-        subgraph "BYOR Services (Optional)"
-            KV[Key Vault]
-            SA[Storage Account]
-            CDB[Cosmos DB]
-            AIS[AI Search<br/>Service]
-        end
-        
-        subgraph "Supporting Services"
-            LAW[Log Analytics<br/>Workspace]
-            RBAC[Role<br/>Assignments]
-            LOCK[Resource<br/>Locks]
-        end
-        
-        subgraph "Networking (Private Deployment)" 
-            VNET[Virtual Network]
-            SNET[Subnets]
-            DNS[Private DNS<br/>Zones]
-            PE[Private<br/>Endpoints]
-            BAS[Bastion Host]
-            VM[Virtual Machine]
-        end
-    end
-    
-    %% Core relationships
-    AF --> AFP
-    AF --> AFC
-    AFP --> AFS
-    AFC --> KV
-    AFC --> SA
-    AFC --> CDB
-    AFC --> AIS
-    
-    %% Private networking
-    PE -.-> AF
-    PE -.-> KV
-    PE -.-> SA
-    PE -.-> CDB
-    PE -.-> AIS
-    SNET --> PE
-    VNET --> SNET
-    DNS --> PE
-    
-    %% Management and monitoring
-    RBAC -.-> AF
-    RBAC -.-> KV
-    RBAC -.-> SA
-    RBAC -.-> CDB
-    RBAC -.-> AIS
-    LOCK -.-> AF
-    LAW -.-> AF
-    LAW -.-> AIS
-    LAW -.-> CDB
-    
-    %% VM management
-    BAS --> VM
-    VNET --> BAS
-    
-    classDef required fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef byor fill:#f3e5f5,stroke:#4a148c,stroke-width:2px  
-    classDef dependent fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
-    classDef support fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    
-    class AF,AFP,AFS,AFC required
-    class KV,SA,CDB,AIS byor
-    class VNET,SNET,DNS,PE,BAS,VM dependent
-    class LAW,RBAC,LOCK support
-```
+**Core AI Foundry (Always Deployed):**
+- AI Foundry Account - Central hub for AI workloads and model management
+- AI Foundry Projects - Workspace for development teams with project-specific settings
+- AI Agent Service - Optional capability host for AI agents
+- AI Foundry Connections - Links to dependent resources (Key Vault, Storage, Cosmos DB, AI Search)
+
+**BYOR Services (Bring Your Own Resource - Optional):**
+- Key Vault - Manages secrets, keys, and certificates with optional CMK encryption support
+- Storage Account - Provides blob storage for project data and artifacts
+- Cosmos DB - NoSQL database for application data with optional diagnostics
+- AI Search - Full-text search service for knowledge bases and semantic search
+
+**Supporting Infrastructure:**
+- Role Assignments - RBAC controls for service access
+- Resource Locks - Prevents accidental deletion of critical resources
+- Log Analytics Workspace - Monitoring and diagnostics for all services
+
+**Networking (Private Deployments Only):**
+- Virtual Network - Network isolation and security boundary
+- Subnets - Logical network segments
+- Private DNS Zones - Name resolution for private endpoints
+- Private Endpoints - Private connectivity to Azure services
+- Bastion Host - Secure remote access to virtual machines
+- Virtual Machines - Compute resources for private deployments
 
 **Legend:**
-- 🔷 **Blue (Required)**: Core resources always deployed by this module
-- 🔶 **Purple (BYOR)**: Optional services that can be deployed by the module or brought from existing infrastructure  
-- 🔷 **Green (Dependent)**: Infrastructure components typically deployed in example configurations
-- 🔶 **Orange (Support)**: Management and monitoring resources
+- **Blue (Required)**: Core resources always deployed
+- **Purple (BYOR)**: Optional services for data and knowledge
+- **Green (Dependent)**: Infrastructure for private/enterprise deployments
+- **Orange (Support)**: Management and monitoring resources
 
 ## Resource Classification
 

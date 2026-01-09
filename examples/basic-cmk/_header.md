@@ -4,45 +4,17 @@ This example demonstrates how to deploy an AI Foundry account with customer-mana
 
 ## Architecture
 
-This example deploys AI Foundry with CMK encryption:
+This example deploys AI Foundry with CMK encryption across these components:
 
-```mermaid
-graph TB
-    subgraph "Azure Resource Group"
-        UAMI[User-Assigned<br/>Managed Identity]
-        KV[Key Vault<br/>RBAC + Purge Protection]
-        KVK[Key Vault Key<br/>RSA 2048]
-        AF[AI Foundry Account<br/>with CMK]
-        AFP[AI Foundry<br/>Project]
-        AMD[AI Model<br/>Deployment]
-    end
+**Security & Encryption Layer:**
+- User-Assigned Managed Identity (UAMI) - Provides secure authentication to Key Vault
+- Key Vault with RBAC authorization and purge protection - Stores and manages encryption keys
+- RSA 2048-bit Key Vault Key - Used for data encryption at rest
 
-    UAMI -->|Key Vault Crypto User| KV
-    KV --> KVK
-    AF -->|Uses UAMI| UAMI
-    AF -->|Encrypted with| KVK
-    AF --> AFP
-    AF --> AMD
-
-    classDef security fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef required fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    class UAMI,KV,KVK security
-    class AF,AFP,AMD required
-```
-
-**Components:**
-- User-Assigned Managed Identity (UAMI) for Key Vault access
-- Key Vault with RBAC authorization and purge protection
-- RSA 2048-bit encryption key
-- AI Foundry Account with CMK encryption
+**Core AI Foundry Resources:**
+- AI Foundry Account with CMK encryption enabled
 - AI Foundry Project for development workspace
-- GPT-4 model deployment
-
-## Deployment Flow
-
-The deployment follows a specific order to ensure CMK encryption works correctly:
-
-1. Create Key Vault, Key, and User-Assigned Managed Identity
+- GPT-4 model deployment for AI workloads
 2. Deploy AI Foundry account (initially without CMK)
 3. Assign "Key Vault Crypto User" role to the UAMI
 4. Update AI Foundry account to apply CMK encryption
