@@ -9,14 +9,11 @@ resource "azapi_resource" "ai_foundry" {
     sku = {
       name = var.ai_foundry.sku
     }
-    identity = var.ai_foundry.customer_managed_key != null ? {
-      type = "SystemAssigned, UserAssigned"
-      userAssignedIdentities = {
+    identity = {
+      type = var.ai_foundry.customer_managed_key != null ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+      userAssignedIdentities = var.ai_foundry.customer_managed_key != null ? {
         (var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id) = {}
-      }
-      } : {
-      type                   = "SystemAssigned"
-      userAssignedIdentities = {}
+      } : null
     }
 
     properties = {

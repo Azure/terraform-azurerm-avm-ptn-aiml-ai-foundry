@@ -132,13 +132,4 @@ module "ai_foundry" {
       enable_diagnostic_settings = false
     }
   }
-
-  depends_on = [azapi_resource_action.purge_ai_foundry]
-}
-
-resource "azapi_resource_action" "purge_ai_foundry" {
-  method      = "DELETE"
-  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
-  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2025-09-01"
-  when        = "destroy"
 }

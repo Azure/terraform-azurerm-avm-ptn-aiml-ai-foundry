@@ -188,25 +188,8 @@ module "ai_foundry" {
   create_private_endpoints = false
 
   depends_on = [
-    azurerm_key_vault_key.cmk,
-    azapi_resource_action.purge_ai_foundry
+    azurerm_key_vault_key.cmk
   ]
-}
-
-# Purge deleted AI Foundry account before recreating
-resource "azapi_resource_action" "purge_ai_foundry" {
-  method      = "DELETE"
-  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
-  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2025-09-01"
-  when        = "destroy"
-
-  depends_on = [time_sleep.purge_ai_foundry_cooldown]
-}
-
-resource "time_sleep" "purge_ai_foundry_cooldown" {
-  destroy_duration = "300s" # 5m
-
-  depends_on = [azurerm_resource_group.this]
 }
 ```
 
@@ -229,14 +212,12 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [azapi_resource_action.purge_ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) (resource)
 - [azurerm_key_vault.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) (resource)
 - [azurerm_key_vault_key.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_role_assignment.kv_admin_current_user](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_user_assigned_identity.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) (resource)
 - [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
-- [time_sleep.purge_ai_foundry_cooldown](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.rbac_wait](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
