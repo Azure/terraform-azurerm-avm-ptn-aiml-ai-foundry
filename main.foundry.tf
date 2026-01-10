@@ -11,7 +11,7 @@ resource "azapi_resource" "ai_foundry" {
     }
     identity = {
       type = var.ai_foundry.customer_managed_key != null ? "SystemAssigned, UserAssigned" : "SystemAssigned"
-      userAssignedIdentities = var.ai_foundry.customer_managed_key != null ? {
+      userAssignedIdentities = var.ai_foundry.customer_managed_key != null && var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id != null ? {
         (var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id) = {}
       } : null
     }
@@ -111,7 +111,7 @@ data "azurerm_key_vault_key" "cmk" {
 }
 
 data "azurerm_user_assigned_identity" "cmk" {
-  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
+  count = var.ai_foundry.customer_managed_key != null && var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id != null ? 1 : 0
 
   name                = split("/", var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id)[8]
   resource_group_name = split("/", var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id)[4]

@@ -127,12 +127,12 @@ resource "azurerm_monitor_diagnostic_setting" "this_aisearch" {
     for search_key, search_value in var.ai_search_definition : {
       for diag_key, diag_value in search_value.diagnostic_settings :
       "${search_key}-${diag_key}" => merge(diag_value, {
-        target_resource_id = azapi_resource.ai_search[search_key].id
+        target_resource_id = search_value.existing_resource_id != null ? search_value.existing_resource_id : azapi_resource.ai_search[search_key].id
       })
     }
   ]...)
 
-  name                           = each.value.name != null ? each.value.name : "diag-${azapi_resource.ai_search[split("-", each.key)[0]].name}"
+  name                           = each.value.name != null ? each.value.name : "diag-${split("/", each.value.target_resource_id)[8]}"
   target_resource_id             = each.value.target_resource_id
   eventhub_authorization_rule_id = each.value.event_hub_authorization_rule_resource_id
   eventhub_name                  = each.value.event_hub_name
