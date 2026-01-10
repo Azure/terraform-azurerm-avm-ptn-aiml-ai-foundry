@@ -188,7 +188,7 @@ module "ai_foundry" {
         to_law = {
           name                  = "diag-to-law"
           workspace_resource_id = azurerm_log_analytics_workspace.this.id
-          metric_categories     = ["Transaction", "Capacity"]
+          metric_categories     = ["AllMetrics"]
         }
       }
     }

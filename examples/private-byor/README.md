@@ -479,14 +479,14 @@ module "storage_account" {
       name                  = "sendToLogAnalytics-blob-${module.naming.log_analytics_workspace.name_unique}"
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
       log_categories        = ["audit", "alllogs"]
-      metric_categories     = ["Capacity", "Transaction"]
+      metric_categories     = ["AllMetrics"]
     }
   }
   diagnostic_settings_storage_account = {
     storage = {
       name                  = "sendToLogAnalytics-storage-${module.naming.log_analytics_workspace.name_unique}"
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
-      metric_categories     = ["Capacity", "Transaction"]
+      metric_categories     = ["AllMetrics"]
     }
   }
   private_endpoints = {
@@ -643,7 +643,7 @@ module "ai_foundry" {
         to_law = {
           name                  = "diag-to-law"
           workspace_resource_id = azurerm_log_analytics_workspace.this.id
-          metric_categories     = ["Capacity", "Transaction"]
+          metric_categories     = ["AllMetrics"]
         }
       }
     }
