@@ -19,8 +19,7 @@ variable "ai_search_definition" {
     local_authentication_enabled = optional(bool, true)
     partition_count              = optional(number, 1)
     replica_count                = optional(number, 2)
-    semantic_search_sku          = optional(string, "standard")
-    semantic_search_enabled      = optional(bool, false)
+    semantic_search              = optional(string, "disabled")
     hosting_mode                 = optional(string, "default")
     tags                         = optional(map(string), {})
     role_assignments = optional(map(object({
@@ -48,8 +47,7 @@ Configuration object for the Azure AI Search service to be created as part of th
   - `local_authentication_enabled` - (Optional) Whether local authentication is enabled. Default is true.
   - `partition_count` - (Optional) The number of partitions for the search service. Default is 1.
   - `replica_count` - (Optional) The number of replicas for the search service. Default is 2.
-  - `semantic_search_sku` - (Optional) The SKU for semantic search capabilities. Default is "standard".
-  - `semantic_search_enabled` - (Optional) Whether semantic search is enabled. Default is false.
+  - `semantic_search` - (Optional) The semantic search tier. Possible values are "disabled", "free", or "standard". Default is "disabled".
   - `hosting_mode` - (Optional) The hosting mode for the search service. Default is "default".
   - `tags` - (Optional) Map of tags to assign to the AI Search service.
   - `role_assignments` - (Optional) Map of role assignments to create on the AI Search service. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.

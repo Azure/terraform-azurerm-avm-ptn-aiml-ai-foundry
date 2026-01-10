@@ -21,7 +21,7 @@ resource "azapi_resource" "ai_search" {
         replicaCount   = each.value.replica_count
         partitionCount = each.value.partition_count
         hostingMode    = each.value.hosting_mode
-        semanticSearch = each.value.semantic_search_enabled == true ? "enabled" : "disabled"
+        semanticSearch = each.value.semantic_search
 
         # Identity-related controls
         disableLocalAuth = each.value.local_authentication_enabled ? false : true #inverted logic to match the variable definition
