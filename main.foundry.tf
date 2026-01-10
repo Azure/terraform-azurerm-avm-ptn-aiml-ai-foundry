@@ -11,7 +11,7 @@ resource "azapi_resource" "ai_foundry" {
     }
     identity = {
       type = var.ai_foundry.customer_managed_key != null ? "SystemAssigned, UserAssigned" : "SystemAssigned"
-      userAssignedIdentities = var.ai_foundry.customer_managed_key != null && var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id != null ? {
+      userAssignedIdentities = var.ai_foundry.customer_managed_key != null ? {
         (var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id) = {}
       } : null
     }
@@ -111,7 +111,7 @@ data "azurerm_key_vault_key" "cmk" {
 }
 
 data "azurerm_user_assigned_identity" "cmk" {
-  count = var.ai_foundry.customer_managed_key != null && var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id != null ? 1 : 0
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
 
   name                = split("/", var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id)[8]
   resource_group_name = split("/", var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id)[4]
@@ -119,7 +119,7 @@ data "azurerm_user_assigned_identity" "cmk" {
 
 # Role assignment for UAMI to access Key Vault
 resource "azurerm_role_assignment" "cmk_key_vault_crypto_user" {
-  count = var.ai_foundry.customer_managed_key != null && var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id != null ? 1 : 0
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
 
   principal_id         = data.azurerm_user_assigned_identity.cmk[0].principal_id
   scope                = var.ai_foundry.customer_managed_key.key_vault_resource_id
@@ -130,7 +130,7 @@ resource "azurerm_role_assignment" "cmk_key_vault_crypto_user" {
 
 # Wait for role assignment propagation
 resource "time_sleep" "cmk_rbac_wait" {
-  count = var.ai_foundry.customer_managed_key != null && var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id != null ? 1 : 0
+  count = var.ai_foundry.customer_managed_key != null ? 1 : 0
 
   create_duration = "60s"
 

@@ -110,7 +110,7 @@ resource "azapi_resource" "ai_search" {
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.0"
+  version = "0.10.2"
 
   location                        = azurerm_resource_group.this.location
   name                            = module.naming.key_vault.name_unique
@@ -127,7 +127,7 @@ module "key_vault" {
 
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.3"
+  version = "0.6.7"
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
@@ -140,7 +140,7 @@ module "storage_account" {
 
 module "cosmosdb" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "0.8.0"
+  version = "0.10.0"
 
   location                   = azurerm_resource_group.this.location
   name                       = module.naming.cosmosdb_account.name_unique
