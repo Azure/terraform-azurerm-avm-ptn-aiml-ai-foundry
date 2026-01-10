@@ -143,9 +143,10 @@ module "ai_foundry" {
     this = {
       diagnostic_settings = {
         to_law = {
-          workspace_resource_id = azurerm_log_analytics_workspace.this.id
-          log_groups            = ["allLogs"]
-          metric_categories     = ["AllMetrics"]
+          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+          log_analytics_destination_type = "Dedicated"
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["AllMetrics"]
         }
       }
     }
@@ -154,9 +155,10 @@ module "ai_foundry" {
     this = {
       diagnostic_settings = {
         to_law = {
-          workspace_resource_id = azurerm_log_analytics_workspace.this.id
-          log_groups            = ["allLogs"]
-          metric_categories     = ["SLI", "Requests"]
+          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+          log_analytics_destination_type = "Dedicated"
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["SLI", "Requests"]
         }
       }
     }
@@ -165,19 +167,21 @@ module "ai_foundry" {
   create_private_endpoints = false # default: false
   diagnostic_settings = {
     to_law = {
-      name                  = "diag-to-law"
-      workspace_resource_id = azurerm_log_analytics_workspace.this.id
-      log_groups            = ["allLogs"]
-      metric_categories     = ["AllMetrics"]
+      name                           = "diag-to-law"
+      workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+      log_analytics_destination_type = "Dedicated"
+      log_groups                     = ["allLogs"]
+      metric_categories              = ["AllMetrics"]
     }
   }
   key_vault_definition = {
     this = {
       diagnostic_settings = {
         to_law = {
-          workspace_resource_id = azurerm_log_analytics_workspace.this.id
-          log_groups            = ["allLogs"]
-          metric_categories     = ["AllMetrics"]
+          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+          log_analytics_destination_type = "Dedicated"
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["AllMetrics"]
         }
       }
     }

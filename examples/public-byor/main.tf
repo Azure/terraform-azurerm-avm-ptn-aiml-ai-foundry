@@ -67,7 +67,6 @@ resource "azurerm_log_analytics_workspace" "this" {
 }
 
 # BYOR
-## TODO: Add diagnostic settings to each BYOR resource
 
 resource "azapi_resource" "ai_search" {
   location  = azurerm_resource_group.this.location
@@ -136,6 +135,7 @@ module "storage_account" {
   account_kind             = "StorageV2"
   account_replication_type = "ZRS"
   account_tier             = "Standard"
+  tags                     = {}
 }
 
 module "cosmosdb" {
@@ -166,6 +166,7 @@ module "cosmosdb" {
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = false
   public_network_access_enabled         = true
+  tags                                  = {}
 }
 
 module "ai_foundry" {
@@ -217,10 +218,11 @@ module "ai_foundry" {
       existing_resource_id = azapi_resource.ai_search.id
       diagnostic_settings = {
         to_law = {
-          name                  = "diag-to-law"
-          workspace_resource_id = azurerm_log_analytics_workspace.this.id
-          log_groups            = ["allLogs"]
-          metric_categories     = ["AllMetrics"]
+          name                           = "diag-to-law"
+          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+          log_analytics_destination_type = "Dedicated"
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["AllMetrics"]
         }
       }
     }
@@ -230,10 +232,11 @@ module "ai_foundry" {
       existing_resource_id = module.cosmosdb.resource_id
       diagnostic_settings = {
         to_law = {
-          name                  = "diag-to-law"
-          workspace_resource_id = azurerm_log_analytics_workspace.this.id
-          log_groups            = ["allLogs"]
-          metric_categories     = ["AllMetrics"]
+          name                           = "diag-to-law"
+          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+          log_analytics_destination_type = "Dedicated"
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["AllMetrics"]
         }
       }
     }
@@ -245,10 +248,11 @@ module "ai_foundry" {
       existing_resource_id = module.key_vault.resource_id
       diagnostic_settings = {
         to_law = {
-          name                  = "diag-to-law"
-          workspace_resource_id = azurerm_log_analytics_workspace.this.id
-          log_groups            = ["allLogs"]
-          metric_categories     = ["AllMetrics"]
+          name                           = "diag-to-law"
+          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+          log_analytics_destination_type = "Dedicated"
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["AllMetrics"]
         }
       }
     }
