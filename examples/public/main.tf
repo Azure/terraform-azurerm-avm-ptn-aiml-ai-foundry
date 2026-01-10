@@ -121,7 +121,7 @@ module "ai_foundry" {
         to_law = {
           workspace_resource_id = azurerm_log_analytics_workspace.this.id
           log_groups            = ["allLogs"]
-          metric_categories     = ["AllMetrics"]
+          metric_categories     = ["SLI", "Requests"]
         }
       }
     }
@@ -151,6 +151,7 @@ module "ai_foundry" {
     this = {
       diagnostic_settings_storage_account = {
         to_law = {
+          name                  = "diag-to-law"
           workspace_resource_id = azurerm_log_analytics_workspace.this.id
           metric_categories     = ["Transaction", "Capacity"]
         }

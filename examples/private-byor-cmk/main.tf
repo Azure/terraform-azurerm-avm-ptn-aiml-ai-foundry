@@ -302,7 +302,6 @@ module "ai_foundry" {
     }
   }
   create_byor              = false # default: false
-  create_byor_cmk          = false # default: false
   create_private_endpoints = false # default: false
   key_vault_definition = {
     this = {
