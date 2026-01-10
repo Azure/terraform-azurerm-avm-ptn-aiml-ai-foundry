@@ -108,6 +108,7 @@ The following resources are used by this module:
 - [azapi_resource.ai_model_deployment](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_update_resource.ai_foundry_cmk](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/update_resource) (resource)
+- [azurerm_monitor_diagnostic_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_monitor_diagnostic_setting.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.ai_foundry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint.pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
@@ -320,13 +321,12 @@ Description: Configuration object for the Azure AI Search service to be created 
   - `existing_resource_id` - (Optional) The resource ID of an existing AI Search service to use. If provided, the service will not be created and the other inputs will be ignored.
   - `name` - (Optional) The name of the AI Search service. If not provided, a name will be generated.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for AI Search. If not provided, a private endpoint will not be created.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
+  - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic\_settings interface.
   - `sku` - (Optional) The SKU of the AI Search service. Default is "standard".
   - `local_authentication_enabled` - (Optional) Whether local authentication is enabled. Default is true.
   - `partition_count` - (Optional) The number of partitions for the search service. Default is 1.
   - `replica_count` - (Optional) The number of replicas for the search service. Default is 2.
-  - `semantic_search_sku` - (Optional) The SKU for semantic search capabilities. Default is "standard".
-  - `semantic_search_enabled` - (Optional) Whether semantic search is enabled. Default is false.
+  - `semantic_search` - (Optional) The semantic search tier. Possible values are "disabled", "free", or "standard". Default is "disabled".
   - `hosting_mode` - (Optional) The hosting mode for the search service. Default is "default".
   - `tags` - (Optional) Map of tags to assign to the AI Search service.
   - `role_assignments` - (Optional) Map of role assignments to create on the AI Search service. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
@@ -347,13 +347,23 @@ map(object({
     existing_resource_id         = optional(string, null)
     name                         = optional(string)
     private_dns_zone_resource_id = optional(string, null)
-    enable_diagnostic_settings   = optional(bool, true)
+    diagnostic_settings = optional(map(object({
+      name                                     = optional(string, null)
+      log_categories                           = optional(set(string), [])
+      log_groups                               = optional(set(string), ["allLogs"])
+      metric_categories                        = optional(set(string), ["AllMetrics"])
+      log_analytics_destination_type           = optional(string, "Dedicated")
+      workspace_resource_id                    = optional(string, null)
+      storage_account_resource_id              = optional(string, null)
+      event_hub_authorization_rule_resource_id = optional(string, null)
+      event_hub_name                           = optional(string, null)
+      marketplace_partner_resource_id          = optional(string, null)
+    })), {})
     sku                          = optional(string, "standard")
     local_authentication_enabled = optional(bool, true)
     partition_count              = optional(number, 1)
     replica_count                = optional(number, 2)
-    semantic_search_sku          = optional(string, "standard")
-    semantic_search_enabled      = optional(bool, false)
+    semantic_search              = optional(string, "disabled")
     hosting_mode                 = optional(string, "default")
     tags                         = optional(map(string), {})
     role_assignments = optional(map(object({
@@ -379,7 +389,7 @@ Description: Configuration object for the Azure Cosmos DB account to be created 
 - `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects and multiple CosmosDB accounts.
   - `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to use. If provided, the account will not be created and the other inputs will be ignored.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Cosmos DB. If one is not provided a private endpoint will not be created.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
+  - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic\_settings interface.
   - `name` - (Optional) The name of the Cosmos DB account. If not provided, a name will be generated.
   - `secondary_regions` - (Optional) List of secondary regions for geo-replication.
     - `location` - The Azure region for the secondary location.
@@ -430,8 +440,19 @@ Type:
 map(object({
     existing_resource_id         = optional(string, null)
     private_dns_zone_resource_id = optional(string, null)
-    enable_diagnostic_settings   = optional(bool, true)
-    name                         = optional(string)
+    diagnostic_settings = optional(map(object({
+      name                                     = optional(string, null)
+      log_categories                           = optional(set(string), [])
+      log_groups                               = optional(set(string), ["allLogs"])
+      metric_categories                        = optional(set(string), ["AllMetrics"])
+      log_analytics_destination_type           = optional(string, "Dedicated")
+      workspace_resource_id                    = optional(string, null)
+      storage_account_resource_id              = optional(string, null)
+      event_hub_authorization_rule_resource_id = optional(string, null)
+      event_hub_name                           = optional(string, null)
+      marketplace_partner_resource_id          = optional(string, null)
+    })), {})
+    name = optional(string)
     secondary_regions = optional(list(object({
       location          = string
       zone_redundant    = optional(bool, true)
@@ -503,6 +524,40 @@ Type: `bool`
 
 Default: `false`
 
+### <a name="input_diagnostic_settings"></a> [diagnostic\_settings](#input\_diagnostic\_settings)
+
+Description: A map of diagnostic settings to create on the AI Foundry account (Cognitive Services account). The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
+- `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
+- `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
+- `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
+- `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
+- `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
+- `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
+- `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
+- `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
+- `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic Logs.
+
+Type:
+
+```hcl
+map(object({
+    name                                     = optional(string, null)
+    log_categories                           = optional(set(string), [])
+    log_groups                               = optional(set(string), ["allLogs"])
+    metric_categories                        = optional(set(string), ["AllMetrics"])
+    log_analytics_destination_type           = optional(string, "Dedicated")
+    workspace_resource_id                    = optional(string, null)
+    storage_account_resource_id              = optional(string, null)
+    event_hub_authorization_rule_resource_id = optional(string, null)
+    event_hub_name                           = optional(string, null)
+    marketplace_partner_resource_id          = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
 Description: This variable controls whether or not telemetry is enabled for the module.  
@@ -521,7 +576,7 @@ Description: Configuration object for the Azure Key Vault to be created for GenA
   - `existing_resource_id` - (Optional) The resource ID of an existing Key Vault to use. If provided, the vault will not be created and the other inputs will be ignored.
   - `name` - (Optional) The name of the Key Vault. If not provided, a name will be generated.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Key Vault. If one is not provided a private endpoint will not be created.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
+  - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic\_settings interface.
   - `sku` - (Optional) The SKU of the Key Vault. Default is "standard".
   - `tenant_id` - (Optional) The tenant ID for the Key Vault. If not provided, the current tenant will be used.
   - `role_assignments` - (Optional) Map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
@@ -542,9 +597,20 @@ map(object({
     existing_resource_id         = optional(string, null)
     name                         = optional(string)
     private_dns_zone_resource_id = optional(string, null)
-    enable_diagnostic_settings   = optional(bool, true)
-    sku                          = optional(string, "standard")
-    tenant_id                    = optional(string)
+    diagnostic_settings = optional(map(object({
+      name                                     = optional(string, null)
+      log_categories                           = optional(set(string), [])
+      log_groups                               = optional(set(string), ["allLogs"])
+      metric_categories                        = optional(set(string), ["AllMetrics"])
+      log_analytics_destination_type           = optional(string, "Dedicated")
+      workspace_resource_id                    = optional(string, null)
+      storage_account_resource_id              = optional(string, null)
+      event_hub_authorization_rule_resource_id = optional(string, null)
+      event_hub_name                           = optional(string, null)
+      marketplace_partner_resource_id          = optional(string, null)
+    })), {})
+    sku       = optional(string, "standard")
+    tenant_id = optional(string)
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
       principal_id                           = string
@@ -556,31 +622,6 @@ map(object({
       principal_type                         = optional(string, null)
     })), {})
     tags = optional(map(string), {})
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_law_definition"></a> [law\_definition](#input\_law\_definition)
-
-Description: Configuration object for the Log Analytics Workspace to be created for monitoring and logging.
-
-- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Log Analytics Workspaces.
-  - `existing_resource_id` - (Optional) The resource ID of an existing Log Analytics Workspace to use. If provided, the workspace will not be created and the other inputs will be ignored.
-  - `name` - (Optional) The name of the Log Analytics Workspace. If not provided, a name will be generated.
-  - `retention` - (Optional) The data retention period in days for the workspace. Default is 30.
-  - `sku` - (Optional) The SKU of the Log Analytics Workspace. Default is "PerGB2018".
-  - `tags` - (Optional) Map of tags to assign to the Log Analytics Workspace.
-
-Type:
-
-```hcl
-map(object({
-    existing_resource_id = optional(string, null)
-    name                 = optional(string)
-    retention            = optional(number, 30)
-    sku                  = optional(string, "PerGB2018")
-    tags                 = optional(map(string), {})
   }))
 ```
 
@@ -617,7 +658,7 @@ Description: Configuration object for the Azure Storage Account to be created fo
 
 - `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Storage Accounts. This can be used in naming, so short alphanumeric keys are required to avoid hitting naming length limits for the Storage Account when using the base name naming option.
   - `existing_resource_id` - (Optional) The resource ID of an existing Storage Account to use. If provided, the account will not be created and the other inputs will be ignored.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
+  - `diagnostic_settings_storage_account` - (Optional) A map of diagnostic settings to create on the storage account. Each entry follows the AVM diagnostic\_settings interface.
   - `name` - (Optional) The name of the Storage Account. If not provided, a name will be generated.
   - `account_kind` - (Optional) The kind of storage account. Default is "StorageV2".
   - `account_tier` - (Optional) The performance tier of the storage account. Default is "Standard".
@@ -642,12 +683,23 @@ Type:
 
 ```hcl
 map(object({
-    existing_resource_id       = optional(string, null)
-    enable_diagnostic_settings = optional(bool, true)
-    name                       = optional(string, null)
-    account_kind               = optional(string, "StorageV2")
-    account_tier               = optional(string, "Standard")
-    account_replication_type   = optional(string, "ZRS")
+    existing_resource_id = optional(string, null)
+    diagnostic_settings_storage_account = optional(map(object({
+      name                                     = optional(string, null)
+      log_categories                           = optional(set(string), [])
+      log_groups                               = optional(set(string), ["allLogs"])
+      metric_categories                        = optional(set(string), ["AllMetrics"])
+      log_analytics_destination_type           = optional(string, "Dedicated")
+      workspace_resource_id                    = optional(string, null)
+      storage_account_resource_id              = optional(string, null)
+      event_hub_authorization_rule_resource_id = optional(string, null)
+      event_hub_name                           = optional(string, null)
+      marketplace_partner_resource_id          = optional(string, null)
+    })), {})
+    name                     = optional(string, null)
+    account_kind             = optional(string, "StorageV2")
+    account_tier             = optional(string, "Standard")
+    account_replication_type = optional(string, "ZRS")
     endpoints = optional(map(object({
       type                         = string
       private_dns_zone_resource_id = optional(string, null)
@@ -804,12 +856,6 @@ Version: 0.10.0
 Source: Azure/avm-res-keyvault-vault/azurerm
 
 Version: 0.10.0
-
-### <a name="module_log_analytics_workspace"></a> [log\_analytics\_workspace](#module\_log\_analytics\_workspace)
-
-Source: Azure/avm-res-operationalinsights-workspace/azurerm
-
-Version: 0.4.2
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 

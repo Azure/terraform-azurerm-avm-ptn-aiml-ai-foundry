@@ -68,35 +68,6 @@ variable "create_private_endpoints" {
   description = "Whether to create private endpoints for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, private endpoints will not be created."
 }
 
-variable "enable_telemetry" {
-  type        = bool
-  default     = true
-  description = <<DESCRIPTION
-This variable controls whether or not telemetry is enabled for the module.
-For more information see <https://aka.ms/avm/telemetryinfo>.
-If it is set to false, then no telemetry will be collected.
-DESCRIPTION
-  nullable    = false
-}
-
-variable "private_endpoint_subnet_resource_id" {
-  type        = string
-  default     = null
-  description = "(Optional) The subnet ID for private endpoints."
-}
-
-#TODO: Move the project relating naming to a separate projects map so we can create multiple projects in the same module. (Then separate the remaining names into individual variables?)
-variable "resource_names" {
-  type = object({
-    ai_agent_host                   = optional(string)
-    ai_foundry                      = optional(string)
-    ai_foundry_project              = optional(string)
-    ai_foundry_project_display_name = optional(string)
-  })
-  default     = {}
-  description = "Custom names for each resource. If not provided, names will be generated using base_name or name."
-}
-
 variable "diagnostic_settings" {
   type = map(object({
     name                                     = optional(string, null)
@@ -140,6 +111,35 @@ DESCRIPTION
     )
     error_message = "At least one of `workspace_resource_id`, `storage_account_resource_id`, `marketplace_partner_resource_id`, or `event_hub_authorization_rule_resource_id`, must be set."
   }
+}
+
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
+}
+
+variable "private_endpoint_subnet_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The subnet ID for private endpoints."
+}
+
+#TODO: Move the project relating naming to a separate projects map so we can create multiple projects in the same module. (Then separate the remaining names into individual variables?)
+variable "resource_names" {
+  type = object({
+    ai_agent_host                   = optional(string)
+    ai_foundry                      = optional(string)
+    ai_foundry_project              = optional(string)
+    ai_foundry_project_display_name = optional(string)
+  })
+  default     = {}
+  description = "Custom names for each resource. If not provided, names will be generated using base_name or name."
 }
 
 variable "tags" {

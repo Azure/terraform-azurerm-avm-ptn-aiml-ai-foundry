@@ -49,7 +49,7 @@ resource "azapi_resource" "ai_search" {
 }
 
 resource "azurerm_private_endpoint" "pe_aisearch" {
-  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.create_byor == true && var.create_private_endpoints == true }
+  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.create_byor == true && var.create_private_endpoints == true && v.private_endpoints_manage_dns_zone_group == true }
 
   location            = var.location
   name                = "${azapi_resource.ai_search[each.key].name}-private-endpoint"
@@ -65,9 +65,41 @@ resource "azurerm_private_endpoint" "pe_aisearch" {
       "searchService"
     ]
   }
-  private_dns_zone_group {
-    name                 = "${azapi_resource.ai_search[each.key].name}-dns-config"
-    private_dns_zone_ids = [each.value.private_dns_zone_resource_id]
+  dynamic "private_dns_zone_group" {
+    for_each = each.value.private_dns_zone_resource_id != null ? ["this"] : []
+
+    content {
+      name                 = "${azapi_resource.ai_search[each.key].name}-dns-config"
+      private_dns_zone_ids = [each.value.private_dns_zone_resource_id]
+    }
+  }
+
+  depends_on = [
+    module.cosmosdb,
+    azapi_resource.ai_search
+  ]
+}
+
+resource "azurerm_private_endpoint" "pe_aisearch_unmanaged_dns_zone_groups" {
+  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.create_byor == true && var.create_private_endpoints == true && v.private_endpoints_manage_dns_zone_group == false }
+
+  location            = var.location
+  name                = "${azapi_resource.ai_search[each.key].name}-private-endpoint"
+  resource_group_name = local.resource_group_name
+  subnet_id           = var.private_endpoint_subnet_resource_id
+  tags                = var.tags
+
+  private_service_connection {
+    is_manual_connection           = false
+    name                           = "${azapi_resource.ai_search[each.key].name}-private-link-service-connection"
+    private_connection_resource_id = azapi_resource.ai_search[each.key].id
+    subresource_names = [
+      "searchService"
+    ]
+  }
+
+  lifecycle {
+    ignore_changes = [private_dns_zone_group]
   }
 
   depends_on = [
