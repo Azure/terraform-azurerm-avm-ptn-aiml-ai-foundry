@@ -230,11 +230,9 @@ module "ai_foundry" {
     create_ai_agent_service = true
     name                    = module.naming.cognitive_account.name_unique
     customer_managed_key = {
-      key_vault_resource_id = module.key_vault.resource_id
-      key_name              = "cmk"
-      user_assigned_identity = {
-        resource_id = azurerm_user_assigned_identity.this.id
-      }
+      key_vault_resource_id              = module.key_vault.resource_id
+      key_name                           = "cmk"
+      user_assigned_identity_resource_id = azurerm_user_assigned_identity.this.id
     }
     managed_identities = {
       system_assigned            = true
