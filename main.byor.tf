@@ -3,6 +3,7 @@ module "avm_utl_regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.5.2"
 
+  enable_telemetry   = var.enable_telemetry
   recommended_filter = false
 }
 
@@ -16,6 +17,7 @@ module "key_vault" {
   resource_group_name             = local.resource_group_name
   tenant_id                       = each.value.tenant_id != null ? each.value.tenant_id : data.azurerm_client_config.current.tenant_id
   diagnostic_settings             = each.value.diagnostic_settings
+  enable_telemetry                = var.enable_telemetry
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
