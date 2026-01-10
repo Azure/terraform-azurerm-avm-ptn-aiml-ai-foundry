@@ -26,8 +26,9 @@ locals {
 resource "azurerm_role_assignment" "ai_search_role_assignments" {
   for_each = var.create_project_connections ? local.ai_search_default_role_assignments : {}
 
-  principal_id = azapi_resource.ai_foundry_project.output.identity.principalId
-  scope        = var.create_project_connections ? var.ai_search_id : "/n/o/t/u/s/e/d"
+  principal_id   = azapi_resource.ai_foundry_project.output.identity.principalId
+  scope          = var.create_project_connections ? var.ai_search_id : "/n/o/t/u/s/e/d"
+  principal_type = "ServicePrincipal"
   #name                 = each.key
   role_definition_name = each.value.role_definition_id_or_name
 
@@ -37,8 +38,9 @@ resource "azurerm_role_assignment" "ai_search_role_assignments" {
 resource "azurerm_role_assignment" "cosmosdb_role_assignments" {
   for_each = var.create_project_connections ? local.cosmosdb_default_role_assignments : {}
 
-  principal_id = azapi_resource.ai_foundry_project.output.identity.principalId
-  scope        = var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d"
+  principal_id   = azapi_resource.ai_foundry_project.output.identity.principalId
+  scope          = var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d"
+  principal_type = "ServicePrincipal"
   #name                 = each.key
   role_definition_name = each.value.role_definition_id_or_name
 
@@ -49,8 +51,9 @@ resource "azurerm_role_assignment" "cosmosdb_role_assignments" {
 resource "azurerm_role_assignment" "storage_role_assignments" {
   for_each = var.create_project_connections ? local.storage_account_default_role_assignments : {}
 
-  principal_id = azapi_resource.ai_foundry_project.output.identity.principalId
-  scope        = var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d"
+  principal_id   = azapi_resource.ai_foundry_project.output.identity.principalId
+  scope          = var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d"
+  principal_type = "ServicePrincipal"
   #name                 = each.key
   role_definition_name = each.value.role_definition_id_or_name
 
@@ -127,6 +130,7 @@ resource "azurerm_role_assignment" "storage_blob_data_owner" {
   EOT
   condition_version    = "2.0"
   name                 = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}${basename(var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d")}storageblobdataowner")
+  principal_type       = "ServicePrincipal"
   role_definition_name = "Storage Blob Data Owner"
 
   depends_on = [

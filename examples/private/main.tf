@@ -340,13 +340,11 @@ module "ai_foundry" {
   ai_search_definition = {
     this = {
       private_dns_zone_resource_id = azurerm_private_dns_zone.search.id
-      enable_diagnostic_settings   = false
     }
   }
   cosmosdb_definition = {
     this = {
       private_dns_zone_resource_id = azurerm_private_dns_zone.cosmosdb.id
-      enable_diagnostic_settings   = false
       consistency_level            = "Session"
     }
   }
@@ -355,13 +353,11 @@ module "ai_foundry" {
   key_vault_definition = {
     this = {
       private_dns_zone_resource_id = azurerm_private_dns_zone.keyvault.id
-      enable_diagnostic_settings   = false
     }
   }
   private_endpoint_subnet_resource_id = azurerm_subnet.private_endpoints.id
   storage_account_definition = {
     this = {
-      enable_diagnostic_settings = false
       endpoints = {
         blob = {
           private_dns_zone_resource_id = azurerm_private_dns_zone.storage_blob.id
