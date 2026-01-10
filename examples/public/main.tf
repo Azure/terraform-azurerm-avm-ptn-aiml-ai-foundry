@@ -69,9 +69,6 @@ module "ai_foundry" {
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
-  tags = {
-    workload = "ai-foundry"
-  }
   ai_foundry = {
     create_ai_agent_service = true
     name                    = module.naming.cognitive_account.name_unique
@@ -165,5 +162,8 @@ module "ai_foundry" {
         }
       }
     }
+  }
+  tags = {
+    workload = "ai-foundry"
   }
 }

@@ -185,7 +185,6 @@ module "storage_account" {
   account_kind             = "StorageV2"
   account_replication_type = "ZRS"
   account_tier             = "Standard"
-  tags                     = {}
 }
 
 module "cosmosdb" {
@@ -216,7 +215,6 @@ module "cosmosdb" {
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = false
   public_network_access_enabled         = true
-  tags                                  = {}
 }
 
 module "ai_foundry" {
@@ -266,15 +264,6 @@ module "ai_foundry" {
   ai_search_definition = {
     this = {
       existing_resource_id = azapi_resource.ai_search.id
-      diagnostic_settings = {
-        to_law = {
-          name                           = "diag-to-law"
-          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
-          log_analytics_destination_type = "Dedicated"
-          log_groups                     = ["allLogs"]
-          metric_categories              = ["AllMetrics"]
-        }
-      }
     }
   }
   cosmosdb_definition = {
@@ -318,6 +307,9 @@ module "ai_foundry" {
         }
       }
     }
+  }
+  tags = {
+    workload = "ai-foundry"
   }
 }
 ```
