@@ -53,7 +53,7 @@ resource "random_shuffle" "locations" {
 }
 
 locals {
-  base_name = "pricmk"
+  base_name = "pbcmk"
 }
 
 module "naming" {

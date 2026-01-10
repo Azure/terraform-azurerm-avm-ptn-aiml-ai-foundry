@@ -152,7 +152,7 @@ resource "random_shuffle" "locations" {
 }
 
 locals {
-  base_name = "pribyor"
+  base_name = "pbcmk"
 }
 
 module "naming" {
@@ -166,6 +166,57 @@ module "naming" {
 resource "azurerm_resource_group" "this" {
   location = random_shuffle.locations.result[0]
   name     = module.naming.resource_group.name_unique
+}
+
+# User-Assigned Managed Identity for CMK
+resource "azurerm_user_assigned_identity" "cmk" {
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.user_assigned_identity.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+}
+
+# Key Vault for CMK
+resource "azurerm_key_vault" "this" {
+  location                   = azurerm_resource_group.this.location
+  name                       = module.naming.key_vault.name_unique
+  resource_group_name        = azurerm_resource_group.this.name
+  sku_name                   = "standard"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  enable_rbac_authorization  = true
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
+}
+
+# Grant current user Key Vault Administrator role
+resource "azurerm_role_assignment" "kv_admin_current_user" {
+  principal_id         = data.azurerm_client_config.current.object_id
+  scope                = azurerm_key_vault.this.id
+  role_definition_name = "Key Vault Administrator"
+}
+
+# Wait for RBAC propagation
+resource "time_sleep" "rbac_wait" {
+  create_duration = "60s"
+
+  depends_on = [azurerm_role_assignment.kv_admin_current_user]
+}
+
+# Key Vault Key for encryption
+resource "azurerm_key_vault_key" "cmk" {
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+  key_type     = "RSA"
+  key_vault_id = azurerm_key_vault.this.id
+  name         = "cmk-key"
+  key_size     = 2048
+
+  depends_on = [time_sleep.rbac_wait]
 }
 
 # Virtual Network for private endpoints and agent services
@@ -594,6 +645,12 @@ module "ai_foundry" {
       subnetArmId                = azurerm_subnet.agent_services.id
       useMicrosoftManagedNetwork = false
     }]
+    customer_managed_key = {
+      key_vault_resource_id              = azurerm_key_vault.this.id
+      key_name                           = azurerm_key_vault_key.cmk.name
+      key_version                        = null # Use latest version
+      user_assigned_identity_resource_id = azurerm_user_assigned_identity.cmk.id
+    }
   }
   ai_model_deployments = {
     "gpt-4o" = {
@@ -661,7 +718,10 @@ module "ai_foundry" {
     }
   }
 
-  depends_on = [azapi_resource_action.purge_ai_foundry]
+  depends_on = [
+    azurerm_key_vault_key.cmk,
+    azapi_resource_action.purge_ai_foundry
+  ]
 }
 
 # Purge deleted AI Foundry account to release service association links
@@ -702,6 +762,8 @@ The following resources are used by this module:
 
 - [azapi_resource.ai_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource_action.purge_ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) (resource)
+- [azurerm_key_vault.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) (resource)
+- [azurerm_key_vault_key.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key) (resource)
 - [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_private_dns_zone.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.cognitiveservices](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
@@ -722,13 +784,16 @@ The following resources are used by this module:
 - [azurerm_private_endpoint.pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_public_ip.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
+- [azurerm_role_assignment.kv_admin_current_user](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_subnet.agent_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.private_endpoints](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.vm](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
+- [azurerm_user_assigned_identity.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_shuffle.locations](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle) (resource)
 - [time_sleep.purge_ai_foundry_cooldown](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
+- [time_sleep.rbac_wait](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
