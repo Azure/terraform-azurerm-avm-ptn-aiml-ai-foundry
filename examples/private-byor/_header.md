@@ -17,7 +17,7 @@ graph TB
             PE_CS[PE: Cosmos DB]
             PE_AS[PE: AI Search]
         end
-        
+
         AF[AI Foundry<br/>Account]
         AFP[AI Foundry<br/>Project]
         AMD[AI Model<br/>Deployment]
@@ -26,26 +26,26 @@ graph TB
         CS[Cosmos DB<br/>BYOR]
         AS[AI Search<br/>BYOR]
     end
-    
+
     AF --> AFP
     AF --> AMD
     AF -.-> KV
     AF -.-> ST
     AF -.-> CS
     AF -.-> AS
-    
+
     PE_AF -.-> AF
     PE_KV -.-> KV
     PE_ST -.-> ST
     PE_CS -.-> CS
     PE_AS -.-> AS
-    
+
     PE_SUBNET --> PE_AF
     PE_SUBNET --> PE_KV
     PE_SUBNET --> PE_ST
     PE_SUBNET --> PE_CS
     PE_SUBNET --> PE_AS
-    
+
     classDef required fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     classDef byor fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
     classDef network fill:#fff3e0,stroke:#e65100,stroke-width:2px

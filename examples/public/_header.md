@@ -13,11 +13,11 @@ graph TB
         AFP[AI Foundry<br/>Project]
         AMD[AI Model<br/>Deployment]
     end
-    
+
     INTERNET((Internet)) --> AF
     AF --> AFP
     AF --> AMD
-    
+
     classDef required fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     classDef external fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
     class AF,AFP,AMD required
@@ -26,6 +26,6 @@ graph TB
 
 **Components:**
 - AI Foundry Account with GPT-4 model deployment
-- AI Foundry Project for development workspace  
+- AI Foundry Project for development workspace
 - Public network access enabled (no private endpoints)
 - No BYOR services (uses managed AI Foundry services)

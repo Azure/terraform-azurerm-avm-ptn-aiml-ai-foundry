@@ -17,20 +17,20 @@ graph TB
         CS[Cosmos DB<br/>BYOR]
         AS[AI Search<br/>BYOR]
     end
-    
+
     INTERNET((Internet)) --> AF
     INTERNET --> KV
     INTERNET --> ST
     INTERNET --> CS
     INTERNET --> AS
-    
+
     AF --> AFP
     AF --> AMD
     AF -.-> KV
     AF -.-> ST
     AF -.-> CS
     AF -.-> AS
-    
+
     classDef required fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     classDef byor fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
     classDef external fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
