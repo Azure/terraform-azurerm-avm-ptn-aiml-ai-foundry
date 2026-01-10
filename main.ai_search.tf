@@ -91,16 +91,43 @@ resource "azurerm_role_assignment" "this_aisearch" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "this_aisearch" {
-  for_each = { for k, v in var.ai_search_definition : k => v if v.enable_diagnostic_settings == true }
+  for_each = merge([
+    for search_key, search_value in var.ai_search_definition : {
+      for diag_key, diag_value in search_value.diagnostic_settings :
+      "${search_key}-${diag_key}" => merge(diag_value, {
+        target_resource_id = azapi_resource.ai_search[search_key].id
+      })
+    }
+  ]...)
 
-  name                       = "diag-${azapi_resource.ai_search[each.key].name}"
-  target_resource_id         = azapi_resource.ai_search[each.key].id
-  log_analytics_workspace_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
+  name                           = each.value.name != null ? each.value.name : "diag-${azapi_resource.ai_search[split("-", each.key)[0]].name}"
+  target_resource_id             = each.value.target_resource_id
+  eventhub_authorization_rule_id = each.value.event_hub_authorization_rule_resource_id
+  eventhub_name                  = each.value.event_hub_name
+  log_analytics_destination_type = each.value.log_analytics_destination_type
+  log_analytics_workspace_id     = each.value.workspace_resource_id
+  partner_solution_id            = each.value.marketplace_partner_resource_id
+  storage_account_id             = each.value.storage_account_resource_id
 
-  enabled_log {
-    category_group = "allLogs"
+  dynamic "enabled_log" {
+    for_each = each.value.log_categories
+
+    content {
+      category = enabled_log.value
+    }
   }
-  enabled_metric {
-    category = "AllMetrics"
+  dynamic "enabled_log" {
+    for_each = each.value.log_groups
+
+    content {
+      category_group = enabled_log.value
+    }
+  }
+  dynamic "metric" {
+    for_each = each.value.metric_categories
+
+    content {
+      category = metric.value
+    }
   }
 }

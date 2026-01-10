@@ -25,9 +25,8 @@ locals {
     var.key_vault_definition[k].role_assignments
   ) }
   #################################################################
-  # Log Analytics specific local variables
+  # General local variables
   #################################################################
-  log_analytics_workspace_name = length(var.law_definition) > 0 ? try(values(var.law_definition)[0].name, null) != null ? values(var.law_definition)[0].name : (try(var.base_name, null) != null ? "${var.base_name}-law" : "ai-foundry-law") : "ai-foundry-law"
   paired_region                = [for region in module.avm_utl_regions.regions : region if(lower(region.name) == lower(var.location) || (lower(region.display_name) == lower(var.location)))][0].paired_region_name
   resource_group_name          = basename(var.resource_group_resource_id) #assumes resource group id is required.
   storage_account_default_role_assignments = {

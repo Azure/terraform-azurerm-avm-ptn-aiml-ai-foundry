@@ -3,7 +3,18 @@ variable "ai_search_definition" {
     existing_resource_id         = optional(string, null)
     name                         = optional(string)
     private_dns_zone_resource_id = optional(string, null)
-    enable_diagnostic_settings   = optional(bool, true)
+    diagnostic_settings = optional(map(object({
+      name                                     = optional(string, null)
+      log_categories                           = optional(set(string), [])
+      log_groups                               = optional(set(string), ["allLogs"])
+      metric_categories                        = optional(set(string), ["AllMetrics"])
+      log_analytics_destination_type           = optional(string, "Dedicated")
+      workspace_resource_id                    = optional(string, null)
+      storage_account_resource_id              = optional(string, null)
+      event_hub_authorization_rule_resource_id = optional(string, null)
+      event_hub_name                           = optional(string, null)
+      marketplace_partner_resource_id          = optional(string, null)
+    })), {})
     sku                          = optional(string, "standard")
     local_authentication_enabled = optional(bool, true)
     partition_count              = optional(number, 1)
@@ -32,7 +43,7 @@ Configuration object for the Azure AI Search service to be created as part of th
   - `existing_resource_id` - (Optional) The resource ID of an existing AI Search service to use. If provided, the service will not be created and the other inputs will be ignored.
   - `name` - (Optional) The name of the AI Search service. If not provided, a name will be generated.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for AI Search. If not provided, a private endpoint will not be created.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
+  - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic_settings interface.
   - `sku` - (Optional) The SKU of the AI Search service. Default is "standard".
   - `local_authentication_enabled` - (Optional) Whether local authentication is enabled. Default is true.
   - `partition_count` - (Optional) The number of partitions for the search service. Default is 1.
@@ -58,7 +69,18 @@ variable "cosmosdb_definition" {
   type = map(object({
     existing_resource_id         = optional(string, null)
     private_dns_zone_resource_id = optional(string, null)
-    enable_diagnostic_settings   = optional(bool, true)
+    diagnostic_settings = optional(map(object({
+      name                                     = optional(string, null)
+      log_categories                           = optional(set(string), [])
+      log_groups                               = optional(set(string), ["allLogs"])
+      metric_categories                        = optional(set(string), ["AllMetrics"])
+      log_analytics_destination_type           = optional(string, "Dedicated")
+      workspace_resource_id                    = optional(string, null)
+      storage_account_resource_id              = optional(string, null)
+      event_hub_authorization_rule_resource_id = optional(string, null)
+      event_hub_name                           = optional(string, null)
+      marketplace_partner_resource_id          = optional(string, null)
+    })), {})
     name                         = optional(string)
     secondary_regions = optional(list(object({
       location          = string
@@ -118,7 +140,7 @@ Configuration object for the Azure Cosmos DB account to be created for GenAI ser
 - `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects and multiple CosmosDB accounts.
   - `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to use. If provided, the account will not be created and the other inputs will be ignored.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Cosmos DB. If one is not provided a private endpoint will not be created.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
+  - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic_settings interface.
   - `name` - (Optional) The name of the Cosmos DB account. If not provided, a name will be generated.
   - `secondary_regions` - (Optional) List of secondary regions for geo-replication.
     - `location` - The Azure region for the secondary location.
@@ -170,7 +192,18 @@ variable "key_vault_definition" {
     existing_resource_id         = optional(string, null)
     name                         = optional(string)
     private_dns_zone_resource_id = optional(string, null)
-    enable_diagnostic_settings   = optional(bool, true)
+    diagnostic_settings = optional(map(object({
+      name                                     = optional(string, null)
+      log_categories                           = optional(set(string), [])
+      log_groups                               = optional(set(string), ["allLogs"])
+      metric_categories                        = optional(set(string), ["AllMetrics"])
+      log_analytics_destination_type           = optional(string, "Dedicated")
+      workspace_resource_id                    = optional(string, null)
+      storage_account_resource_id              = optional(string, null)
+      event_hub_authorization_rule_resource_id = optional(string, null)
+      event_hub_name                           = optional(string, null)
+      marketplace_partner_resource_id          = optional(string, null)
+    })), {})
     sku                          = optional(string, "standard")
     tenant_id                    = optional(string)
     role_assignments = optional(map(object({
@@ -193,7 +226,7 @@ Configuration object for the Azure Key Vault to be created for GenAI services.
   - `existing_resource_id` - (Optional) The resource ID of an existing Key Vault to use. If provided, the vault will not be created and the other inputs will be ignored.
   - `name` - (Optional) The name of the Key Vault. If not provided, a name will be generated.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Key Vault. If one is not provided a private endpoint will not be created.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
+  - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic_settings interface.
   - `sku` - (Optional) The SKU of the Key Vault. Default is "standard".
   - `tenant_id` - (Optional) The tenant ID for the Key Vault. If not provided, the current tenant will be used.
   - `role_assignments` - (Optional) Map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
@@ -209,31 +242,21 @@ Configuration object for the Azure Key Vault to be created for GenAI services.
 DESCRIPTION
 }
 
-variable "law_definition" {
-  type = map(object({
-    existing_resource_id = optional(string, null)
-    name                 = optional(string)
-    retention            = optional(number, 30)
-    sku                  = optional(string, "PerGB2018")
-    tags                 = optional(map(string), {})
-  }))
-  default     = {}
-  description = <<DESCRIPTION
-Configuration object for the Log Analytics Workspace to be created for monitoring and logging.
-
-- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Log Analytics Workspaces.
-  - `existing_resource_id` - (Optional) The resource ID of an existing Log Analytics Workspace to use. If provided, the workspace will not be created and the other inputs will be ignored.
-  - `name` - (Optional) The name of the Log Analytics Workspace. If not provided, a name will be generated.
-  - `retention` - (Optional) The data retention period in days for the workspace. Default is 30.
-  - `sku` - (Optional) The SKU of the Log Analytics Workspace. Default is "PerGB2018".
-  - `tags` - (Optional) Map of tags to assign to the Log Analytics Workspace.
-DESCRIPTION
-}
-
 variable "storage_account_definition" {
   type = map(object({
-    existing_resource_id       = optional(string, null)
-    enable_diagnostic_settings = optional(bool, true)
+    existing_resource_id = optional(string, null)
+    diagnostic_settings_storage_account = optional(map(object({
+      name                                     = optional(string, null)
+      log_categories                           = optional(set(string), [])
+      log_groups                               = optional(set(string), ["allLogs"])
+      metric_categories                        = optional(set(string), ["AllMetrics"])
+      log_analytics_destination_type           = optional(string, "Dedicated")
+      workspace_resource_id                    = optional(string, null)
+      storage_account_resource_id              = optional(string, null)
+      event_hub_authorization_rule_resource_id = optional(string, null)
+      event_hub_name                           = optional(string, null)
+      marketplace_partner_resource_id          = optional(string, null)
+    })), {})
     name                       = optional(string, null)
     account_kind               = optional(string, "StorageV2")
     account_tier               = optional(string, "Standard")
@@ -269,7 +292,7 @@ Configuration object for the Azure Storage Account to be created for GenAI servi
 
 - `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Storage Accounts. This can be used in naming, so short alphanumeric keys are required to avoid hitting naming length limits for the Storage Account when using the base name naming option.
   - `existing_resource_id` - (Optional) The resource ID of an existing Storage Account to use. If provided, the account will not be created and the other inputs will be ignored.
-  - `enable_diagnostic_settings` - (Optional) Whether diagnostic settings are enabled. Default is true.
+  - `diagnostic_settings_storage_account` - (Optional) A map of diagnostic settings to create on the storage account. Each entry follows the AVM diagnostic_settings interface.
   - `name` - (Optional) The name of the Storage Account. If not provided, a name will be generated.
   - `account_kind` - (Optional) The kind of storage account. Default is "StorageV2".
   - `account_tier` - (Optional) The performance tier of the storage account. Default is "Standard".

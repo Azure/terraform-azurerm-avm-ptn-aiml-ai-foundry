@@ -6,19 +6,6 @@ module "avm_utl_regions" {
   recommended_filter = false
 }
 
-module "log_analytics_workspace" {
-  source   = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version  = "0.4.2"
-  for_each = { for k, v in var.law_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
-
-  location                                  = var.location
-  name                                      = local.log_analytics_workspace_name
-  resource_group_name                       = local.resource_group_name
-  enable_telemetry                          = var.enable_telemetry
-  log_analytics_workspace_retention_in_days = each.value.retention
-  log_analytics_workspace_sku               = each.value.sku
-}
-
 module "key_vault" {
   source   = "Azure/avm-res-keyvault-vault/azurerm"
   version  = "0.10.0"
@@ -28,12 +15,7 @@ module "key_vault" {
   name                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-kv-${random_string.resource_token.result}" : "kv-fndry-${random_string.resource_token.result}")
   resource_group_name = local.resource_group_name
   tenant_id           = each.value.tenant_id != null ? each.value.tenant_id : data.azurerm_client_config.current.tenant_id
-  diagnostic_settings = each.value.enable_diagnostic_settings ? {
-    to_law = {
-      name                  = "sendToLogAnalytics-kv-${random_string.resource_token.result}"
-      workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
-    }
-  } : {}
+  diagnostic_settings = each.value.diagnostic_settings
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
@@ -76,13 +58,7 @@ module "storage_account" {
   account_kind             = each.value.account_kind
   account_replication_type = each.value.account_replication_type
   account_tier             = each.value.account_tier
-  diagnostic_settings_storage_account = each.value.enable_diagnostic_settings ? {
-    storage = {
-      name                  = "sendToLogAnalytics-sa-${random_string.resource_token.result}"
-      workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
-      metric_categories     = ["Transaction", "Capacity"]
-    }
-  } : {}
+  diagnostic_settings_storage_account = each.value.diagnostic_settings_storage_account
   enable_telemetry = var.enable_telemetry
   network_rules = var.create_private_endpoints ? {
     default_action             = "Deny"
@@ -125,13 +101,7 @@ module "cosmosdb" {
     max_staleness_prefix    = each.value.consistency_policy.max_staleness_prefix
   }
   cors_rule = each.value.cors_rule
-  diagnostic_settings = each.value.enable_diagnostic_settings ? {
-    to_law = {
-      name                  = "sendToLogAnalytics-cosmosdb-${random_string.resource_token.result}"
-      workspace_resource_id = var.law_definition.existing_resource_id != null ? var.law_definition.existing_resource_id : module.log_analytics_workspace[0].resource_id
-      metric_categories     = ["SLI", "Requests"]
-    }
-  } : {}
+  diagnostic_settings = each.value.diagnostic_settings
   enable_telemetry = var.enable_telemetry
   geo_locations    = local.cosmosdb_secondary_regions[each.key]
   ip_range_filter = [
