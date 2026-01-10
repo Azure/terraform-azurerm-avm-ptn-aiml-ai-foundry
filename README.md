@@ -203,7 +203,7 @@ object({
       key_vault_resource_id              = string
       key_name                           = string
       key_version                        = optional(string, null)
-      user_assigned_identity_resource_id = optional(string, null)
+      user_assigned_identity_resource_id = string
     }), null)
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
@@ -864,13 +864,13 @@ Version: 0.10.0
 
 Source: Azure/avm-res-keyvault-vault/azurerm
 
-Version: 0.10.0
+Version: 0.10.2
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.4
+Version: 0.6.7
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

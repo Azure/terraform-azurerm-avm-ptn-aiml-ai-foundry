@@ -190,7 +190,7 @@ resource "azapi_resource" "ai_search" {
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.0"
+  version = "0.10.2"
 
   location                        = azurerm_resource_group.this.location
   name                            = module.naming.key_vault.name_unique
@@ -239,7 +239,7 @@ module "key_vault" {
 
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.4"
+  version = "0.6.7"
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
@@ -470,7 +470,7 @@ Version: 0.10.0
 
 Source: Azure/avm-res-keyvault-vault/azurerm
 
-Version: 0.10.0
+Version: 0.10.2
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
@@ -488,7 +488,7 @@ Version: 0.5.2
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.4
+Version: 0.6.7
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
