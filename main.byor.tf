@@ -25,15 +25,15 @@ module "key_vault" {
   }
   private_endpoints = var.create_private_endpoints ? {
     "vault" = {
-      private_dns_zone_resource_ids          = each.value.private_dns_zone_resource_id != null ? [each.value.private_dns_zone_resource_id] : []
-      subnet_resource_id                     = var.private_endpoint_subnet_resource_id
-      subresource_name                       = "vault"
+      private_dns_zone_resource_ids = each.value.private_dns_zone_resource_id != null ? [each.value.private_dns_zone_resource_id] : []
+      subnet_resource_id            = var.private_endpoint_subnet_resource_id
+      subresource_name              = "vault"
     }
   } : {}
   private_endpoints_manage_dns_zone_group = each.value.private_endpoints_manage_dns_zone_group
   public_network_access_enabled           = var.create_private_endpoints ? false : true
-  role_assignments              = local.key_vault_role_assignments[each.key]
-  tags                          = each.value.tags
+  role_assignments                        = local.key_vault_role_assignments[each.key]
+  tags                                    = each.value.tags
   wait_for_rbac_before_key_operations = {
     create = "60s"
   }
@@ -79,9 +79,9 @@ module "storage_account" {
   # Use the first endpoint's manage flag, or default to true if all are null
   private_endpoints_manage_dns_zone_group = try(coalesce([for ep in each.value.endpoints : ep.private_endpoints_manage_dns_zone_group]...), true)
   public_network_access_enabled           = var.create_private_endpoints ? false : true
-  role_assignments              = local.storage_account_role_assignments[each.key] #assumes the same role assignments will be used for all storage accounts in the map.
-  shared_access_key_enabled     = each.value.shared_access_key_enabled
-  tags                          = each.value.tags
+  role_assignments                        = local.storage_account_role_assignments[each.key] #assumes the same role assignments will be used for all storage accounts in the map.
+  shared_access_key_enabled               = each.value.shared_access_key_enabled
+  tags                                    = each.value.tags
 }
 
 module "cosmosdb" {
@@ -128,6 +128,6 @@ module "cosmosdb" {
   } : {}
   private_endpoints_manage_dns_zone_group = each.value.private_endpoints_manage_dns_zone_group
   public_network_access_enabled           = each.value.public_network_access_enabled
-  role_assignments              = each.value.role_assignments
-  tags                          = each.value.tags
+  role_assignments                        = each.value.role_assignments
+  tags                                    = each.value.tags
 }

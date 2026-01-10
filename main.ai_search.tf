@@ -98,14 +98,14 @@ resource "azurerm_private_endpoint" "pe_aisearch_unmanaged_dns_zone_groups" {
     ]
   }
 
-  lifecycle {
-    ignore_changes = [private_dns_zone_group]
-  }
-
   depends_on = [
     module.cosmosdb,
     azapi_resource.ai_search
   ]
+
+  lifecycle {
+    ignore_changes = [private_dns_zone_group]
+  }
 }
 
 resource "azurerm_role_assignment" "this_aisearch" {
