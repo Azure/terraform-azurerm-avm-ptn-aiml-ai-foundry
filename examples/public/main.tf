@@ -69,6 +69,9 @@ module "ai_foundry" {
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
+  tags = {
+    workload = "ai-foundry"
+  }
   ai_foundry = {
     create_ai_agent_service = true
     name                    = module.naming.cognitive_account.name_unique
@@ -155,9 +158,10 @@ module "ai_foundry" {
     this = {
       diagnostic_settings_storage_account = {
         to_law = {
-          name                  = "diag-to-law"
-          workspace_resource_id = azurerm_log_analytics_workspace.this.id
-          metric_categories     = ["AllMetrics"]
+          name                           = "diag-to-law"
+          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+          log_analytics_destination_type = "Dedicated"
+          metric_categories              = ["AllMetrics"]
         }
       }
     }
