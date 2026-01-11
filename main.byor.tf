@@ -53,8 +53,7 @@ module "storage_account" {
   version  = "0.6.7"
   for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
-  location = var.location
-  #name                     = local.storage_account_name
+  location                            = var.location
   name                                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${local.base_name_storage}${lower(each.key)}fndrysa${random_string.resource_token.result}" : "${lower(each.key)}fndrysa${random_string.resource_token.result}")
   resource_group_name                 = local.resource_group_name
   access_tier                         = each.value.access_tier

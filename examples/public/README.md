@@ -140,21 +140,14 @@ module "ai_foundry" {
     }
   }
   ai_search_definition = {
-    this = {
-      diagnostic_settings = {
-        to_law = {
-          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
-          log_analytics_destination_type = "Dedicated"
-          log_groups                     = ["allLogs"]
-          metric_categories              = ["AllMetrics"]
-        }
-      }
-    }
+    this = {}
   }
   cosmosdb_definition = {
     this = {
+      local_authentication_disabled = true
       diagnostic_settings = {
         to_law = {
+          name                           = "diag-to-law"
           workspace_resource_id          = azurerm_log_analytics_workspace.this.id
           log_analytics_destination_type = "Dedicated"
           log_groups                     = ["allLogs"]
@@ -165,19 +158,11 @@ module "ai_foundry" {
   }
   create_byor              = true
   create_private_endpoints = false # default: false
-  diagnostic_settings = {
-    to_law = {
-      name                           = "diag-to-law"
-      workspace_resource_id          = azurerm_log_analytics_workspace.this.id
-      log_analytics_destination_type = "Dedicated"
-      log_groups                     = ["allLogs"]
-      metric_categories              = ["AllMetrics"]
-    }
-  }
   key_vault_definition = {
     this = {
       diagnostic_settings = {
         to_law = {
+          name                           = "diag-to-law"
           workspace_resource_id          = azurerm_log_analytics_workspace.this.id
           log_analytics_destination_type = "Dedicated"
           log_groups                     = ["allLogs"]
@@ -187,16 +172,7 @@ module "ai_foundry" {
     }
   }
   storage_account_definition = {
-    this = {
-      diagnostic_settings_storage_account = {
-        to_law = {
-          name                           = "diag-to-law"
-          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
-          log_analytics_destination_type = "Dedicated"
-          metric_categories              = ["AllMetrics"]
-        }
-      }
-    }
+    this = {}
   }
   tags = {
     workload = "ai-foundry"
