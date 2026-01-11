@@ -105,25 +105,41 @@ module "ai_foundry" {
     }
   }
   ai_search_definition = {
-    this = {
-      enable_diagnostic_settings = false
-    }
+    this = {}
   }
   cosmosdb_definition = {
     this = {
-      enable_diagnostic_settings = false
+      local_authentication_disabled = true
+      diagnostic_settings = {
+        to_law = {
+          name                           = "diag-to-law"
+          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+          log_analytics_destination_type = "Dedicated"
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["SLI", "Requests"]
+        }
+      }
     }
   }
   create_byor              = true
   create_private_endpoints = false # default: false
   key_vault_definition = {
     this = {
-      enable_diagnostic_settings = false
+      diagnostic_settings = {
+        to_law = {
+          name                           = "diag-to-law"
+          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+          log_analytics_destination_type = "Dedicated"
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["AllMetrics"]
+        }
+      }
     }
   }
   storage_account_definition = {
-    this = {
-      enable_diagnostic_settings = false
-    }
+    this = {}
+  }
+  tags = {
+    workload = "ai-foundry"
   }
 }

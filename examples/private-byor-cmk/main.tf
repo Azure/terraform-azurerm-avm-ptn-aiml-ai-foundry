@@ -351,10 +351,14 @@ resource "azurerm_log_analytics_workspace" "this" {
 }
 
 # BYOR
-## TODO: Add private endpoints
-## Obviously with BYOR a whole set of permissions is required as well, which this ptn module covers but with BYOR it needs to be applied from the outside onto all BYORs
+## TODO: Add diagnostic settings to each BYOR resource
 
-## AI Search + PE
+resource "azurerm_user_assigned_identity" "this" {
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.user_assigned_identity.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+}
+
 resource "azapi_resource" "ai_search" {
   location  = azurerm_resource_group.this.location
   name      = module.naming.search_service.name_unique
@@ -394,64 +398,58 @@ resource "azapi_resource" "ai_search" {
   schema_validation_enabled = true
 }
 
-resource "azurerm_private_endpoint" "pe_aisearch" {
-  location            = azurerm_resource_group.this.location
-  name                = "${azapi_resource.ai_search.name}-private-endpoint"
-  resource_group_name = azurerm_resource_group.this.name
-  subnet_id           = azurerm_subnet.private_endpoints.id
-
-  private_service_connection {
-    is_manual_connection           = false
-    name                           = "${azapi_resource.ai_search.name}-private-link-service-connection"
-    private_connection_resource_id = azapi_resource.ai_search.id
-    subresource_names = [
-      "searchService"
-    ]
-  }
-  private_dns_zone_group {
-    name                 = "${azapi_resource.ai_search.name}-dns-config"
-    private_dns_zone_ids = [azurerm_private_dns_zone.search.id]
-  }
-
-  depends_on = [
-    module.cosmosdb,
-    azapi_resource.ai_search
-  ]
-}
-
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.0"
+  version = "0.10.2"
 
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.key_vault.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  diagnostic_settings = {
-    keyvault = {
-      name                  = "sendToLogAnalytics-kv-${module.naming.log_analytics_workspace.name_unique}"
-      workspace_resource_id = azurerm_log_analytics_workspace.this.id
-    }
-  }
+  location                        = azurerm_resource_group.this.location
+  name                            = module.naming.key_vault.name_unique
+  resource_group_name             = azurerm_resource_group.this.name
+  tenant_id                       = data.azurerm_client_config.current.tenant_id
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  keys = {
+    cmk = {
+      key_opts = [
+        "decrypt",
+        "encrypt",
+        "sign",
+        "unwrapKey",
+        "verify",
+        "wrapKey"
+      ]
+      key_type = "RSA"
+      name     = "cmk"
+      key_size = 2048
+    }
+  }
   network_acls = {
     default_action = "Allow"
     bypass         = "AzureServices"
+    # ip_rules = ["${data.http.ip.response_body}/32"]
   }
-  private_endpoints = {
-    "vault" = {
-      private_dns_zone_resource_ids = [azurerm_private_dns_zone.keyvault.id]
-      subnet_resource_id            = azurerm_subnet.private_endpoints.id
-      subresource_name              = "vault"
+  role_assignments = {
+    deployment_user_kv_admin = {
+      role_definition_id_or_name = "Key Vault Administrator"
+      principal_id               = data.azurerm_client_config.current.object_id
     }
+    user_assigned_identity_kv_admin = {
+      role_definition_id_or_name = "Key Vault Administrator"
+      principal_id               = azurerm_user_assigned_identity.this.principal_id
+    }
+  }
+  wait_for_rbac_before_key_operations = {
+    create = "60s"
+  }
+  wait_for_rbac_before_secret_operations = {
+    create = "60s"
   }
 }
 
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.4"
+  version = "0.6.7"
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
@@ -460,30 +458,12 @@ module "storage_account" {
   account_kind             = "StorageV2"
   account_replication_type = "ZRS"
   account_tier             = "Standard"
-  diagnostic_settings_blob = {
-    blob = {
-      name                  = "sendToLogAnalytics-blob-${module.naming.log_analytics_workspace.name_unique}"
-      workspace_resource_id = azurerm_log_analytics_workspace.this.id
-      log_categories        = ["audit", "alllogs"]
-      metric_categories     = ["Capacity", "Transaction"]
+  customer_managed_key = {
+    key_vault_resource_id = module.key_vault.resource_id
+    key_name              = "cmk"
+    user_assigned_identity = {
+      resource_id = azurerm_user_assigned_identity.this.id
     }
-  }
-  diagnostic_settings_storage_account = {
-    storage = {
-      name                  = "sendToLogAnalytics-storage-${module.naming.log_analytics_workspace.name_unique}"
-      workspace_resource_id = azurerm_log_analytics_workspace.this.id
-      metric_categories     = ["Capacity", "Transaction"]
-    }
-  }
-  private_endpoints = {
-    "blob" = {
-      private_dns_zone_resource_ids = [azurerm_private_dns_zone.storage_blob.id]
-      subnet_resource_id            = azurerm_subnet.private_endpoints.id
-      subresource_name              = "blob"
-    }
-  }
-  tags = {
-    environment = "test"
   }
 }
 
@@ -504,11 +484,11 @@ module "cosmosdb" {
     max_interval_in_seconds = 300
     max_staleness_prefix    = 100001
   }
-  diagnostic_settings = {
-    to_law = {
-      name                  = "diag"
-      workspace_resource_id = azurerm_log_analytics_workspace.this.id
-      metric_categories     = ["SLI", "Requests"]
+  customer_managed_key = {
+    key_vault_resource_id = module.key_vault.resource_id
+    key_name              = "cmk"
+    user_assigned_identity = {
+      resource_id = azurerm_user_assigned_identity.this.id
     }
   }
   ip_range_filter = [
@@ -521,14 +501,7 @@ module "cosmosdb" {
   multiple_write_locations_enabled      = false
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = false
-  private_endpoints = {
-    "cosmosdb" = {
-      private_dns_zone_resource_ids = [azurerm_private_dns_zone.cosmosdb.id]
-      subnet_resource_id            = azurerm_subnet.private_endpoints.id
-      subresource_name              = "sql"
-    }
-  }
-  public_network_access_enabled = true
+  public_network_access_enabled         = true
 }
 
 module "ai_foundry" {
@@ -538,19 +511,16 @@ module "ai_foundry" {
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
-    create_ai_agent_service       = true
-    name                          = module.naming.cognitive_account.name_unique
-    private_dns_zone_resource_ids = [azurerm_private_dns_zone.openai.id, azurerm_private_dns_zone.cognitiveservices.id, azurerm_private_dns_zone.ai_services.id]
-    network_injections = [{
-      scenario                   = "agent"
-      subnetArmId                = azurerm_subnet.agent_services.id
-      useMicrosoftManagedNetwork = false
-    }]
+    create_ai_agent_service = true
+    name                    = module.naming.cognitive_account.name_unique
     customer_managed_key = {
-      key_vault_resource_id              = azurerm_key_vault.this.id
-      key_name                           = azurerm_key_vault_key.cmk.name
-      key_version                        = null # Use latest version
-      user_assigned_identity_resource_id = azurerm_user_assigned_identity.cmk.id
+      key_vault_resource_id              = module.key_vault.resource_id
+      key_name                           = "cmk"
+      user_assigned_identity_resource_id = azurerm_user_assigned_identity.this.id
+    }
+    managed_identities = {
+      system_assigned            = true
+      user_assigned_resource_ids = toset([azurerm_user_assigned_identity.this.id])
     }
   }
   ai_model_deployments = {
@@ -589,54 +559,64 @@ module "ai_foundry" {
   }
   ai_search_definition = {
     this = {
-      existing_resource_id       = azapi_resource.ai_search.id
-      enable_diagnostic_settings = false
+      existing_resource_id = azapi_resource.ai_search.id
+      diagnostic_settings = {
+        to_law = {
+          name                  = "diag-to-law"
+          workspace_resource_id = azurerm_log_analytics_workspace.this.id
+          log_groups            = ["allLogs"]
+          metric_categories     = ["AllMetrics"]
+        }
+      }
     }
   }
   cosmosdb_definition = {
     this = {
-      existing_resource_id       = module.cosmosdb.resource_id
-      enable_diagnostic_settings = false
+      existing_resource_id = module.cosmosdb.resource_id
+      diagnostic_settings = {
+        to_law = {
+          name                  = "diag-to-law"
+          workspace_resource_id = azurerm_log_analytics_workspace.this.id
+          log_groups            = ["allLogs"]
+          metric_categories     = ["AllMetrics"]
+        }
+      }
     }
   }
   create_byor              = false # default: false
   create_private_endpoints = false # default: false
   key_vault_definition = {
     this = {
-      existing_resource_id       = module.key_vault.resource_id
-      enable_diagnostic_settings = false
-    }
-  }
-  law_definition = {
-    this = {
-      existing_resource_id = azurerm_log_analytics_workspace.this.id
+      existing_resource_id = module.key_vault.resource_id
+      diagnostic_settings = {
+        to_law = {
+          name                  = "diag-to-law"
+          workspace_resource_id = azurerm_log_analytics_workspace.this.id
+          log_groups            = ["allLogs"]
+          metric_categories     = ["AllMetrics"]
+        }
+      }
     }
   }
   storage_account_definition = {
     this = {
-      existing_resource_id       = module.storage_account.resource_id
-      enable_diagnostic_settings = false
+      existing_resource_id = module.storage_account.resource_id
+      diagnostic_settings_storage_account = {
+        to_law = {
+          name                  = "diag-to-law"
+          workspace_resource_id = azurerm_log_analytics_workspace.this.id
+          metric_categories     = ["AllMetrics"]
+        }
+      }
     }
   }
 
-  depends_on = [
-    azurerm_key_vault_key.cmk,
-    azapi_resource_action.purge_ai_foundry
-  ]
+  depends_on = [azapi_resource_action.purge_ai_foundry]
 }
 
-# Purge deleted AI Foundry account to release service association links
 resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
   resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
-  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2025-09-01"
+  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2021-04-30"
   when        = "destroy"
-
-  depends_on = [time_sleep.purge_ai_foundry_cooldown]
-}
-
-resource "time_sleep" "purge_ai_foundry_cooldown" {
-  destroy_duration = "20m"
-
-  depends_on = [azurerm_subnet.agent_services]
 }

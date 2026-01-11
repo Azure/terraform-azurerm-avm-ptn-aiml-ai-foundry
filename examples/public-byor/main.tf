@@ -67,7 +67,6 @@ resource "azurerm_log_analytics_workspace" "this" {
 }
 
 # BYOR
-## TODO: Add diagnostic settings to each BYOR resource
 
 resource "azapi_resource" "ai_search" {
   location  = azurerm_resource_group.this.location
@@ -110,7 +109,7 @@ resource "azapi_resource" "ai_search" {
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.0"
+  version = "0.10.2"
 
   location                        = azurerm_resource_group.this.location
   name                            = module.naming.key_vault.name_unique
@@ -127,7 +126,7 @@ module "key_vault" {
 
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.3"
+  version = "0.6.7"
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
@@ -140,7 +139,7 @@ module "storage_account" {
 
 module "cosmosdb" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "0.8.0"
+  version = "0.10.0"
 
   location                   = azurerm_resource_group.this.location
   name                       = module.naming.cosmosdb_account.name_unique
@@ -214,33 +213,52 @@ module "ai_foundry" {
   }
   ai_search_definition = {
     this = {
-      existing_resource_id       = azapi_resource.ai_search.id
-      enable_diagnostic_settings = false
+      existing_resource_id = azapi_resource.ai_search.id
     }
   }
   cosmosdb_definition = {
     this = {
-      existing_resource_id       = module.cosmosdb.resource_id
-      enable_diagnostic_settings = false
+      existing_resource_id = module.cosmosdb.resource_id
+      diagnostic_settings = {
+        to_law = {
+          name                           = "diag-to-law"
+          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+          log_analytics_destination_type = "Dedicated"
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["AllMetrics"]
+        }
+      }
     }
   }
   create_byor              = false # default: false
   create_private_endpoints = false # default: false
   key_vault_definition = {
     this = {
-      existing_resource_id       = module.key_vault.resource_id
-      enable_diagnostic_settings = false
-    }
-  }
-  law_definition = {
-    this = {
-      existing_resource_id = azurerm_log_analytics_workspace.this.id
+      existing_resource_id = module.key_vault.resource_id
+      diagnostic_settings = {
+        to_law = {
+          name                           = "diag-to-law"
+          workspace_resource_id          = azurerm_log_analytics_workspace.this.id
+          log_analytics_destination_type = "Dedicated"
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["AllMetrics"]
+        }
+      }
     }
   }
   storage_account_definition = {
     this = {
-      existing_resource_id       = module.storage_account.resource_id
-      enable_diagnostic_settings = false
+      existing_resource_id = module.storage_account.resource_id
+      diagnostic_settings_storage_account = {
+        to_law = {
+          name                  = "diag-to-law"
+          workspace_resource_id = azurerm_log_analytics_workspace.this.id
+          metric_categories     = ["AllMetrics"]
+        }
+      }
     }
+  }
+  tags = {
+    workload = "ai-foundry"
   }
 }

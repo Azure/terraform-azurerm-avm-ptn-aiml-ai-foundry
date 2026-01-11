@@ -1,76 +1,37 @@
 # Private example
 
-This example deploys a simple version of the module with private endpoints enabled.
+This deploys the module with private networking and secure access.
 
 ## Architecture
 
-This example deploys AI Foundry with private networking and supporting services:
+This example demonstrates a deployment with private endpoints for secure connectivity:
 
 ```mermaid
 graph TB
     subgraph "Azure Resource Group"
         subgraph "Virtual Network"
-            subgraph "Subnets"
-                PESNET[Private Endpoint<br/>Subnet]
-                BASSNET[Bastion Subnet]
-                VMSNET[VM Subnet]
-            end
+            PE_SUBNET[Private Endpoint<br/>Subnet]
+            PE_AF[Private Endpoint<br/>AI Foundry]
         end
-        
-        subgraph "Core Services"
-            AF[AI Foundry<br/>Account]
-            AFP[AI Foundry<br/>Project]
-            AFS[AI Agent<br/>Service]
-        end
-        
-        subgraph "BYOR Services"
-            KV[Key Vault]
-            SA[Storage Account]
-            CDB[Cosmos DB]
-            AIS[AI Search]
-        end
-        
-        subgraph "Management"
-            BAS[Bastion Host]
-            VM[Virtual Machine]
-            DNS[Private DNS<br/>Zones]
-            PE[Private<br/>Endpoints]
-        end
+
+        AF[AI Foundry<br/>Account]
+        AFP[AI Foundry<br/>Project]
+        AMD[AI Model<br/>Deployment]
     end
-    
-    %% Core relationships
+
     AF --> AFP
-    AFP --> AFS
-    AF -.-> KV
-    AF -.-> SA
-    AF -.-> CDB
-    AF -.-> AIS
-    
-    %% Private connectivity
-    PE -.-> AF
-    PE -.-> KV
-    PE -.-> SA
-    PE -.-> CDB
-    PE -.-> AIS
-    PESNET --> PE
-    DNS --> PE
-    
-    %% Management access
-    BAS --> VM
-    BASSNET --> BAS
-    VMSNET --> VM
-    
+    AF --> AMD
+    PE_AF -.-> AF
+    PE_SUBNET --> PE_AF
+
     classDef required fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef byor fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef network fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
-    
-    class AF,AFP,AFS required
-    class KV,SA,CDB,AIS byor
-    class PESNET,BASSNET,VMSNET,BAS,VM,DNS,PE network
+    classDef network fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    class AF,AFP,AMD required
+    class PE_SUBNET,PE_AF network
 ```
 
 **Components:**
-- 🔷 **Core AI Foundry** with private access
-- 🔶 **Supporting services** (Key Vault, Storage, Cosmos DB, AI Search)  
-- 🔷 **Private networking** with VNet isolation and Bastion access
-- All services connected via private endpoints for secure communication
+- AI Foundry Account with GPT-4 model deployment
+- AI Foundry Project for development workspace
+- Private endpoints for secure network access
+- No BYOR services (uses managed AI Foundry services)
