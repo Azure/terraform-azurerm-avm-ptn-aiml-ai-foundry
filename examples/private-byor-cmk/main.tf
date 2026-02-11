@@ -69,56 +69,6 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-# User-Assigned Managed Identity for CMK
-resource "azurerm_user_assigned_identity" "cmk" {
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.user_assigned_identity.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-}
-
-# Key Vault for CMK
-resource "azurerm_key_vault" "this" {
-  location                   = azurerm_resource_group.this.location
-  name                       = module.naming.key_vault.name_unique
-  resource_group_name        = azurerm_resource_group.this.name
-  sku_name                   = "standard"
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  enable_rbac_authorization  = true
-  purge_protection_enabled   = true
-  soft_delete_retention_days = 7
-}
-
-# Grant current user Key Vault Administrator role
-resource "azurerm_role_assignment" "kv_admin_current_user" {
-  principal_id         = data.azurerm_client_config.current.object_id
-  scope                = azurerm_key_vault.this.id
-  role_definition_name = "Key Vault Administrator"
-}
-
-# Wait for RBAC propagation
-resource "time_sleep" "rbac_wait" {
-  create_duration = "60s"
-
-  depends_on = [azurerm_role_assignment.kv_admin_current_user]
-}
-
-# Key Vault Key for encryption
-resource "azurerm_key_vault_key" "cmk" {
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-  key_type     = "RSA"
-  key_vault_id = azurerm_key_vault.this.id
-  name         = "cmk-key"
-  key_size     = 2048
-
-  depends_on = [time_sleep.rbac_wait]
-}
 
 # Virtual Network for private endpoints and agent services
 resource "azurerm_virtual_network" "this" {
@@ -405,6 +355,8 @@ module "key_vault" {
   location                        = azurerm_resource_group.this.location
   name                            = module.naming.key_vault.name_unique
   resource_group_name             = azurerm_resource_group.this.name
+  sku_name                        = "standard"
+  soft_delete_retention_days      = 7
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
@@ -460,7 +412,7 @@ module "storage_account" {
   account_tier             = "Standard"
   customer_managed_key = {
     key_vault_resource_id = module.key_vault.resource_id
-    key_name              = "cmk-key"
+    key_name              = "cmk"
     user_assigned_identity = {
       resource_id = azurerm_user_assigned_identity.this.id
     }
@@ -486,7 +438,7 @@ module "cosmosdb" {
   }
   customer_managed_key = {
     key_vault_resource_id = module.key_vault.resource_id
-    key_name              = "cmk-key"
+    key_name              = "cmk"
     user_assigned_identity = {
       resource_id = azurerm_user_assigned_identity.this.id
     }
@@ -515,7 +467,7 @@ module "ai_foundry" {
     name                    = module.naming.cognitive_account.name_unique
     customer_managed_key = {
       key_vault_resource_id              = module.key_vault.resource_id
-      key_name                           = "cmk-key"
+      key_name                           = "cmk"
       user_assigned_identity_resource_id = azurerm_user_assigned_identity.this.id
     }
     managed_identities = {
