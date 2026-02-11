@@ -460,7 +460,7 @@ module "storage_account" {
   account_tier             = "Standard"
   customer_managed_key = {
     key_vault_resource_id = module.key_vault.resource_id
-    key_name              = "cmk"
+    key_name              = "cmk-key"
     user_assigned_identity = {
       resource_id = azurerm_user_assigned_identity.this.id
     }
@@ -486,7 +486,7 @@ module "cosmosdb" {
   }
   customer_managed_key = {
     key_vault_resource_id = module.key_vault.resource_id
-    key_name              = "cmk"
+    key_name              = "cmk-key"
     user_assigned_identity = {
       resource_id = azurerm_user_assigned_identity.this.id
     }
@@ -515,7 +515,7 @@ module "ai_foundry" {
     name                    = module.naming.cognitive_account.name_unique
     customer_managed_key = {
       key_vault_resource_id              = module.key_vault.resource_id
-      key_name                           = "cmk"
+      key_name                           = "cmk-key"
       user_assigned_identity_resource_id = azurerm_user_assigned_identity.this.id
     }
     managed_identities = {
