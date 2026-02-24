@@ -27,7 +27,7 @@ locals {
   #################################################################
   # General local variables
   #################################################################
-  paired_region       = [for region in module.avm_utl_regions.regions : region if(lower(region.name) == lower(var.location) || (lower(region.display_name) == lower(var.location)))][0].paired_region_name
+  paired_region       = var.location == "usgovvirginia" 
   resource_group_name = basename(var.resource_group_resource_id) #assumes resource group id is required.
   storage_account_default_role_assignments = {
     #holding this variable in the event we need to add static defaults in the future.
