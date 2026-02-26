@@ -385,6 +385,14 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_cognitive_services_api_version"></a> [cognitive\_services\_api\_version](#input\_cognitive\_services\_api\_version)
+
+Description: API version used for Microsoft.CognitiveServices account resources. Use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
+
+Type: `string`
+
+Default: `"2025-10-01-preview"`
+
 ### <a name="input_cosmosdb_definition"></a> [cosmosdb\_definition](#input\_cosmosdb\_definition)
 
 Description: Configuration object for the Azure Cosmos DB account to be created for GenAI services.
