@@ -22,7 +22,7 @@ variable "resource_group_resource_id" {
 variable "ai_model_deployments" {
   type = map(object({
     name                   = string
-    rai_policy_name        = optional(string)
+    rai_policy_name        = optional(string, "Microsoft.DefaultV2")
     version_upgrade_option = optional(string, "OnceNewDefaultVersionAvailable")
     model = object({
       format  = string
@@ -41,7 +41,7 @@ variable "ai_model_deployments" {
   description = <<DESCRIPTION
 Configuration for AI model deployments (including OpenAI). Each deployment includes:
 - `name` - The name of the deployment
-- `rai_policy_name` - (Optional) The name of the RAI policy
+- `rai_policy_name` - (Optional) The name of the RAI policy. Default is "Microsoft.DefaultV2".
 - `version_upgrade_option` - (Optional) How to handle version upgrades (default: "OnceNewDefaultVersionAvailable")
 - `model` - The model configuration:
   - `format` - The format of the model (e.g., "OpenAI")
