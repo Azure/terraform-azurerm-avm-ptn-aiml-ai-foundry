@@ -224,7 +224,7 @@ Default: `{}`
 
 Description: Configuration for AI model deployments (including OpenAI). Each deployment includes:
 - `name` - The name of the deployment
-- `rai_policy_name` - (Optional) The name of the RAI policy
+- `rai_policy_name` - (Optional) The name of the RAI policy. Default is "Microsoft.DefaultV2".
 - `version_upgrade_option` - (Optional) How to handle version upgrades (default: "OnceNewDefaultVersionAvailable")
 - `model` - The model configuration:
   - `format` - The format of the model (e.g., "OpenAI")
@@ -242,7 +242,7 @@ Type:
 ```hcl
 map(object({
     name                   = string
-    rai_policy_name        = optional(string)
+    rai_policy_name        = optional(string, "Microsoft.DefaultV2")
     version_upgrade_option = optional(string, "OnceNewDefaultVersionAvailable")
     model = object({
       format  = string
@@ -384,6 +384,14 @@ map(object({
 ```
 
 Default: `{}`
+
+### <a name="input_cognitive_services_api_version"></a> [cognitive\_services\_api\_version](#input\_cognitive\_services\_api\_version)
+
+Description: API version used for Microsoft.CognitiveServices account resources. Use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
+
+Type: `string`
+
+Default: `"2025-10-01-preview"`
 
 ### <a name="input_cosmosdb_definition"></a> [cosmosdb\_definition](#input\_cosmosdb\_definition)
 

@@ -58,3 +58,17 @@ Configuration object for the Azure AI Foundry service to be created for AI workl
   - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
 DESCRIPTION
 }
+
+variable "cognitive_services_api_version" {
+  type        = string
+  default     = "2025-10-01-preview"
+  description = "API version used for Microsoft.CognitiveServices account resources. Use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`."
+
+  validation {
+    condition = contains([
+      "2025-07-01-preview",
+      "2025-10-01-preview"
+    ], var.cognitive_services_api_version)
+    error_message = "Allowed values for cognitive_services_api_version are 2025-07-01-preview and 2025-10-01-preview."
+  }
+}
