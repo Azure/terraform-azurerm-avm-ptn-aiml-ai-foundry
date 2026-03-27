@@ -37,7 +37,7 @@ resource "time_sleep" "wait_project_identities" {
 resource "azapi_resource" "connection_storage" {
   count = var.create_project_connections ? 1 : 0
 
-  name      = "storage-${basename(var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d")}"
+  name      = basename(var.create_project_connections ? "${var.name}-${substr(md5(lower(basename(var.storage_account_id))), 0, 6)}" : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
@@ -63,7 +63,7 @@ resource "azapi_resource" "connection_storage" {
 resource "azapi_resource" "connection_cosmos" {
   count = var.create_project_connections ? 1 : 0
 
-  name      = "cosmos-${basename(var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d")}"
+  name      = basename(var.create_project_connections ? "${var.name}-${substr(md5(lower(basename(var.cosmos_db_id))), 0, 6)}" : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
@@ -89,7 +89,7 @@ resource "azapi_resource" "connection_cosmos" {
 resource "azapi_resource" "connection_search" {
   count = var.create_project_connections ? 1 : 0
 
-  name      = "search-${basename(var.create_project_connections ? var.ai_search_id : "/n/o/t/u/s/e/d")}"
+  name      = basename(var.create_project_connections ? "${var.name}-${substr(md5(lower(basename(var.ai_search_id))), 0, 6)}" : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
   body = {
@@ -162,4 +162,3 @@ resource "time_sleep" "wait_rbac_before_capability_host" {
     time_sleep.wait_project_identities
   ]
 }
-
