@@ -9,12 +9,8 @@ resource "azapi_resource" "ai_foundry" {
     sku = {
       name = var.ai_foundry.sku
     }
-    identity = {
-      type = var.ai_foundry.customer_managed_key != null ? "SystemAssigned, UserAssigned" : "SystemAssigned"
-      userAssignedIdentities = var.ai_foundry.customer_managed_key != null ? {
-        (var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id) = {}
-      } : null
-    }
+
+    identity = locals.system_assigned_user_assigned
 
     properties = {
       disableLocalAuth       = var.ai_foundry.disable_local_auth

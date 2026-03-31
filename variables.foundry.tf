@@ -27,6 +27,10 @@ variable "ai_foundry" {
       delegated_managed_identity_resource_id = optional(string, null)
       principal_type                         = optional(string, null)
     })), {})
+    managed_identities = optional(object({
+      system_assigned            = optional(bool, true) # Default to SystemAssigned managed identity
+      user_assigned_resource_ids = optional(set(string), [])
+    }), {})
   })
   default     = {}
   description = <<DESCRIPTION
