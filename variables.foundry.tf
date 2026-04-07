@@ -27,6 +27,10 @@ variable "ai_foundry" {
       delegated_managed_identity_resource_id = optional(string, null)
       principal_type                         = optional(string, null)
     })), {})
+    managed_identities = optional(object({
+      system_assigned            = optional(bool, true) # Default to SystemAssigned managed identity
+      user_assigned_resource_ids = optional(set(string), [])
+    }), { system_assigned = true })
   })
   default     = {}
   description = <<DESCRIPTION
@@ -56,6 +60,9 @@ Configuration object for the Azure AI Foundry service to be created for AI workl
   - `condition_version` - (Optional) Version of the condition.
   - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.
   - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
+- `managed_identities` - (Optional) Controls the Managed Identity configuration on the Foundry resource. The following properties can be specified:
+  - `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
+  - `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
 DESCRIPTION
 }
 
