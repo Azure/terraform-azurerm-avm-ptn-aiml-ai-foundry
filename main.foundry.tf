@@ -172,7 +172,7 @@ resource "time_sleep" "ai_foundry_wait" {
 }
 
 resource "azurerm_private_endpoint" "ai_foundry" {
-  count = var.create_private_endpoints ? 1 : 0
+  count = var.create_private_endpoints && var.ai_foundry.private_endpoints_manage_dns_zone_group ? 1 : 0
 
   location            = var.location
   name                = "pe-${azapi_resource.ai_foundry.name}"
@@ -186,9 +186,36 @@ resource "azurerm_private_endpoint" "ai_foundry" {
     private_connection_resource_id = azapi_resource.ai_foundry.id
     subresource_names              = ["account"]
   }
-  private_dns_zone_group {
-    name                 = "pe-${azapi_resource.ai_foundry.name}-dns"
-    private_dns_zone_ids = var.ai_foundry.private_dns_zone_resource_ids
+  dynamic "private_dns_zone_group" {
+    for_each = length(var.ai_foundry.private_dns_zone_resource_ids) > 0 ? ["this"] : []
+
+    content {
+      name                 = "pe-${azapi_resource.ai_foundry.name}-dns"
+      private_dns_zone_ids = var.ai_foundry.private_dns_zone_resource_ids
+    }
+  }
+
+  depends_on = [azapi_resource.ai_foundry, time_sleep.ai_foundry_wait]
+}
+
+resource "azurerm_private_endpoint" "ai_foundry_unmanaged_dns_zone_groups" {
+  count = var.create_private_endpoints && !var.ai_foundry.private_endpoints_manage_dns_zone_group ? 1 : 0
+
+  location            = var.location
+  name                = "pe-${azapi_resource.ai_foundry.name}"
+  resource_group_name = basename(var.resource_group_resource_id)
+  subnet_id           = var.private_endpoint_subnet_resource_id
+  tags                = var.tags
+
+  private_service_connection {
+    is_manual_connection           = false
+    name                           = "psc-${azapi_resource.ai_foundry.name}"
+    private_connection_resource_id = azapi_resource.ai_foundry.id
+    subresource_names              = ["account"]
+  }
+
+  lifecycle {
+    ignore_changes = [private_dns_zone_group]
   }
 
   depends_on = [azapi_resource.ai_foundry, time_sleep.ai_foundry_wait]

@@ -9,8 +9,9 @@ variable "ai_foundry" {
       subnetArmId                = string
       useMicrosoftManagedNetwork = optional(bool, false)
     })), null)
-    private_dns_zone_resource_ids = optional(list(string), [])
-    sku                           = optional(string, "S0")
+    private_dns_zone_resource_ids           = optional(list(string), [])
+    private_endpoints_manage_dns_zone_group = optional(bool, true)
+    sku                                     = optional(string, "S0")
     customer_managed_key = optional(object({
       key_vault_resource_id              = string
       key_name                           = string
@@ -40,7 +41,8 @@ Configuration object for the Azure AI Foundry service to be created for AI workl
   - `scenario` - (Optional) The scenario for the network injection. Default is "agent".
   - `subnetArmId` - The subnet ARM ID for the AI agent service.
   - `useMicrosoftManagedNetwork` - (Optional) Whether to use Microsoft managed network for the injection. Default is false.
-- `private_dns_zone_resource_ids` - (Optional) The resource IDs of the existing private DNS zones for AI Foundry. Required when `create_private_endpoints` is true.
+- `private_dns_zone_resource_ids` - (Optional) The resource IDs of the existing private DNS zones for AI Foundry. Required when `create_private_endpoints` is true and `private_endpoints_manage_dns_zone_group` is true.
+- `private_endpoints_manage_dns_zone_group` - (Optional) Whether to manage the private DNS zone group for the AI Foundry private endpoint with this module. Set to `false` when DNS zone groups are managed externally, e.g. via Azure Policy. Default is `true`.
 - `sku` - (Optional) The SKU of the AI Foundry service. Default is "S0".
 - `customer_managed_key` - (Optional) Customer-managed key encryption configuration. Requires a Key Vault with an existing key and a user-assigned managed identity with "Key Vault Crypto User" role on the Key Vault.
   - `key_vault_resource_id` - Resource ID of the Key Vault containing the encryption key.
