@@ -35,6 +35,13 @@ variable "account_capability_host_id" {
   description = "Resource ID of the account-level capability host (if exists) to ensure it completes before project capability host creation"
 }
 
+variable "account_user_assigned_identity_principal_ids" {
+  type        = list(string)
+  default     = []
+  description = "Principal IDs of any user-assigned managed identities attached to the parent AI Foundry account. These principals are granted the same Cosmos DB and Storage data-plane roles as the project's system-assigned identity, per the Standard Agent Setup documentation."
+  nullable    = false
+}
+
 variable "ai_search_id" {
   type        = string
   default     = null

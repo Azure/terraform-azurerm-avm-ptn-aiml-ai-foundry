@@ -21,6 +21,15 @@ locals {
       role_definition_id_or_name = "Storage Blob Data Contributor"
     }
   }
+
+  # Principals that need Cosmos DB / Storage data-plane access for the Standard Agent setup.
+  # Always includes the project's system-assigned identity. When the parent Foundry account also
+  # has user-assigned managed identities, those principals must also be granted the same roles
+  # (per the Standard Agent Setup documentation).
+  cosmos_data_plane_principal_ids = compact(concat(
+    [azapi_resource.ai_foundry_project.output.identity.principalId],
+    var.account_user_assigned_identity_principal_ids
+  ))
 }
 
 resource "azurerm_role_assignment" "ai_search_role_assignments" {
@@ -62,59 +71,30 @@ resource "azurerm_role_assignment" "storage_role_assignments" {
 
 
 # Control-plane role assignments are handled in the main module to avoid dependency issues - causes cycle errors if done externally.  Move here.
-# Data Plane Role Assignments for Cosmos DB containers created by AI Foundry Project
-resource "azurerm_cosmosdb_sql_role_assignment" "thread_message_store" {
-  count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
+# Data Plane Role Assignment for Cosmos DB - scoped at database level so it covers all containers,
+# including the `<project-guid>-agent-definitions-v1` container that is created dynamically by AI
+# Foundry at first agent deployment. Container-level scoping was insufficient (issue #72).
+resource "azurerm_cosmosdb_sql_role_assignment" "enterprise_memory_db_contributor" {
+  for_each = var.create_ai_agent_service && var.create_project_connections ? toset(local.cosmos_data_plane_principal_ids) : toset([])
 
-  account_name        = basename(var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d")
-  principal_id        = azapi_resource.ai_foundry_project.output.identity.principalId
+  account_name        = basename(var.cosmos_db_id)
+  principal_id        = each.value
   resource_group_name = split("/", var.cosmos_db_id)[4]
   role_definition_id  = "${var.cosmos_db_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
-  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory/colls/${local.project_id_guid}-thread-message-store"
-  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}userthreadmessage_dbsqlrole")
+  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory"
+  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${each.value}enterprisememory_dbsqlrole")
 
   depends_on = [
     azapi_resource.ai_agent_capability_host
   ]
 }
 
-resource "azurerm_cosmosdb_sql_role_assignment" "system_thread_message_store" {
-  count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
-
-  account_name        = basename(var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d")
-  principal_id        = azapi_resource.ai_foundry_project.output.identity.principalId
-  resource_group_name = split("/", var.cosmos_db_id)[4]
-  role_definition_id  = "${var.cosmos_db_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
-  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory/colls/${local.project_id_guid}-system-thread-message-store"
-  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}systemthread_dbsqlrole")
-
-  depends_on = [
-    azurerm_cosmosdb_sql_role_assignment.thread_message_store,
-    azapi_resource.ai_agent_capability_host
-  ]
-}
-
-resource "azurerm_cosmosdb_sql_role_assignment" "agent_entity_store" {
-  count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
-
-  account_name        = basename(var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d")
-  principal_id        = azapi_resource.ai_foundry_project.output.identity.principalId
-  resource_group_name = split("/", var.cosmos_db_id)[4]
-  role_definition_id  = "${var.cosmos_db_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
-  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory/colls/${local.project_id_guid}-agent-entity-store"
-  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}entitystore_dbsqlrole")
-
-  depends_on = [
-    azurerm_cosmosdb_sql_role_assignment.system_thread_message_store,
-    azapi_resource.ai_agent_capability_host
-  ]
-}
-
-# Advanced Storage Blob Data Owner assignment with ABAC conditions
+# Advanced Storage Blob Data Owner assignment with ABAC conditions. Applied to every principal
+# that needs data-plane access (project SMI plus any account-level UMI principals).
 resource "azurerm_role_assignment" "storage_blob_data_owner" {
-  count = var.create_ai_agent_service && var.create_project_connections != null ? 1 : 0
+  for_each = var.create_ai_agent_service && var.create_project_connections ? toset(local.cosmos_data_plane_principal_ids) : toset([])
 
-  principal_id         = azapi_resource.ai_foundry_project.output.identity.principalId
+  principal_id         = each.value
   scope                = var.storage_account_id
   condition            = <<-EOT
   (
@@ -129,7 +109,7 @@ resource "azurerm_role_assignment" "storage_blob_data_owner" {
   )
   EOT
   condition_version    = "2.0"
-  name                 = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}${basename(var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d")}storageblobdataowner")
+  name                 = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${each.value}${basename(var.storage_account_id)}storageblobdataowner")
   principal_type       = "ServicePrincipal"
   role_definition_name = "Storage Blob Data Owner"
 

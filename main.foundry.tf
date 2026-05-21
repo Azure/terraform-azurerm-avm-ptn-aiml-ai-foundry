@@ -10,22 +10,16 @@ resource "azapi_resource" "ai_foundry" {
       name = var.ai_foundry.sku
     }
     identity = {
-      type = var.ai_foundry.customer_managed_key != null ? "SystemAssigned, UserAssigned" : "SystemAssigned"
-      userAssignedIdentities = var.ai_foundry.customer_managed_key != null ? {
-        (var.ai_foundry.customer_managed_key.user_assigned_identity_resource_id) = {}
-      } : null
+      type                   = local.ai_foundry_identity_type
+      userAssignedIdentities = local.ai_foundry_user_assigned_identities
     }
 
     properties = {
       disableLocalAuth       = var.ai_foundry.disable_local_auth
       allowProjectManagement = var.ai_foundry.allow_project_management
       customSubDomainName    = local.ai_foundry_name
-      publicNetworkAccess    = var.create_private_endpoints ? "Disabled" : "Enabled"
-      networkAcls = {
-        defaultAction       = "Allow"
-        virtualNetworkRules = []
-        ipRules             = []
-      }
+      publicNetworkAccess    = local.ai_foundry_public_network_access
+      networkAcls            = local.ai_foundry_network_acls
 
       # Enable VNet injection for Standard Agents
       networkInjections = var.ai_foundry.create_ai_agent_service ? var.ai_foundry.network_injections : null
@@ -174,10 +168,10 @@ resource "time_sleep" "ai_foundry_wait" {
 resource "azurerm_private_endpoint" "ai_foundry" {
   count = var.create_private_endpoints ? 1 : 0
 
-  location            = var.location
+  location            = local.foundry_pe_location
   name                = "pe-${azapi_resource.ai_foundry.name}"
-  resource_group_name = basename(var.resource_group_resource_id)
-  subnet_id           = var.private_endpoint_subnet_resource_id
+  resource_group_name = local.foundry_pe_resource_group_name
+  subnet_id           = local.foundry_pe_subnet_id
   tags                = var.tags
 
   private_service_connection {
@@ -186,9 +180,13 @@ resource "azurerm_private_endpoint" "ai_foundry" {
     private_connection_resource_id = azapi_resource.ai_foundry.id
     subresource_names              = ["account"]
   }
-  private_dns_zone_group {
-    name                 = "pe-${azapi_resource.ai_foundry.name}-dns"
-    private_dns_zone_ids = var.ai_foundry.private_dns_zone_resource_ids
+
+  dynamic "private_dns_zone_group" {
+    for_each = local.foundry_pe_manage_dns_zone_group ? [1] : []
+    content {
+      name                 = "pe-${azapi_resource.ai_foundry.name}-dns"
+      private_dns_zone_ids = local.foundry_pe_private_dns_zone_ids
+    }
   }
 
   depends_on = [azapi_resource.ai_foundry, time_sleep.ai_foundry_wait]
