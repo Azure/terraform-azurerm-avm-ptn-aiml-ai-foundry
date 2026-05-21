@@ -89,6 +89,7 @@ The following resources are used by this module:
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 - [azurerm_key_vault.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) (data source)
 - [azurerm_key_vault_key.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_key) (data source)
+- [azurerm_user_assigned_identity.ai_foundry_account](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) (data source)
 - [azurerm_user_assigned_identity.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
@@ -131,8 +132,23 @@ Description: Configuration object for the Azure AI Foundry service to be created
   - `scenario` - (Optional) The scenario for the network injection. Default is "agent".
   - `subnetArmId` - The subnet ARM ID for the AI agent service.
   - `useMicrosoftManagedNetwork` - (Optional) Whether to use Microsoft managed network for the injection. Default is false.
-- `private_dns_zone_resource_ids` - (Optional) The resource IDs of the existing private DNS zones for AI Foundry. Required when `create_private_endpoints` is true.
+- `private_dns_zone_resource_ids` - (Optional) The resource IDs of the existing private DNS zones for AI Foundry. Required when `create_private_endpoints` is true and `private_endpoint.unmanaged_dns_zone_group_enabled` is false.
 - `sku` - (Optional) The SKU of the AI Foundry service. Default is "S0".
+- `public_network_access_enabled` - (Optional) Override the public network access setting on the Foundry account. When null (default), the value is derived from `create_private_endpoints` (`false` when private endpoints are enabled, `true` otherwise). Set to `true` or `false` to override.
+- `network_acls` - (Optional) Network ACLs applied to the Foundry account. When null (default), the account allows traffic from all networks. Set to restrict traffic when running in production landing zones.
+  - `default_action` - (Optional) `Allow` or `Deny`. Default `Allow`.
+  - `bypass` - (Optional) Bypass rule for trusted Azure services. Use `AzureServices` to permit Microsoft services to bypass the rules.
+  - `ip_rules` - (Optional) List of CIDR ranges or IPv4 addresses allowed inbound access.
+  - `virtual_network_rules` - (Optional) List of subnet objects allowed inbound access. Each entry requires `subnet_resource_id` and optionally `ignore_missing_vnet_service_endpoint`.
+- `private_endpoint` - (Optional) Override block for the AI Foundry account private endpoint. All fields are optional and fall back to the root-level `private_endpoint_subnet_resource_id`, `resource_group_resource_id`, `location`, and the top-level `private_dns_zone_resource_ids` when null. Used when the Foundry account PE must live in a different resource group, region, subnet, or use unmanaged DNS.
+  - `resource_group_resource_id` - (Optional) Resource ID of the resource group hosting the private endpoint. Defaults to the module's resource group.
+  - `location` - (Optional) Azure region for the private endpoint. Defaults to the module's location.
+  - `subnet_resource_id` - (Optional) Subnet resource ID for the private endpoint NIC. Defaults to `private_endpoint_subnet_resource_id`.
+  - `private_dns_zone_resource_ids` - (Optional) Override list of private DNS zone resource IDs. Defaults to `ai_foundry.private_dns_zone_resource_ids`.
+  - `unmanaged_dns_zone_group_enabled` - (Optional) When true, no `private_dns_zone_group` is created on the private endpoint. Use this when DNS A records are produced by an Azure Policy (DINE/Modify) on the platform DNS zones in a hub subscription. Default false.
+- `managed_identities` - (Optional) Identity configuration for the AI Foundry account.
+  - `system_assigned` - (Optional) Enable the system-assigned managed identity. Default true.
+  - `user_assigned_resource_ids` - (Optional) Set of user-assigned managed identity resource IDs to attach to the account. When the Foundry account also creates an AI Agent service, every user-assigned identity is granted the Cosmos DB and Storage data-plane roles required by the Standard Agent Setup.
 - `customer_managed_key` - (Optional) Customer-managed key encryption configuration. Requires a Key Vault with an existing key and a user-assigned managed identity with "Key Vault Crypto User" role on the Key Vault.
   - `key_vault_resource_id` - Resource ID of the Key Vault containing the encryption key.
   - `key_name` - Name of the Key Vault key to use for encryption.
@@ -163,6 +179,27 @@ object({
     })), null)
     private_dns_zone_resource_ids = optional(list(string), [])
     sku                           = optional(string, "S0")
+    public_network_access_enabled = optional(bool, null)
+    network_acls = optional(object({
+      default_action = optional(string, "Allow")
+      bypass         = optional(string, null)
+      ip_rules       = optional(list(string), [])
+      virtual_network_rules = optional(list(object({
+        subnet_resource_id                   = string
+        ignore_missing_vnet_service_endpoint = optional(bool, false)
+      })), [])
+    }), null)
+    private_endpoint = optional(object({
+      resource_group_resource_id       = optional(string, null)
+      location                         = optional(string, null)
+      subnet_resource_id               = optional(string, null)
+      private_dns_zone_resource_ids    = optional(list(string), null)
+      unmanaged_dns_zone_group_enabled = optional(bool, false)
+    }), null)
+    managed_identities = optional(object({
+      system_assigned            = optional(bool, true)
+      user_assigned_resource_ids = optional(set(string), [])
+    }), { system_assigned = true, user_assigned_resource_ids = [] })
     customer_managed_key = optional(object({
       key_vault_resource_id              = string
       key_name                           = string
@@ -537,8 +574,8 @@ Default: `{}`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
-Description: This variable controls whether or not telemetry is enabled for the module.
-For more information see <https://aka.ms/avm/telemetryinfo>.
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see <https://aka.ms/avm/telemetryinfo>.  
 If it is set to false, then no telemetry will be collected.
 
 Type: `bool`

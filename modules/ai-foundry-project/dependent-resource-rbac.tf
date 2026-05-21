@@ -9,6 +9,14 @@ locals {
       role_definition_id_or_name = "Search Service Contributor"
     }
   }
+  # Principals that need Cosmos DB / Storage data-plane access for the Standard Agent setup.
+  # Always includes the project's system-assigned identity. When the parent Foundry account also
+  # has user-assigned managed identities, those principals must also be granted the same roles
+  # (per the Standard Agent Setup documentation).
+  cosmos_data_plane_principal_ids = compact(concat(
+    [azapi_resource.ai_foundry_project.output.identity.principalId],
+    var.account_user_assigned_identity_principal_ids
+  ))
   cosmosdb_default_role_assignments = {
     cosmosdb_operator = {
       name                       = "${var.name}-cosmosdb-operator"
@@ -21,15 +29,6 @@ locals {
       role_definition_id_or_name = "Storage Blob Data Contributor"
     }
   }
-
-  # Principals that need Cosmos DB / Storage data-plane access for the Standard Agent setup.
-  # Always includes the project's system-assigned identity. When the parent Foundry account also
-  # has user-assigned managed identities, those principals must also be granted the same roles
-  # (per the Standard Agent Setup documentation).
-  cosmos_data_plane_principal_ids = compact(concat(
-    [azapi_resource.ai_foundry_project.output.identity.principalId],
-    var.account_user_assigned_identity_principal_ids
-  ))
 }
 
 resource "azurerm_role_assignment" "ai_search_role_assignments" {

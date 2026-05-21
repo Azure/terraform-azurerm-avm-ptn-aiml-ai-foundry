@@ -26,9 +26,7 @@ The following resources are used by this module:
 - [azapi_resource.connection_cosmos](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.connection_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.connection_storage](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azurerm_cosmosdb_sql_role_assignment.agent_entity_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) (resource)
-- [azurerm_cosmosdb_sql_role_assignment.system_thread_message_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) (resource)
-- [azurerm_cosmosdb_sql_role_assignment.thread_message_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) (resource)
+- [azurerm_cosmosdb_sql_role_assignment.enterprise_memory_db_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) (resource)
 - [azurerm_role_assignment.ai_search_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.cosmosdb_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.storage_blob_data_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
@@ -88,6 +86,14 @@ Description: Resource ID of the account-level capability host (if exists) to ens
 Type: `string`
 
 Default: `null`
+
+### <a name="input_account_user_assigned_identity_principal_ids"></a> [account\_user\_assigned\_identity\_principal\_ids](#input\_account\_user\_assigned\_identity\_principal\_ids)
+
+Description: Principal IDs of any user-assigned managed identities attached to the parent AI Foundry account. These principals are granted the same Cosmos DB and Storage data-plane roles as the project's system-assigned identity, per the Standard Agent Setup documentation.
+
+Type: `list(string)`
+
+Default: `[]`
 
 ### <a name="input_ai_search_id"></a> [ai\_search\_id](#input\_ai\_search\_id)
 

@@ -180,9 +180,9 @@ resource "azurerm_private_endpoint" "ai_foundry" {
     private_connection_resource_id = azapi_resource.ai_foundry.id
     subresource_names              = ["account"]
   }
-
   dynamic "private_dns_zone_group" {
     for_each = local.foundry_pe_manage_dns_zone_group ? [1] : []
+
     content {
       name                 = "pe-${azapi_resource.ai_foundry.name}-dns"
       private_dns_zone_ids = local.foundry_pe_private_dns_zone_ids
