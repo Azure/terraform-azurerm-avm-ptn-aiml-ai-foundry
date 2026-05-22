@@ -157,7 +157,7 @@ module "ai_foundry" {
     }
   }
   create_byor              = true
-  create_private_endpoints = false # default: false
+  create_private_endpoints = false
   key_vault_definition = {
     this = {
       diagnostic_settings = {

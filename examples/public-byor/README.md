@@ -191,10 +191,11 @@ module "cosmosdb" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
   version = "0.10.0"
 
-  location                   = azurerm_resource_group.this.location
-  name                       = module.naming.cosmosdb_account.name_unique
-  resource_group_name        = azurerm_resource_group.this.name
-  analytical_storage_enabled = true
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.cosmosdb_account.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+  # Azure no longer permits enabling Analytical Storage during account creation.
+  analytical_storage_enabled = false
   automatic_failover_enabled = true
   capacity = {
     total_throughput_limit = -1

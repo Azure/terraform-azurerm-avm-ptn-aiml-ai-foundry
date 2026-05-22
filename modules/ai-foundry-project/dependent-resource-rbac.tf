@@ -1,4 +1,9 @@
 locals {
+  # Account-level user-assigned managed identity principals. These come from a data source
+  # (resolved at plan time) and are safe to use as for_each keys. The project's own
+  # system-assigned identity principal is only known after apply, so it gets its own
+  # count-based role assignments below to avoid "Invalid for_each argument" errors.
+  account_umi_principal_ids = toset(var.account_user_assigned_identity_principal_ids)
   ai_search_default_role_assignments = {
     search_index_data_contributor = {
       name                       = "${var.name}-search-index-data-contributor"
@@ -62,57 +67,48 @@ resource "azurerm_role_assignment" "storage_role_assignments" {
 
 
 # Control-plane role assignments are handled in the main module to avoid dependency issues - causes cycle errors if done externally.  Move here.
-# Data Plane Role Assignments for Cosmos DB containers created by AI Foundry Project
-resource "azurerm_cosmosdb_sql_role_assignment" "thread_message_store" {
+# Data Plane Role Assignment for Cosmos DB - scoped at the database level so it covers all
+# containers, including the `<project-guid>-agent-definitions-v1` container that AI Foundry
+# provisions dynamically at first agent deployment. Container-level scoping was insufficient
+# (issue #72).
+#
+# Split into two resources because for_each cannot accept values that are only known after apply
+# (the project SMI principal_id). The account-level UMI principal_ids come from a data source
+# and are known at plan time.
+resource "azurerm_cosmosdb_sql_role_assignment" "enterprise_memory_db_project_smi" {
   count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
 
-  account_name        = basename(var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d")
+  account_name        = basename(var.cosmos_db_id)
   principal_id        = azapi_resource.ai_foundry_project.output.identity.principalId
   resource_group_name = split("/", var.cosmos_db_id)[4]
   role_definition_id  = "${var.cosmos_db_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
-  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory/colls/${local.project_id_guid}-thread-message-store"
-  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}userthreadmessage_dbsqlrole")
+  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory"
+  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}-projectsmi-enterprisememory_dbsqlrole")
 
   depends_on = [
     azapi_resource.ai_agent_capability_host
   ]
 }
 
-resource "azurerm_cosmosdb_sql_role_assignment" "system_thread_message_store" {
-  count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
+resource "azurerm_cosmosdb_sql_role_assignment" "enterprise_memory_db_account_umi" {
+  for_each = var.create_ai_agent_service && var.create_project_connections ? local.account_umi_principal_ids : toset([])
 
-  account_name        = basename(var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d")
-  principal_id        = azapi_resource.ai_foundry_project.output.identity.principalId
+  account_name        = basename(var.cosmos_db_id)
+  principal_id        = each.value
   resource_group_name = split("/", var.cosmos_db_id)[4]
   role_definition_id  = "${var.cosmos_db_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
-  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory/colls/${local.project_id_guid}-system-thread-message-store"
-  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}systemthread_dbsqlrole")
+  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory"
+  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}-accountumi-${each.value}-enterprisememory_dbsqlrole")
 
   depends_on = [
-    azurerm_cosmosdb_sql_role_assignment.thread_message_store,
     azapi_resource.ai_agent_capability_host
   ]
 }
 
-resource "azurerm_cosmosdb_sql_role_assignment" "agent_entity_store" {
+# Storage Blob Data Owner with ABAC conditions. Same split: project SMI via count, account UMIs
+# via for_each over the known-at-plan-time set.
+resource "azurerm_role_assignment" "storage_blob_data_owner_project_smi" {
   count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
-
-  account_name        = basename(var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d")
-  principal_id        = azapi_resource.ai_foundry_project.output.identity.principalId
-  resource_group_name = split("/", var.cosmos_db_id)[4]
-  role_definition_id  = "${var.cosmos_db_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
-  scope               = "${var.cosmos_db_id}/dbs/enterprise_memory/colls/${local.project_id_guid}-agent-entity-store"
-  name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}entitystore_dbsqlrole")
-
-  depends_on = [
-    azurerm_cosmosdb_sql_role_assignment.system_thread_message_store,
-    azapi_resource.ai_agent_capability_host
-  ]
-}
-
-# Advanced Storage Blob Data Owner assignment with ABAC conditions
-resource "azurerm_role_assignment" "storage_blob_data_owner" {
-  count = var.create_ai_agent_service && var.create_project_connections != null ? 1 : 0
 
   principal_id         = azapi_resource.ai_foundry_project.output.identity.principalId
   scope                = var.storage_account_id
@@ -129,7 +125,34 @@ resource "azurerm_role_assignment" "storage_blob_data_owner" {
   )
   EOT
   condition_version    = "2.0"
-  name                 = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}${basename(var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d")}storageblobdataowner")
+  name                 = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}-projectsmi-${basename(var.storage_account_id)}storageblobdataowner")
+  principal_type       = "ServicePrincipal"
+  role_definition_name = "Storage Blob Data Owner"
+
+  depends_on = [
+    azapi_resource.ai_agent_capability_host
+  ]
+}
+
+resource "azurerm_role_assignment" "storage_blob_data_owner_account_umi" {
+  for_each = var.create_ai_agent_service && var.create_project_connections ? local.account_umi_principal_ids : toset([])
+
+  principal_id         = each.value
+  scope                = var.storage_account_id
+  condition            = <<-EOT
+  (
+    (
+      !(ActionMatches{'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/read'})
+      AND  !(ActionMatches{'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/filter/action'})
+      AND  !(ActionMatches{'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/write'})
+    )
+    OR
+    (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringStartsWithIgnoreCase '${local.project_id_guid}'
+    AND @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringLikeIgnoreCase '*-azureml-agent')
+  )
+  EOT
+  condition_version    = "2.0"
+  name                 = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}-accountumi-${each.value}-${basename(var.storage_account_id)}storageblobdataowner")
   principal_type       = "ServicePrincipal"
   role_definition_name = "Storage Blob Data Owner"
 

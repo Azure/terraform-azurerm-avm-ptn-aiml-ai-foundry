@@ -49,11 +49,13 @@ resource "azapi_resource" "ai_search" {
 }
 
 resource "azurerm_private_endpoint" "pe_aisearch" {
-  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.create_byor == true && var.create_private_endpoints == true && v.private_endpoints_manage_dns_zone_group == true }
+  for_each = (var.create_byor && var.create_private_endpoints && var.private_endpoints_manage_dns_zone_groups) ? {
+    for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null
+  } : {}
 
-  location            = var.location
+  location            = coalesce(var.private_endpoint_resource_group_location, var.location)
   name                = "${azapi_resource.ai_search[each.key].name}-private-endpoint"
-  resource_group_name = local.resource_group_name
+  resource_group_name = coalesce(var.private_endpoint_resource_group_name, local.resource_group_name)
   subnet_id           = var.private_endpoint_subnet_resource_id
   tags                = var.tags
 
@@ -80,12 +82,14 @@ resource "azurerm_private_endpoint" "pe_aisearch" {
   ]
 }
 
-resource "azurerm_private_endpoint" "pe_aisearch_unmanaged_dns_zone_groups" {
-  for_each = { for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null && var.create_byor == true && var.create_private_endpoints == true && v.private_endpoints_manage_dns_zone_group == false }
+resource "azurerm_private_endpoint" "unmanaged_pe_aisearch" {
+  for_each = (var.create_byor && var.create_private_endpoints && !var.private_endpoints_manage_dns_zone_groups) ? {
+    for k, v in var.ai_search_definition : k => v if v.existing_resource_id == null
+  } : {}
 
-  location            = var.location
+  location            = coalesce(var.private_endpoint_resource_group_location, var.location)
   name                = "${azapi_resource.ai_search[each.key].name}-private-endpoint"
-  resource_group_name = local.resource_group_name
+  resource_group_name = coalesce(var.private_endpoint_resource_group_name, local.resource_group_name)
   subnet_id           = var.private_endpoint_subnet_resource_id
   tags                = var.tags
 

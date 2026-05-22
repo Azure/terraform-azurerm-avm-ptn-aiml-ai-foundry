@@ -314,6 +314,7 @@ module "virtual_machine" {
   admin_username                                         = "azureadmin"
   bypass_platform_safety_checks_on_user_schedule_enabled = false
   disable_password_authentication                        = false
+  encryption_at_host_enabled                             = false
   os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
@@ -415,7 +416,7 @@ module "ai_foundry" {
 resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
   resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
-  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2025-09-01"
+  type        = "Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts@2025-09-01"
   when        = "destroy"
 
   depends_on = [time_sleep.purge_ai_foundry_cooldown]

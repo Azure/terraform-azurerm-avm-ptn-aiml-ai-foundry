@@ -1,9 +1,8 @@
 variable "ai_search_definition" {
   type = map(object({
-    existing_resource_id                    = optional(string, null)
-    name                                    = optional(string)
-    private_dns_zone_resource_id            = optional(string, null)
-    private_endpoints_manage_dns_zone_group = optional(bool, true)
+    existing_resource_id         = optional(string, null)
+    name                         = optional(string)
+    private_dns_zone_resource_id = optional(string, null)
     diagnostic_settings = optional(map(object({
       name                                     = optional(string, null)
       log_categories                           = optional(set(string), [])
@@ -43,7 +42,6 @@ Configuration object for the Azure AI Search service to be created as part of th
   - `existing_resource_id` - (Optional) The resource ID of an existing AI Search service to use. If provided, the service will not be created and the other inputs will be ignored.
   - `name` - (Optional) The name of the AI Search service. If not provided, a name will be generated.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for AI Search. If not provided or set to null, no DNS zone group will be created.
-  - `private_endpoints_manage_dns_zone_group` - (Optional) Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy. Default is true.
   - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic_settings interface.
   - `sku` - (Optional) The SKU of the AI Search service. Default is "standard".
   - `local_authentication_enabled` - (Optional) Whether local authentication is enabled. Default is true.
@@ -67,9 +65,8 @@ DESCRIPTION
 
 variable "cosmosdb_definition" {
   type = map(object({
-    existing_resource_id                    = optional(string, null)
-    private_dns_zone_resource_id            = optional(string, null)
-    private_endpoints_manage_dns_zone_group = optional(bool, true)
+    existing_resource_id         = optional(string, null)
+    private_dns_zone_resource_id = optional(string, null)
     diagnostic_settings = optional(map(object({
       name                                     = optional(string, null)
       log_categories                           = optional(set(string), [])
@@ -89,7 +86,7 @@ variable "cosmosdb_definition" {
       failover_priority = optional(number, 0)
     })), [])
     public_network_access_enabled    = optional(bool, false)
-    analytical_storage_enabled       = optional(bool, true)
+    analytical_storage_enabled       = optional(bool, false)
     automatic_failover_enabled       = optional(bool, true)
     local_authentication_disabled    = optional(bool, true)
     partition_merge_enabled          = optional(bool, false)
@@ -141,7 +138,6 @@ Configuration object for the Azure Cosmos DB account to be created for GenAI ser
 - `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects and multiple CosmosDB accounts.
   - `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to use. If provided, the account will not be created and the other inputs will be ignored.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Cosmos DB. If not provided or set to null, no DNS zone group will be created.
-  - `private_endpoints_manage_dns_zone_group` - (Optional) Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy. Default is true.
   - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic_settings interface.
   - `name` - (Optional) The name of the Cosmos DB account. If not provided, a name will be generated.
   - `secondary_regions` - (Optional) List of secondary regions for geo-replication.
@@ -149,7 +145,7 @@ Configuration object for the Azure Cosmos DB account to be created for GenAI ser
     - `zone_redundant` - (Optional) Whether zone redundancy is enabled for the secondary region. Default is true.
     - `failover_priority` - (Optional) The failover priority for the secondary region. Default is 0.
   - `public_network_access_enabled` - (Optional) Whether public network access is enabled. Default is false.
-  - `analytical_storage_enabled` - (Optional) Whether analytical storage is enabled. Default is true.
+  - `analytical_storage_enabled` - (Optional) Whether analytical storage is enabled. Default is `false`. Azure no longer permits enabling Analytical Storage during account creation; set this to `true` only on accounts that already had it enabled.
   - `automatic_failover_enabled` - (Optional) Whether automatic failover is enabled. Default is false.
   - `local_authentication_disabled` - (Optional) Whether local authentication is disabled. Default is true.
   - `partition_merge_enabled` - (Optional) Whether partition merge is enabled. Default is false.
@@ -191,10 +187,9 @@ DESCRIPTION
 
 variable "key_vault_definition" {
   type = map(object({
-    existing_resource_id                    = optional(string, null)
-    name                                    = optional(string)
-    private_dns_zone_resource_id            = optional(string, null)
-    private_endpoints_manage_dns_zone_group = optional(bool, true)
+    existing_resource_id         = optional(string, null)
+    name                         = optional(string)
+    private_dns_zone_resource_id = optional(string, null)
     diagnostic_settings = optional(map(object({
       name                                     = optional(string, null)
       log_categories                           = optional(set(string), [])
@@ -229,7 +224,6 @@ Configuration object for the Azure Key Vault to be created for GenAI services.
   - `existing_resource_id` - (Optional) The resource ID of an existing Key Vault to use. If provided, the vault will not be created and the other inputs will be ignored.
   - `name` - (Optional) The name of the Key Vault. If not provided, a name will be generated.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Key Vault. If not provided or set to null, no DNS zone group will be created.
-  - `private_endpoints_manage_dns_zone_group` - (Optional) Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy. Default is true.
   - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic_settings interface.
   - `sku` - (Optional) The SKU of the Key Vault. Default is "standard".
   - `tenant_id` - (Optional) The tenant ID for the Key Vault. If not provided, the current tenant will be used.
@@ -266,9 +260,8 @@ variable "storage_account_definition" {
     account_tier             = optional(string, "Standard")
     account_replication_type = optional(string, "ZRS")
     endpoints = optional(map(object({
-      type                                    = string
-      private_dns_zone_resource_id            = optional(string, null)
-      private_endpoints_manage_dns_zone_group = optional(bool, true)
+      type                         = string
+      private_dns_zone_resource_id = optional(string, null)
       })), {
       blob = {
         type = "blob"
@@ -305,7 +298,6 @@ Configuration object for the Azure Storage Account to be created for GenAI servi
   - `endpoints` - (Optional) Map of endpoint configurations to enable. Default includes blob endpoint.
     - `type` - The type of endpoint (e.g., "blob", "file", "queue", "table").
     - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for the endpoint. If not provided or set to null, no DNS zone group will be created.
-    - `private_endpoints_manage_dns_zone_group` - (Optional) Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy. Default is true.
   - `access_tier` - (Optional) The access tier for the storage account. Default is "Hot".
   - `shared_access_key_enabled` - (Optional) Whether shared access keys are enabled. Default is false.
   - `role_assignments` - (Optional) Map of role assignments to create on the Storage Account. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.

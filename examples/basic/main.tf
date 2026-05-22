@@ -86,6 +86,6 @@ module "ai_foundry" {
       create_project_connections = false
     }
   }
-  create_byor              = false # default: false
-  create_private_endpoints = false # default: false
+  create_byor              = false
+  create_private_endpoints = false
 }
