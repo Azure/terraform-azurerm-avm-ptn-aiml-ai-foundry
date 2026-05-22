@@ -1,4 +1,9 @@
 locals {
+  # Account-level user-assigned managed identity principals. These come from a data source
+  # (resolved at plan time) and are safe to use as for_each keys. The project's own
+  # system-assigned identity principal is only known after apply, so it gets its own
+  # count-based role assignments below to avoid "Invalid for_each argument" errors.
+  account_umi_principal_ids = toset(var.account_user_assigned_identity_principal_ids)
   ai_search_default_role_assignments = {
     search_index_data_contributor = {
       name                       = "${var.name}-search-index-data-contributor"
@@ -9,11 +14,6 @@ locals {
       role_definition_id_or_name = "Search Service Contributor"
     }
   }
-  # Account-level user-assigned managed identity principals. These come from a data source
-  # (resolved at plan time) and are safe to use as for_each keys. The project's own
-  # system-assigned identity principal is only known after apply, so it gets its own
-  # count-based role assignments below to avoid "Invalid for_each argument" errors.
-  account_umi_principal_ids = toset(var.account_user_assigned_identity_principal_ids)
   cosmosdb_default_role_assignments = {
     cosmosdb_operator = {
       name                       = "${var.name}-cosmosdb-operator"
