@@ -1,8 +1,8 @@
 variable "ai_search_definition" {
   type = map(object({
-    existing_resource_id                    = optional(string, null)
-    name                                    = optional(string)
-    private_dns_zone_resource_id            = optional(string, null)
+    existing_resource_id         = optional(string, null)
+    name                         = optional(string)
+    private_dns_zone_resource_id = optional(string, null)
     diagnostic_settings = optional(map(object({
       name                                     = optional(string, null)
       log_categories                           = optional(set(string), [])
@@ -65,8 +65,8 @@ DESCRIPTION
 
 variable "cosmosdb_definition" {
   type = map(object({
-    existing_resource_id                    = optional(string, null)
-    private_dns_zone_resource_id            = optional(string, null)
+    existing_resource_id         = optional(string, null)
+    private_dns_zone_resource_id = optional(string, null)
     diagnostic_settings = optional(map(object({
       name                                     = optional(string, null)
       log_categories                           = optional(set(string), [])
@@ -187,9 +187,9 @@ DESCRIPTION
 
 variable "key_vault_definition" {
   type = map(object({
-    existing_resource_id                    = optional(string, null)
-    name                                    = optional(string)
-    private_dns_zone_resource_id            = optional(string, null)
+    existing_resource_id         = optional(string, null)
+    name                         = optional(string)
+    private_dns_zone_resource_id = optional(string, null)
     diagnostic_settings = optional(map(object({
       name                                     = optional(string, null)
       log_categories                           = optional(set(string), [])
@@ -260,8 +260,8 @@ variable "storage_account_definition" {
     account_tier             = optional(string, "Standard")
     account_replication_type = optional(string, "ZRS")
     endpoints = optional(map(object({
-      type                                    = string
-      private_dns_zone_resource_id            = optional(string, null)
+      type                         = string
+      private_dns_zone_resource_id = optional(string, null)
       })), {
       blob = {
         type = "blob"

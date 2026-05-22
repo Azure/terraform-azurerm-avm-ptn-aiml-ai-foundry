@@ -190,13 +190,6 @@ object({
         ignore_missing_vnet_service_endpoint = optional(bool, false)
       })), [])
     }), null)
-    private_endpoint = optional(object({
-      resource_group_resource_id       = optional(string, null)
-      location                         = optional(string, null)
-      subnet_resource_id               = optional(string, null)
-      private_dns_zone_resource_ids    = optional(list(string), null)
-      unmanaged_dns_zone_group_enabled = optional(bool, false)
-    }), null)
     managed_identities = optional(object({
       system_assigned            = optional(bool, true)
       user_assigned_resource_ids = optional(set(string), [])
@@ -324,7 +317,6 @@ Description: Configuration object for the Azure AI Search service to be created 
   - `existing_resource_id` - (Optional) The resource ID of an existing AI Search service to use. If provided, the service will not be created and the other inputs will be ignored.
   - `name` - (Optional) The name of the AI Search service. If not provided, a name will be generated.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for AI Search. If not provided or set to null, no DNS zone group will be created.
-  - `private_endpoints_manage_dns_zone_group` - (Optional) Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy. Default is true.
   - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic\_settings interface.
   - `sku` - (Optional) The SKU of the AI Search service. Default is "standard".
   - `local_authentication_enabled` - (Optional) Whether local authentication is enabled. Default is true.
@@ -348,9 +340,9 @@ Type:
 
 ```hcl
 map(object({
-    existing_resource_id                    = optional(string, null)
-    name                                    = optional(string)
-    private_dns_zone_resource_id            = optional(string, null)
+    existing_resource_id         = optional(string, null)
+    name                         = optional(string)
+    private_dns_zone_resource_id = optional(string, null)
     diagnostic_settings = optional(map(object({
       name                                     = optional(string, null)
       log_categories                           = optional(set(string), [])
@@ -401,7 +393,6 @@ Description: Configuration object for the Azure Cosmos DB account to be created 
 - `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects and multiple CosmosDB accounts.
   - `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to use. If provided, the account will not be created and the other inputs will be ignored.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Cosmos DB. If not provided or set to null, no DNS zone group will be created.
-  - `private_endpoints_manage_dns_zone_group` - (Optional) Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy. Default is true.
   - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic\_settings interface.
   - `name` - (Optional) The name of the Cosmos DB account. If not provided, a name will be generated.
   - `secondary_regions` - (Optional) List of secondary regions for geo-replication.
@@ -451,9 +442,8 @@ Type:
 
 ```hcl
 map(object({
-    existing_resource_id                    = optional(string, null)
-    private_dns_zone_resource_id            = optional(string, null)
-    private_endpoints_manage_dns_zone_group = optional(bool, true)
+    existing_resource_id         = optional(string, null)
+    private_dns_zone_resource_id = optional(string, null)
     diagnostic_settings = optional(map(object({
       name                                     = optional(string, null)
       log_categories                           = optional(set(string), [])
@@ -574,8 +564,8 @@ Default: `{}`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
-Description: This variable controls whether or not telemetry is enabled for the module.
-For more information see <https://aka.ms/avm/telemetryinfo>.
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see <https://aka.ms/avm/telemetryinfo>.  
 If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
@@ -590,7 +580,6 @@ Description: Configuration object for the Azure Key Vault to be created for GenA
   - `existing_resource_id` - (Optional) The resource ID of an existing Key Vault to use. If provided, the vault will not be created and the other inputs will be ignored.
   - `name` - (Optional) The name of the Key Vault. If not provided, a name will be generated.
   - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for Key Vault. If not provided or set to null, no DNS zone group will be created.
-  - `private_endpoints_manage_dns_zone_group` - (Optional) Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy. Default is true.
   - `diagnostic_settings` - (Optional) A map of diagnostic settings to create. Each entry follows the AVM diagnostic\_settings interface.
   - `sku` - (Optional) The SKU of the Key Vault. Default is "standard".
   - `tenant_id` - (Optional) The tenant ID for the Key Vault. If not provided, the current tenant will be used.
@@ -609,10 +598,9 @@ Type:
 
 ```hcl
 map(object({
-    existing_resource_id                    = optional(string, null)
-    name                                    = optional(string)
-    private_dns_zone_resource_id            = optional(string, null)
-    private_endpoints_manage_dns_zone_group = optional(bool, true)
+    existing_resource_id         = optional(string, null)
+    name                         = optional(string)
+    private_dns_zone_resource_id = optional(string, null)
     diagnostic_settings = optional(map(object({
       name                                     = optional(string, null)
       log_categories                           = optional(set(string), [])
@@ -643,31 +631,6 @@ map(object({
 
 Default: `{}`
 
-### <a name="input_law_definition"></a> [law\_definition](#input\_law\_definition)
-
-Description: Configuration object for the Log Analytics Workspace to be created for monitoring and logging.
-
-- `map key` - The key for the map entry. This key should match the AI project key when creating multiple projects with multiple Log Analytics Workspaces.
-  - `existing_resource_id` - (Optional) The resource ID of an existing Log Analytics Workspace to use. If provided, the workspace will not be created and the other inputs will be ignored.
-  - `name` - (Optional) The name of the Log Analytics Workspace. If not provided, a name will be generated.
-  - `retention` - (Optional) The data retention period in days for the workspace. Default is 30.
-  - `sku` - (Optional) The SKU of the Log Analytics Workspace. Default is "PerGB2018".
-  - `tags` - (Optional) Map of tags to assign to the Log Analytics Workspace.
-
-Type:
-
-```hcl
-map(object({
-    existing_resource_id = optional(string, null)
-    name                 = optional(string)
-    retention            = optional(number, 30)
-    sku                  = optional(string, "PerGB2018")
-    tags                 = optional(map(string), {})
-  }))
-```
-
-Default: `{}`
-
 ### <a name="input_private_endpoint_resource_group_location"></a> [private\_endpoint\_resource\_group\_location](#input\_private\_endpoint\_resource\_group\_location)
 
 Description: (Optional) The resource group location for private endpoints.
@@ -684,7 +647,6 @@ Type: `string`
 
 Default: `null`
 
-
 ### <a name="input_private_endpoint_subnet_resource_id"></a> [private\_endpoint\_subnet\_resource\_id](#input\_private\_endpoint\_subnet\_resource\_id)
 
 Description: (Optional) The subnet ID for private endpoints.
@@ -693,30 +655,13 @@ Type: `string`
 
 Default: `null`
 
-
-### <a name="input_private_endpoints_manage_dns_zone_groups"></a> [private_endpoints_manage_dns_zone_groups](#input_private_endpoints_manage_dns_zone_groups)
+### <a name="input_private_endpoints_manage_dns_zone_groups"></a> [private\_endpoints\_manage\_dns\_zone\_groups](#input\_private\_endpoints\_manage\_dns\_zone\_groups)
 
 Description: Whether to manage private DNS zone groups for the private endpoints created by this module. If set to false, the private DNS zone groups will not be defined or managed.
 
 Type: `bool`
 
 Default: `true`
-
-### <a name="input_private_endpoint_resource_group_name"></a> [private_endpoint_resource_group_name](#input_private_endpoint_resource_group_name)
-
-Description: (Optional) The resource group name for private endpoints.
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_private_endpoint_resource_group_location"></a> [private_endpoint_resource_group_location](#input_private_endpoint_resource_group_location)
-
-Description: (Optional) The resource group location for private endpoints.
-
-Type: `string`
-
-Default: `null`
 
 ### <a name="input_resource_names"></a> [resource\_names](#input\_resource\_names)
 
@@ -749,7 +694,6 @@ Description: Configuration object for the Azure Storage Account to be created fo
   - `endpoints` - (Optional) Map of endpoint configurations to enable. Default includes blob endpoint.
     - `type` - The type of endpoint (e.g., "blob", "file", "queue", "table").
     - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for the endpoint. If not provided or set to null, no DNS zone group will be created.
-    - `private_endpoints_manage_dns_zone_group` - (Optional) Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy. Default is true.
   - `access_tier` - (Optional) The access tier for the storage account. Default is "Hot".
   - `shared_access_key_enabled` - (Optional) Whether shared access keys are enabled. Default is false.
   - `role_assignments` - (Optional) Map of role assignments to create on the Storage Account. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.
@@ -785,9 +729,8 @@ map(object({
     account_tier             = optional(string, "Standard")
     account_replication_type = optional(string, "ZRS")
     endpoints = optional(map(object({
-      type                                    = string
-      private_dns_zone_resource_id            = optional(string, null)
-      private_endpoints_manage_dns_zone_group = optional(bool, true)
+      type                         = string
+      private_dns_zone_resource_id = optional(string, null)
       })), {
       blob = {
         type = "blob"
