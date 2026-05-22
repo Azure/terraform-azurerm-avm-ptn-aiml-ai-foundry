@@ -59,20 +59,6 @@ locals {
   foundry_default_role_assignments = {
     #holding this variable in the event we need to add static defaults in the future.
   }
-  foundry_pe_location              = try(local.foundry_pe_override.location, null) != null ? local.foundry_pe_override.location : var.location
-  foundry_pe_manage_dns_zone_group = !try(local.foundry_pe_override.unmanaged_dns_zone_group_enabled, false)
-  # ----- Foundry private endpoint overrides -----
-  # Each field falls back to the root-level variable when null.
-  foundry_pe_override = try(var.ai_foundry.private_endpoint, null)
-  foundry_pe_private_dns_zone_ids = try(local.foundry_pe_override.private_dns_zone_resource_ids, null) != null ? (
-    local.foundry_pe_override.private_dns_zone_resource_ids
-  ) : var.ai_foundry.private_dns_zone_resource_ids
-  foundry_pe_resource_group_name = try(local.foundry_pe_override.resource_group_resource_id, null) != null ? (
-    basename(local.foundry_pe_override.resource_group_resource_id)
-  ) : basename(var.resource_group_resource_id)
-  foundry_pe_subnet_id = try(local.foundry_pe_override.subnet_resource_id, null) != null ? (
-    local.foundry_pe_override.subnet_resource_id
-  ) : var.private_endpoint_subnet_resource_id
   foundry_role_assignments = merge(
     local.foundry_default_role_assignments,
     var.ai_foundry.role_assignments

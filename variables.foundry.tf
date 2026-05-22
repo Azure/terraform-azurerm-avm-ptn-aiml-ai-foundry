@@ -21,13 +21,6 @@ variable "ai_foundry" {
         ignore_missing_vnet_service_endpoint = optional(bool, false)
       })), [])
     }), null)
-    private_endpoint = optional(object({
-      resource_group_resource_id       = optional(string, null)
-      location                         = optional(string, null)
-      subnet_resource_id               = optional(string, null)
-      private_dns_zone_resource_ids    = optional(list(string), null)
-      unmanaged_dns_zone_group_enabled = optional(bool, false)
-    }), null)
     managed_identities = optional(object({
       system_assigned            = optional(bool, true)
       user_assigned_resource_ids = optional(set(string), [])

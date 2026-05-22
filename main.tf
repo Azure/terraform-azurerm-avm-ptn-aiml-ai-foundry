@@ -39,17 +39,3 @@ module "ai_foundry_project" {
     module.storage_account
   ]
 }
-
-resource "modtm_telemetry" "telemetry" {
-  count = var.enable_telemetry ? 1 : 0
-
-  tags = {
-    avm_yor_trace  = "06fcb803-f35a-48ab-bb37-a43cae0e3c2c"
-    avm_git_commit = "f5e67b7c4f7ffd7dfe10cad57f2ca2e949ea97b8"
-    avm_git_file   = "main.tf"
-    avm_git_org    = "Azure"
-    avm_git_repo   = "terraform-azurerm-avm-ptn-aiml-ai-foundry"
-    module_source  = "Azure/avm-ptn-aiml-ai-foundry/azurerm"
-    module_version = "0.10.1"
-  }
-}
