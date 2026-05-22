@@ -193,7 +193,7 @@ resource "azurerm_private_endpoint" "ai_foundry" {
 }
 
 resource "azurerm_private_endpoint" "unmanaged_ai_foundry" {
-  count = var.create_private_endpoints && var.private_endpoints_manage_dns_zone_groups ? 0 : 1
+  count = var.create_private_endpoints && !var.private_endpoints_manage_dns_zone_groups ? 1 : 0
 
   location            = coalesce(var.private_endpoint_resource_group_location, var.location)
   name                = "pe-${azapi_resource.ai_foundry.name}"
