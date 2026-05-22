@@ -277,9 +277,10 @@ module "virtual_machine" {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }
-  patch_assessment_mode = "AutomaticByPlatform"
-  patch_mode            = "AutomaticByPlatform"
-  sku_size              = "Standard_D4s_v3"
+  encryption_at_host_enabled = false
+  patch_assessment_mode      = "AutomaticByPlatform"
+  patch_mode                 = "AutomaticByPlatform"
+  sku_size                   = "Standard_D4s_v3"
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
