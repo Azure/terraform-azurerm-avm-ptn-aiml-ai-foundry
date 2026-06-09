@@ -50,7 +50,7 @@ module "key_vault" {
 
 module "storage_account" {
   source   = "Azure/avm-res-storage-storageaccount/azurerm"
-  version  = "0.6.7"
+  version  = "0.7.2"
   for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                            = var.location
