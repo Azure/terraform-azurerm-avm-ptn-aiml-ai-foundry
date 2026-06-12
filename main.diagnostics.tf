@@ -24,6 +24,7 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
       category_group = enabled_log.value
     }
   }
+
   dynamic "enabled_metric" {
     for_each = each.value.metric_categories
 

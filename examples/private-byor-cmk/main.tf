@@ -449,11 +449,10 @@ module "key_vault" {
 
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.7.2"
+  version = "0.6.9"
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
-  parent_id                = azurerm_resource_group.this.id
   access_tier              = "Hot"
   account_kind             = "StorageV2"
   account_replication_type = "ZRS"
@@ -465,6 +464,7 @@ module "storage_account" {
       resource_id = azurerm_user_assigned_identity.this.id
     }
   }
+  resource_group_name = azurerm_resource_group.this.name
 }
 
 module "cosmosdb" {

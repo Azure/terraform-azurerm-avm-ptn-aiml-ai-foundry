@@ -1,4 +1,3 @@
-
 module "avm_utl_regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.12.0"
@@ -49,12 +48,12 @@ module "key_vault" {
 
 module "storage_account" {
   source   = "Azure/avm-res-storage-storageaccount/azurerm"
-  version  = "0.7.2"
+  version  = "0.6.9"
   for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                            = var.location
   name                                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${local.base_name_storage}${lower(each.key)}fndrysa${random_string.resource_token.result}" : "${lower(each.key)}fndrysa${random_string.resource_token.result}")
-  parent_id                           = var.resource_group_resource_id
+  resource_group_name                 = local.resource_group_name
   access_tier                         = each.value.access_tier
   account_kind                        = each.value.account_kind
   account_replication_type            = each.value.account_replication_type
@@ -71,7 +70,7 @@ module "storage_account" {
     for endpoint in each.value.endpoints :
     endpoint.type => {
       name                          = "${try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${local.base_name_storage}${lower(each.key)}fndrysa${random_string.resource_token.result}" : "${lower(each.key)}fndrysa${random_string.resource_token.result}")}-${endpoint.type}-pe"
-      private_dns_zone_resource_ids = endpoint.private_dns_zone_resource_ids
+      private_dns_zone_resource_ids = endpoint.private_dns_zone_resource_id != null ? [endpoint.private_dns_zone_resource_id] : []
       subnet_resource_id            = var.private_endpoint_subnet_resource_id
       subresource_name              = endpoint.type
     }

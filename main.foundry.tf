@@ -39,7 +39,6 @@ resource "azapi_resource" "ai_foundry" {
   }
 }
 
-
 resource "azapi_resource" "ai_agent_capability_host" {
   count = var.ai_foundry.create_ai_agent_service && var.ai_foundry.network_injections == null ? 1 : 0
 
@@ -180,6 +179,7 @@ resource "azurerm_private_endpoint" "ai_foundry" {
     private_connection_resource_id = azapi_resource.ai_foundry.id
     subresource_names              = ["account"]
   }
+
   dynamic "private_dns_zone_group" {
     for_each = length(var.ai_foundry.private_dns_zone_resource_ids) > 0 ? [1] : []
 
@@ -208,11 +208,10 @@ resource "azurerm_private_endpoint" "unmanaged_ai_foundry" {
     subresource_names              = ["account"]
   }
 
-  depends_on = [azapi_resource.ai_foundry]
-
   lifecycle {
     ignore_changes = [private_dns_zone_group]
   }
+  depends_on = [azapi_resource.ai_foundry]
 }
 
 resource "azurerm_role_assignment" "foundry_role_assignments" {
