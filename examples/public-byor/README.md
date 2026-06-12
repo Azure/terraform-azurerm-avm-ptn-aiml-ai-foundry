@@ -180,11 +180,11 @@ module "storage_account" {
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
+  parent_id                = azurerm_resource_group.this.id
   access_tier              = "Hot"
   account_kind             = "StorageV2"
   account_replication_type = "ZRS"
   account_tier             = "Standard"
-  resource_group_name      = azurerm_resource_group.this.name
 }
 
 module "cosmosdb" {
