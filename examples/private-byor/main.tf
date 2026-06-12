@@ -400,7 +400,7 @@ module "key_vault" {
 
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.9"
+  version = "0.7.2"
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
