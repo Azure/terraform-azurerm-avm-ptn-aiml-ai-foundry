@@ -1,5 +1,6 @@
 #TODO: Rewrite this to return the basename of the ai search service if a resource ID is provided, otherwise return the names (or resource id)
 
+
 output "ai_agent_account_capability_host_id" {
   description = "The resource ID of the account-level AI agent capability host."
   value       = var.ai_foundry.create_ai_agent_service && var.ai_foundry.network_injections == null ? azapi_resource.ai_agent_capability_host[0].id : null

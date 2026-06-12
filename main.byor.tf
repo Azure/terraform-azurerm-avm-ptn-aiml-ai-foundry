@@ -1,10 +1,8 @@
-
 module "avm_utl_regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.5.2"
+  version = "0.12.0"
 
-  enable_telemetry   = var.enable_telemetry
-  recommended_filter = false
+  enable_telemetry = var.enable_telemetry
 }
 
 module "key_vault" {
@@ -50,7 +48,7 @@ module "key_vault" {
 
 module "storage_account" {
   source   = "Azure/avm-res-storage-storageaccount/azurerm"
-  version  = "0.6.7"
+  version  = "0.6.9"
   for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                            = var.location

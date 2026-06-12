@@ -67,6 +67,7 @@ resource "azurerm_private_endpoint" "pe_aisearch" {
       "searchService"
     ]
   }
+
   dynamic "private_dns_zone_group" {
     for_each = each.value.private_dns_zone_resource_id != null ? ["this"] : []
 
@@ -102,14 +103,13 @@ resource "azurerm_private_endpoint" "unmanaged_pe_aisearch" {
     ]
   }
 
+  lifecycle {
+    ignore_changes = [private_dns_zone_group]
+  }
   depends_on = [
     module.cosmosdb,
     azapi_resource.ai_search
   ]
-
-  lifecycle {
-    ignore_changes = [private_dns_zone_group]
-  }
 }
 
 resource "azurerm_role_assignment" "this_aisearch" {
@@ -159,6 +159,7 @@ resource "azurerm_monitor_diagnostic_setting" "this_aisearch" {
       category_group = enabled_log.value
     }
   }
+
   dynamic "enabled_metric" {
     for_each = each.value.metric_categories
 

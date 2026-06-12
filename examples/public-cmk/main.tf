@@ -40,10 +40,10 @@ locals {
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.5.2"
+  version = "0.12.0"
 
-  availability_zones_filter = true
-  geography_filter          = "Australia"
+  geography_filter       = "Australia"
+  has_availability_zones = true
 }
 
 resource "random_shuffle" "locations" {
@@ -53,7 +53,7 @@ resource "random_shuffle" "locations" {
 
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "0.4.2"
+  version = "0.4.3"
 
   suffix        = [local.base_name]
   unique-length = 5

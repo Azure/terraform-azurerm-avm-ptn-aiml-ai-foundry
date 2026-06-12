@@ -8,7 +8,6 @@ resource "random_string" "resource_token" {
   upper   = false
 }
 
-
 module "ai_foundry_project" {
   source   = "./modules/ai-foundry-project"
   for_each = var.ai_projects

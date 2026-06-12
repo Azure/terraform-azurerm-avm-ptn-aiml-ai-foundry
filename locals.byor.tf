@@ -1,4 +1,3 @@
-
 locals {
   cosmosdb_secondary_regions = { for k, v in var.cosmosdb_definition : k => (var.cosmosdb_definition[k].secondary_regions == null ? [] : (
     try(length(var.cosmosdb_definition[k].secondary_regions) == 0, false) ? [
@@ -40,4 +39,3 @@ locals {
     var.storage_account_definition[k].role_assignments
   ) }
 }
-

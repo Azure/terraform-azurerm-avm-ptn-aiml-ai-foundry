@@ -84,10 +84,10 @@ data "azurerm_client_config" "current" {}
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.5.2"
+  version = "0.12.0"
 
-  availability_zones_filter = true
-  geography_filter          = "Australia"
+  geography_filter       = "Australia"
+  has_availability_zones = true
 }
 
 resource "random_shuffle" "locations" {
@@ -97,7 +97,7 @@ resource "random_shuffle" "locations" {
 
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "0.4.2"
+  version = "0.4.3"
 
   suffix        = [local.base_name]
   unique-length = 5
@@ -176,15 +176,15 @@ module "key_vault" {
 
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.6.9"
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
-  resource_group_name      = azurerm_resource_group.this.name
   access_tier              = "Hot"
   account_kind             = "StorageV2"
   account_replication_type = "ZRS"
   account_tier             = "Standard"
+  resource_group_name      = azurerm_resource_group.this.name
 }
 
 module "cosmosdb" {
@@ -377,19 +377,19 @@ Version: 0.10.2
 
 Source: Azure/naming/azurerm
 
-Version: 0.4.2
+Version: 0.4.3
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.5.2
+Version: 0.12.0
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.7
+Version: 0.6.9
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
