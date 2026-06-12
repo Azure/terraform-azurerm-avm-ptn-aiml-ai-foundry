@@ -15,6 +15,10 @@ resource "azapi_resource" "ai_foundry_project" {
       description = var.description
     }
   }
+  # Use a wildcard If-Match on delete so the project can be removed even after
+  # deleting its child resources mutates the server-side etag (avoids 412
+  # IfMatchPreconditionFailed on terraform destroy).
+  delete_headers = { "If-Match" = "*" }
   response_export_values = [
     "identity.principalId",
     "properties.internalId"

@@ -477,7 +477,7 @@ module "storage_account" {
     blob = {
       name                  = "sendToLogAnalytics-blob-${module.naming.log_analytics_workspace.name_unique}"
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
-      log_categories        = ["audit", "alllogs"]
+      log_groups            = ["allLogs"]
       metric_categories     = ["AllMetrics"]
     }
   }
@@ -508,7 +508,7 @@ module "cosmosdb" {
   location                   = azurerm_resource_group.this.location
   name                       = module.naming.cosmosdb_account.name_unique
   resource_group_name        = azurerm_resource_group.this.name
-  analytical_storage_enabled = true
+  analytical_storage_enabled = false
   automatic_failover_enabled = true
   capacity = {
     total_throughput_limit = -1
@@ -656,7 +656,7 @@ module "ai_foundry" {
 resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
   resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
-  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2025-09-01"
+  type        = "Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts@2025-09-01"
   when        = "destroy"
 
   depends_on = [time_sleep.purge_ai_foundry_cooldown]
