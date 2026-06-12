@@ -404,7 +404,6 @@ module "storage_account" {
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
-  resource_group_name      = azurerm_resource_group.this.name
   access_tier              = "Hot"
   account_kind             = "StorageV2"
   account_replication_type = "ZRS"
@@ -431,6 +430,7 @@ module "storage_account" {
       subresource_name              = "blob"
     }
   }
+  resource_group_name = azurerm_resource_group.this.name
   tags = {
     environment = "test"
   }

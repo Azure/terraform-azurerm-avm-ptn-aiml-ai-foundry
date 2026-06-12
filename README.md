@@ -871,7 +871,7 @@ Version:
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.5.2
+Version: 0.12.0
 
 ### <a name="module_cosmosdb"></a> [cosmosdb](#module\_cosmosdb)
 
@@ -889,7 +889,7 @@ Version: 0.10.2
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.7
+Version: 0.7.2
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

@@ -55,7 +55,6 @@ module "storage_account" {
 
   location                            = var.location
   name                                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${local.base_name_storage}${lower(each.key)}fndrysa${random_string.resource_token.result}" : "${lower(each.key)}fndrysa${random_string.resource_token.result}")
-  resource_group_name                 = local.resource_group_name
   access_tier                         = each.value.access_tier
   account_kind                        = each.value.account_kind
   account_replication_type            = each.value.account_replication_type
@@ -79,6 +78,7 @@ module "storage_account" {
   } : {}
   private_endpoints_manage_dns_zone_group = var.private_endpoints_manage_dns_zone_groups
   public_network_access_enabled           = var.create_private_endpoints ? false : true
+  resource_group_name                     = local.resource_group_name
   role_assignments                        = local.storage_account_role_assignments[each.key] #assumes the same role assignments will be used for all storage accounts in the map.
   shared_access_key_enabled               = each.value.shared_access_key_enabled
   tags                                    = merge(var.tags, each.value.tags)

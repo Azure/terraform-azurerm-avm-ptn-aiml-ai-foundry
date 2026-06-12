@@ -82,7 +82,7 @@ data "azurerm_client_config" "current" {}
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.5.2"
+  version = "0.12.0"
 
   availability_zones_filter = true
   geography_filter          = "Australia"
@@ -99,7 +99,7 @@ locals {
 
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "0.4.2"
+  version = "0.4.3"
 
   suffix        = [local.base_name]
   unique-length = 5
@@ -511,13 +511,13 @@ Version: 0.8.0
 
 Source: Azure/naming/azurerm
 
-Version: 0.4.2
+Version: 0.4.3
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.5.2
+Version: 0.12.0
 
 ### <a name="module_virtual_machine"></a> [virtual\_machine](#module\_virtual\_machine)
 
