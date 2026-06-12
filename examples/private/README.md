@@ -402,8 +402,8 @@ module "ai_foundry" {
     this = {
       endpoints = {
         blob = {
-          private_dns_zone_resource_id = azurerm_private_dns_zone.storage_blob.id
-          type                         = "blob"
+          private_dns_zone_resource_ids = [azurerm_private_dns_zone.storage_blob.id]
+          type                          = "blob"
         }
       }
     }

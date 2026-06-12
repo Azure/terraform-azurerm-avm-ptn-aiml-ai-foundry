@@ -260,8 +260,8 @@ variable "storage_account_definition" {
     account_tier             = optional(string, "Standard")
     account_replication_type = optional(string, "ZRS")
     endpoints = optional(map(object({
-      type                         = string
-      private_dns_zone_resource_id = optional(string, null)
+      type                          = string
+      private_dns_zone_resource_ids = optional(set(string), [])
       })), {
       blob = {
         type = "blob"
@@ -297,7 +297,7 @@ Configuration object for the Azure Storage Account to be created for GenAI servi
   - `account_replication_type` - (Optional) The replication type for the storage account. Default is "ZRS".
   - `endpoints` - (Optional) Map of endpoint configurations to enable. Default includes blob endpoint.
     - `type` - The type of endpoint (e.g., "blob", "file", "queue", "table").
-    - `private_dns_zone_resource_id` - (Optional) The resource ID of the existing private DNS zone for the endpoint. If not provided or set to null, no DNS zone group will be created.
+    - `private_dns_zone_resource_ids` - (Optional) The resource IDs of the existing private DNS zones for the endpoint. If not provided, no DNS zone group will be created.
   - `access_tier` - (Optional) The access tier for the storage account. Default is "Hot".
   - `shared_access_key_enabled` - (Optional) Whether shared access keys are enabled. Default is false.
   - `role_assignments` - (Optional) Map of role assignments to create on the Storage Account. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time.

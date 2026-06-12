@@ -71,7 +71,7 @@ module "storage_account" {
     for endpoint in each.value.endpoints :
     endpoint.type => {
       name                          = "${try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${local.base_name_storage}${lower(each.key)}fndrysa${random_string.resource_token.result}" : "${lower(each.key)}fndrysa${random_string.resource_token.result}")}-${endpoint.type}-pe"
-      private_dns_zone_resource_ids = endpoint.private_dns_zone_resource_id != null ? [endpoint.private_dns_zone_resource_id] : []
+      private_dns_zone_resource_ids = endpoint.private_dns_zone_resource_ids
       subnet_resource_id            = var.private_endpoint_subnet_resource_id
       subresource_name              = endpoint.type
     }
