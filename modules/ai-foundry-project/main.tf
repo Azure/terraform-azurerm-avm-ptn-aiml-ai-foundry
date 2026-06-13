@@ -15,10 +15,15 @@ resource "azapi_resource" "ai_foundry_project" {
       description = var.description
     }
   }
-  # Use a wildcard If-Match on delete so the project can be removed even after
-  # deleting its child resources mutates the server-side etag (avoids 412
-  # IfMatchPreconditionFailed on terraform destroy).
+  # The CognitiveServices project delete is an async operation whose server-side
+  # cascade can race with a concurrent etag change, surfacing a 412
+  # IfMatchPreconditionFailed even though azapi sends a wildcard If-Match. The
+  # wildcard header plus a retry on that error makes terraform destroy resilient
+  # to the race.
   delete_headers = { "If-Match" = "*" }
+  retry = {
+    error_message_regex = ["IfMatchPreconditionFailed"]
+  }
   response_export_values = [
     "identity.principalId",
     "properties.internalId"

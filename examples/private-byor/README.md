@@ -478,14 +478,18 @@ module "storage_account" {
       name                  = "sendToLogAnalytics-blob-${module.naming.log_analytics_workspace.name_unique}"
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
       log_groups            = ["allLogs"]
-      metric_categories     = ["AllMetrics"]
+      # Azure expands "AllMetrics" to the individual categories it returns, so
+      # list them explicitly to keep the plan idempotent.
+      metric_categories = ["Capacity", "Transaction"]
     }
   }
   diagnostic_settings_storage_account = {
     storage = {
       name                  = "sendToLogAnalytics-storage-${module.naming.log_analytics_workspace.name_unique}"
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
-      metric_categories     = ["AllMetrics"]
+      # Account-scope only allows "Transaction"/"AllMetrics"; "AllMetrics" expands
+      # server-side and drifts, so request the explicit category to stay idempotent.
+      metric_categories = ["Transaction"]
     }
   }
   private_endpoints = {
@@ -604,6 +608,9 @@ module "ai_foundry" {
           workspace_resource_id = azurerm_log_analytics_workspace.this.id
           log_groups            = ["allLogs"]
           metric_categories     = ["AllMetrics"]
+          # AI Search does not persist the "Dedicated" destination type, which
+          # the module defaults to; pin AzureDiagnostics to keep the plan idempotent.
+          log_analytics_destination_type = "AzureDiagnostics"
         }
       }
     }
