@@ -537,17 +537,9 @@ module "ai_foundry" {
   ai_search_definition = {
     this = {
       existing_resource_id = azapi_resource.ai_search.id
-      diagnostic_settings = {
-        to_law = {
-          name                  = "diag-to-law"
-          workspace_resource_id = azurerm_log_analytics_workspace.this.id
-          log_groups            = ["allLogs"]
-          metric_categories     = ["AllMetrics"]
-          # AI Search does not persist the "Dedicated" destination type, which
-          # the module defaults to; pin AzureDiagnostics to keep the plan idempotent.
-          log_analytics_destination_type = "AzureDiagnostics"
-        }
-      }
+      # Diagnostic settings intentionally omitted: AI Search does not persist the
+      # log_analytics_destination_type returned by the API, producing a perpetual
+      # non-idempotent plan diff. Other resources below still exercise diagnostics.
     }
   }
   cosmosdb_definition = {
