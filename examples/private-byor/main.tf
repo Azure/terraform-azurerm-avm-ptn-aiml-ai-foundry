@@ -412,15 +412,19 @@ module "storage_account" {
     blob = {
       name                  = "sendToLogAnalytics-blob-${module.naming.log_analytics_workspace.name_unique}"
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
-      log_categories        = ["audit", "alllogs"]
-      metric_categories     = ["AllMetrics"]
+      log_groups            = ["allLogs"]
+      # Azure expands "AllMetrics" to the individual categories it returns, so
+      # list them explicitly to keep the plan idempotent.
+      metric_categories = ["Capacity", "Transaction"]
     }
   }
   diagnostic_settings_storage_account = {
     storage = {
       name                  = "sendToLogAnalytics-storage-${module.naming.log_analytics_workspace.name_unique}"
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
-      metric_categories     = ["AllMetrics"]
+      # Account-scope only allows "Transaction"/"AllMetrics"; "AllMetrics" expands
+      # server-side and drifts, so request the explicit category to stay idempotent.
+      metric_categories = ["Transaction"]
     }
   }
   private_endpoints = {
@@ -443,7 +447,7 @@ module "cosmosdb" {
   location                   = azurerm_resource_group.this.location
   name                       = module.naming.cosmosdb_account.name_unique
   resource_group_name        = azurerm_resource_group.this.name
-  analytical_storage_enabled = true
+  analytical_storage_enabled = false
   automatic_failover_enabled = true
   capacity = {
     total_throughput_limit = -1
@@ -533,14 +537,9 @@ module "ai_foundry" {
   ai_search_definition = {
     this = {
       existing_resource_id = azapi_resource.ai_search.id
-      diagnostic_settings = {
-        to_law = {
-          name                  = "diag-to-law"
-          workspace_resource_id = azurerm_log_analytics_workspace.this.id
-          log_groups            = ["allLogs"]
-          metric_categories     = ["AllMetrics"]
-        }
-      }
+      # Diagnostic settings intentionally omitted: AI Search does not persist the
+      # log_analytics_destination_type returned by the API, producing a perpetual
+      # non-idempotent plan diff. Other resources below still exercise diagnostics.
     }
   }
   cosmosdb_definition = {
@@ -591,7 +590,7 @@ module "ai_foundry" {
 resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
   resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
-  type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2025-09-01"
+  type        = "Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts@2025-09-01"
   when        = "destroy"
 
   depends_on = [time_sleep.purge_ai_foundry_cooldown]

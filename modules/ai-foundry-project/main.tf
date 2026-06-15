@@ -15,6 +15,15 @@ resource "azapi_resource" "ai_foundry_project" {
       description = var.description
     }
   }
+  # The CognitiveServices project delete is an async operation whose server-side
+  # cascade can race with a concurrent etag change, surfacing a 412
+  # IfMatchPreconditionFailed even though azapi sends a wildcard If-Match. The
+  # wildcard header plus a retry on that error makes terraform destroy resilient
+  # to the race.
+  delete_headers = { "If-Match" = "*" }
+  retry = {
+    error_message_regex = ["IfMatchPreconditionFailed"]
+  }
   response_export_values = [
     "identity.principalId",
     "properties.internalId"

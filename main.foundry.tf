@@ -25,8 +25,11 @@ resource "azapi_resource" "ai_foundry" {
       networkInjections = var.ai_foundry.create_ai_agent_service ? var.ai_foundry.network_injections : null
     }
   }
-  create_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  delete_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  create_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  # Always send a wildcard If-Match on delete so the account can be removed even
+  # after child projects are deleted (avoids 412 IfMatchPreconditionFailed on
+  # terraform destroy); keep the telemetry User-Agent header when enabled.
+  delete_headers            = merge({ "If-Match" = "*" }, var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : {})
   read_headers              = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   schema_validation_enabled = false
   tags                      = var.tags
