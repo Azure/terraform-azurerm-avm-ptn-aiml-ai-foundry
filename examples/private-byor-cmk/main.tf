@@ -286,7 +286,7 @@ resource "azurerm_public_ip" "example" {
 
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
-  version = "0.8.0"
+  version = "0.9.0"
 
   location            = azurerm_resource_group.this.location
   name                = module.naming.bastion_host.name_unique
