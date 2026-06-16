@@ -27,14 +27,6 @@ updates:
     commit-message:
       prefix: chore
       include: scope
-    ignore:
-      # avm-res-storage-storageaccount has an idempotency bug introduced in
-      # 0.7.2 that this module cannot work around. Stay on 0.6.9 and only
-      # surface major version updates until the regression is resolved.
-      - dependency-name: "Azure/avm-res-storage-storageaccount/azurerm"
-        update-types:
-          - "version-update:semver-minor"
-          - "version-update:semver-patch"
 
   # GitHub Actions workflows and composite actions under .github/.
   - package-ecosystem: github-actions
