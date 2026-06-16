@@ -360,7 +360,7 @@ resource "azurerm_public_ip" "example" {
 
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
-  version = "0.8.0"
+  version = "0.9.0"
 
   location            = azurerm_resource_group.this.location
   name                = module.naming.bastion_host.name_unique
@@ -378,7 +378,7 @@ module "bastion_host" {
 
 module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.19.3"
+  version = "0.21.0"
 
   location = azurerm_resource_group.this.location
   name     = module.naming.virtual_machine.name_unique
@@ -777,7 +777,7 @@ Version:
 
 Source: Azure/avm-res-network-bastionhost/azurerm
 
-Version: 0.8.0
+Version: 0.9.0
 
 ### <a name="module_cosmosdb"></a> [cosmosdb](#module\_cosmosdb)
 
@@ -813,7 +813,7 @@ Version: 0.6.9
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.19.3
+Version: 0.21.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
