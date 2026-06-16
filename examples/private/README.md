@@ -276,11 +276,11 @@ resource "azurerm_public_ip" "example" {
 
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
-  version = "0.8.0"
+  version = "0.9.0"
 
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.bastion_host.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  location  = azurerm_resource_group.this.location
+  name      = module.naming.bastion_host.name_unique
+  parent_id = azurerm_resource_group.this.id
   ip_configuration = {
     name                 = "default-ipconfig"
     subnet_id            = azurerm_subnet.bastion.id
@@ -294,7 +294,7 @@ module "bastion_host" {
 
 module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.19.3"
+  version = "0.21.0"
 
   location = azurerm_resource_group.this.location
   name     = module.naming.virtual_machine.name_unique
@@ -505,7 +505,7 @@ Version:
 
 Source: Azure/avm-res-network-bastionhost/azurerm
 
-Version: 0.8.0
+Version: 0.9.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
@@ -523,7 +523,7 @@ Version: 0.12.0
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.19.3
+Version: 0.21.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
