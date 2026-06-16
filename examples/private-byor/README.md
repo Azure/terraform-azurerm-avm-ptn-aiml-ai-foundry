@@ -302,9 +302,9 @@ module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
   version = "0.9.0"
 
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.bastion_host.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  location  = azurerm_resource_group.this.location
+  name      = module.naming.bastion_host.name_unique
+  parent_id = azurerm_resource_group.this.id
   ip_configuration = {
     name                 = "default-ipconfig"
     subnet_id            = azurerm_subnet.bastion.id
