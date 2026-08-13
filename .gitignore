@@ -57,4 +57,4 @@ examples/*/policy
 
 # env files
 .env
-.avm
+.avm/managed-files.json
