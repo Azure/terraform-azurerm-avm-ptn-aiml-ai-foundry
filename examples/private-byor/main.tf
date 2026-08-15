@@ -583,7 +583,7 @@ module "ai_foundry" {
     }
   }
 
-  depends_on = [azapi_resource_action.purge_ai_foundry]
+  depends_on = [time_sleep.purge_ai_foundry_cooldown]
 }
 
 # Purge deleted AI Foundry account to release service association links
@@ -600,12 +600,13 @@ resource "azapi_resource_action" "purge_ai_foundry" {
     interval_seconds     = 30
     max_interval_seconds = 120
   }
-
-  depends_on = [time_sleep.purge_ai_foundry_cooldown]
 }
 
 resource "time_sleep" "purge_ai_foundry_cooldown" {
-  destroy_duration = "900s" # 10m
+  destroy_duration = "900s" # 15m
 
-  depends_on = [azurerm_subnet.agent_services]
+  depends_on = [
+    azurerm_subnet.agent_services,
+    azapi_resource_action.purge_ai_foundry
+  ]
 }
