@@ -27,10 +27,15 @@ resource "azapi_resource" "ai_search" {
         disableLocalAuth = each.value.local_authentication_enabled ? false : true #inverted logic to match the variable definition
 
         # Networking-related controls
-        publicNetworkAccess = var.create_private_endpoints ? "Disabled" : "Enabled"
-        networkRuleSet = {
-          bypass = "None"
-        }
+        publicNetworkAccess = local.ai_search_public_network_access[each.key]
+        networkRuleSet = merge(
+          {
+            bypass = each.value.network_rule_set.bypass
+          },
+          length(each.value.network_rule_set.ip_rules) > 0 ? {
+            ipRules = [for ip in each.value.network_rule_set.ip_rules : { value = ip }]
+          } : {}
+        )
       },
       each.value.local_authentication_enabled ? {
         authOptions = {
