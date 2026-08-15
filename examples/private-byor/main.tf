@@ -474,14 +474,30 @@ module "cosmosdb" {
   multiple_write_locations_enabled      = false
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = false
-  private_endpoints = {
-    "cosmosdb" = {
-      private_dns_zone_resource_ids = [azurerm_private_dns_zone.cosmosdb.id]
-      subnet_resource_id            = azurerm_subnet.private_endpoints.id
-      subresource_name              = "sql"
-    }
-  }
   public_network_access_enabled = true
+}
+
+resource "azurerm_private_endpoint" "cosmosdb" {
+  location            = azurerm_resource_group.this.location
+  name                = "pep-${module.naming.cosmosdb_account.name_unique}"
+  resource_group_name = azurerm_resource_group.this.name
+  subnet_id           = azurerm_subnet.private_endpoints.id
+
+  private_service_connection {
+    is_manual_connection           = false
+    name                           = "pse-cosmosdb"
+    private_connection_resource_id = module.cosmosdb.resource_id
+    subresource_names              = ["sql"]
+  }
+
+  private_dns_zone_group {
+    name                 = "default"
+    private_dns_zone_ids = [azurerm_private_dns_zone.cosmosdb.id]
+  }
+
+  timeouts {
+    delete = "90m"
+  }
 }
 
 module "ai_foundry" {
