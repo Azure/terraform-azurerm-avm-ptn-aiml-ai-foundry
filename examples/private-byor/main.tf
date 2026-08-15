@@ -605,6 +605,7 @@ resource "azapi_resource_action" "purge_ai_foundry" {
 }
 
 resource "time_sleep" "purge_ai_foundry_cooldown" {
+  # Allow the AI Agents service association link to clear before subnet deletion.
   destroy_duration = "20m"
 
   depends_on = [azurerm_subnet.agent_services]
