@@ -8,7 +8,7 @@ terraform {
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.0"
+      version = "~> 5.1"
     }
     random = {
       source  = "hashicorp/random"
@@ -400,7 +400,7 @@ resource "azapi_resource" "ai_search" {
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  version = "0.11.0"
 
   location                        = azurerm_resource_group.this.location
   name                            = module.naming.key_vault.name_unique
