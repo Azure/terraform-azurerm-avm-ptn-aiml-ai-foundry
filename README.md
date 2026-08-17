@@ -55,7 +55,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.5)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.38)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 5.1)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
@@ -883,7 +883,7 @@ Version: 0.10.0
 
 Source: Azure/avm-res-keyvault-vault/azurerm
 
-Version: 0.10.2
+Version: 0.11.0
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 
