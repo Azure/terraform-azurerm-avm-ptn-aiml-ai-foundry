@@ -474,14 +474,30 @@ module "cosmosdb" {
   multiple_write_locations_enabled      = false
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = false
-  private_endpoints = {
-    "cosmosdb" = {
-      private_dns_zone_resource_ids = [azurerm_private_dns_zone.cosmosdb.id]
-      subnet_resource_id            = azurerm_subnet.private_endpoints.id
-      subresource_name              = "sql"
-    }
-  }
   public_network_access_enabled = true
+}
+
+resource "azurerm_private_endpoint" "cosmosdb" {
+  location            = azurerm_resource_group.this.location
+  name                = "pep-${module.naming.cosmosdb_account.name_unique}"
+  resource_group_name = azurerm_resource_group.this.name
+  subnet_id           = azurerm_subnet.private_endpoints.id
+
+  private_service_connection {
+    is_manual_connection           = false
+    name                           = "pse-cosmosdb"
+    private_connection_resource_id = module.cosmosdb.resource_id
+    subresource_names              = ["sql"]
+  }
+
+  private_dns_zone_group {
+    name                 = "default"
+    private_dns_zone_ids = [azurerm_private_dns_zone.cosmosdb.id]
+  }
+
+  timeouts {
+    delete = "90m"
+  }
 }
 
 module "ai_foundry" {
@@ -592,12 +608,21 @@ resource "azapi_resource_action" "purge_ai_foundry" {
   resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
   type        = "Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts@2025-09-01"
   when        = "destroy"
+  # Deleting the account is asynchronous, so the purge can be issued while the
+  # account provisioning state is still non terminal, which returns a 409
+  # RequestConflict. Retry until the deletion settles.
+  retry = {
+    error_message_regex  = ["RequestConflict"]
+    interval_seconds     = 30
+    max_interval_seconds = 120
+  }
 
   depends_on = [time_sleep.purge_ai_foundry_cooldown]
 }
 
 resource "time_sleep" "purge_ai_foundry_cooldown" {
-  destroy_duration = "900s" # 10m
+  # Allow the AI Agents service association link to clear before subnet deletion.
+  destroy_duration = "20m"
 
   depends_on = [azurerm_subnet.agent_services]
 }

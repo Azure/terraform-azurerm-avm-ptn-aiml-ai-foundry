@@ -377,6 +377,14 @@ resource "azapi_resource_action" "purge_ai_foundry" {
   resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
   type        = "Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts@2025-09-01"
   when        = "destroy"
+  # Deleting the account is asynchronous, so the purge can be issued while the
+  # account provisioning state is still non terminal, which returns a 409
+  # RequestConflict. Retry until the deletion settles.
+  retry = {
+    error_message_regex  = ["RequestConflict"]
+    interval_seconds     = 30
+    max_interval_seconds = 120
+  }
 
   depends_on = [time_sleep.purge_ai_foundry_cooldown]
 }
