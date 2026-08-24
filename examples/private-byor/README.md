@@ -539,14 +539,30 @@ module "cosmosdb" {
   multiple_write_locations_enabled      = false
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = false
-  private_endpoints = {
-    "cosmosdb" = {
-      private_dns_zone_resource_ids = [azurerm_private_dns_zone.cosmosdb.id]
-      subnet_resource_id            = azurerm_subnet.private_endpoints.id
-      subresource_name              = "sql"
-    }
+  public_network_access_enabled         = true
+}
+
+resource "azurerm_private_endpoint" "cosmosdb" {
+  location            = azurerm_resource_group.this.location
+  name                = "pep-${module.naming.cosmosdb_account.name_unique}"
+  resource_group_name = azurerm_resource_group.this.name
+  subnet_id           = azurerm_subnet.private_endpoints.id
+
+  private_service_connection {
+    is_manual_connection           = false
+    name                           = "pse-cosmosdb"
+    private_connection_resource_id = module.cosmosdb.resource_id
+    subresource_names              = ["sql"]
   }
-  public_network_access_enabled = true
+
+  private_dns_zone_group {
+    name                 = "default"
+    private_dns_zone_ids = [azurerm_private_dns_zone.cosmosdb.id]
+  }
+
+  timeouts {
+    delete = "90m"
+  }
 }
 
 module "ai_foundry" {
@@ -715,6 +731,7 @@ The following resources are used by this module:
 - [azurerm_private_dns_zone_virtual_network_link.search](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.storage_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.storage_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
+- [azurerm_private_endpoint.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint.pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_public_ip.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)

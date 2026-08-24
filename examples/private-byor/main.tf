@@ -474,7 +474,7 @@ module "cosmosdb" {
   multiple_write_locations_enabled      = false
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = false
-  public_network_access_enabled = true
+  public_network_access_enabled         = true
 }
 
 resource "azurerm_private_endpoint" "cosmosdb" {
