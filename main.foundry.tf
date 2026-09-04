@@ -25,15 +25,12 @@ resource "azapi_resource" "ai_foundry" {
       networkInjections = var.ai_foundry.create_ai_agent_service ? var.ai_foundry.network_injections : null
     }
   }
-  create_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   # Always send a wildcard If-Match on delete so the account can be removed even
   # after child projects are deleted (avoids 412 IfMatchPreconditionFailed on
   # terraform destroy); keep the telemetry User-Agent header when enabled.
   delete_headers            = merge({ "If-Match" = "*" }, var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : {})
-  read_headers              = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   schema_validation_enabled = false
   tags                      = var.tags
-  update_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
   lifecycle {
     ignore_changes = [
@@ -53,11 +50,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
       capabilityHostKind = "Agents"
     }
   }
-  create_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  delete_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  read_headers              = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   schema_validation_enabled = false
-  update_headers            = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
   depends_on = [azapi_resource.ai_foundry]
 }
@@ -83,10 +76,6 @@ resource "azapi_resource" "ai_model_deployment" {
       capacity = each.value.scale.capacity
     }
   }
-  create_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  delete_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
   depends_on = [azapi_resource.ai_foundry]
 }
@@ -152,8 +141,6 @@ resource "azapi_update_resource" "ai_foundry_cmk" {
       }
     }
   }
-  read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
   depends_on = [
     azapi_resource.ai_foundry,

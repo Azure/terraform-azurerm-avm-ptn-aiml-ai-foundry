@@ -52,7 +52,6 @@ resource "azurerm_role_assignment" "cosmosdb_role_assignments" {
   depends_on = [time_sleep.wait_project_identities]
 }
 
-
 resource "azurerm_role_assignment" "storage_role_assignments" {
   for_each = var.create_project_connections ? local.storage_account_default_role_assignments : {}
 
@@ -64,7 +63,6 @@ resource "azurerm_role_assignment" "storage_role_assignments" {
 
   depends_on = [time_sleep.wait_project_identities]
 }
-
 
 # Control-plane role assignments are handled in the main module to avoid dependency issues - causes cycle errors if done externally.  Move here.
 # Data Plane Role Assignment for Cosmos DB - scoped at the database level so it covers all

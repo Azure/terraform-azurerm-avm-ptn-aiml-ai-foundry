@@ -144,18 +144,18 @@ resource "azurerm_virtual_network" "this" {
 
 # Subnet for private endpoints
 resource "azurerm_subnet" "private_endpoints" {
-  address_prefixes     = ["192.168.1.0/24"]
   name                 = "snet-private-endpoints"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["192.168.1.0/24"]
 }
 
 # Subnet for AI agent services (Container Apps)
 resource "azurerm_subnet" "agent_services" {
-  address_prefixes     = ["192.168.0.0/24"]
   name                 = "snet-agent-services"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["192.168.0.0/24"]
 
   # Required for Container App Environment
   delegation {
@@ -170,18 +170,18 @@ resource "azurerm_subnet" "agent_services" {
 
 # Subnet for Bastion
 resource "azurerm_subnet" "bastion" {
-  address_prefixes     = ["192.168.2.0/26"]
   name                 = "AzureBastionSubnet"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["192.168.2.0/26"]
 }
 
 # Subnet for VM
 resource "azurerm_subnet" "vm" {
-  address_prefixes     = ["192.168.3.0/26"]
   name                 = "snet-vm"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["192.168.3.0/26"]
 }
 
 # Storage Account Private DNS Zone
@@ -320,8 +320,13 @@ module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
   version = "0.21.0"
 
-  location = azurerm_resource_group.this.location
-  name     = module.naming.virtual_machine.name_unique
+  location                                               = azurerm_resource_group.this.location
+  name                                                   = module.naming.virtual_machine.name_unique
+  resource_group_name                                    = azurerm_resource_group.this.name
+  zone                                                   = "1"
+  admin_username                                         = "azureadmin"
+  bypass_platform_safety_checks_on_user_schedule_enabled = false
+  disable_password_authentication                        = false
   network_interfaces = {
     network_interface_1 = {
       name = "${module.naming.network_interface.name_unique}-vm"
@@ -333,11 +338,6 @@ module "virtual_machine" {
       }
     }
   }
-  resource_group_name                                    = azurerm_resource_group.this.name
-  zone                                                   = "1"
-  admin_username                                         = "azureadmin"
-  bypass_platform_safety_checks_on_user_schedule_enabled = false
-  disable_password_authentication                        = false
   os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
@@ -422,6 +422,7 @@ resource "azurerm_private_endpoint" "pe_aisearch" {
       "searchService"
     ]
   }
+
   private_dns_zone_group {
     name                 = "${azapi_resource.ai_search.name}-dns-config"
     private_dns_zone_ids = [azurerm_private_dns_zone.search.id]
@@ -469,6 +470,7 @@ module "storage_account" {
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
+  resource_group_name      = azurerm_resource_group.this.name
   access_tier              = "Hot"
   account_kind             = "StorageV2"
   account_replication_type = "ZRS"
@@ -499,7 +501,6 @@ module "storage_account" {
       subresource_name              = "blob"
     }
   }
-  resource_group_name = azurerm_resource_group.this.name
   tags = {
     environment = "test"
   }
@@ -672,7 +673,6 @@ resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
   resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
   type        = "Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts@2025-09-01"
-  when        = "destroy"
   # Deleting the account is asynchronous, so the purge can be issued while the
   # account provisioning state is still non terminal, which returns a 409
   # RequestConflict. Retry until the deletion settles.
@@ -681,6 +681,7 @@ resource "azapi_resource_action" "purge_ai_foundry" {
     interval_seconds     = 30
     max_interval_seconds = 120
   }
+  when = "destroy"
 
   depends_on = [time_sleep.purge_ai_foundry_cooldown]
 }
