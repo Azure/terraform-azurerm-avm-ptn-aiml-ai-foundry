@@ -21,13 +21,13 @@ resource "azapi_resource" "ai_foundry_project" {
   # wildcard header plus a retry on that error makes terraform destroy resilient
   # to the race.
   delete_headers = { "If-Match" = "*" }
-  retry = {
-    error_message_regex = ["IfMatchPreconditionFailed"]
-  }
   response_export_values = [
     "identity.principalId",
     "properties.internalId"
   ]
+  retry = {
+    error_message_regex = ["IfMatchPreconditionFailed"]
+  }
   schema_validation_enabled = false
   tags                      = var.tags
 }
@@ -116,13 +116,12 @@ resource "azapi_resource" "connection_search" {
   }
   schema_validation_enabled = false
 
-  depends_on = [azurerm_role_assignment.ai_search_role_assignments,
-    azapi_resource.connection_cosmos,
-  azapi_resource.connection_storage]
-
   lifecycle {
     ignore_changes = [name]
   }
+  depends_on = [azurerm_role_assignment.ai_search_role_assignments,
+    azapi_resource.connection_cosmos,
+  azapi_resource.connection_storage]
 }
 
 #TODO: do we need to add support for Key Vault connections?
