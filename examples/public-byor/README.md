@@ -58,7 +58,7 @@ terraform {
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.0"
+      version = "~> 5.1"
     }
     random = {
       source  = "hashicorp/random"
@@ -159,7 +159,7 @@ resource "azapi_resource" "ai_search" {
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  version = "0.11.0"
 
   location                        = azurerm_resource_group.this.location
   name                            = module.naming.key_vault.name_unique
@@ -324,7 +324,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 5.1)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
@@ -371,7 +371,7 @@ Version: 0.10.0
 
 Source: Azure/avm-res-keyvault-vault/azurerm
 
-Version: 0.10.2
+Version: 0.11.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 

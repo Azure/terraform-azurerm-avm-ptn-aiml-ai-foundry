@@ -7,7 +7,7 @@ module "avm_utl_regions" {
 
 module "key_vault" {
   source   = "Azure/avm-res-keyvault-vault/azurerm"
-  version  = "0.10.2"
+  version  = "0.11.0"
   for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                        = var.location
