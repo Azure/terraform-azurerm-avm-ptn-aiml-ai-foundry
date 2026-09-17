@@ -86,6 +86,7 @@ module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.12.0"
 
+  enable_telemetry       = false
   geography_filter       = "Australia"
   has_availability_zones = true
 }
@@ -165,6 +166,7 @@ module "key_vault" {
   name                            = module.naming.key_vault.name_unique
   resource_group_name             = azurerm_resource_group.this.name
   tenant_id                       = data.azurerm_client_config.current.tenant_id
+  enable_telemetry                = false
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
@@ -185,6 +187,7 @@ module "storage_account" {
   account_kind             = "StorageV2"
   account_replication_type = "ZRS"
   account_tier             = "Standard"
+  enable_telemetry         = false
 }
 
 module "cosmosdb" {
@@ -205,6 +208,7 @@ module "cosmosdb" {
     max_interval_in_seconds = 300
     max_staleness_prefix    = 100001
   }
+  enable_telemetry = false
   ip_range_filter = [
     "168.125.123.255",
     "170.0.0.0/24",                                                                 #TODO: check 0.0.0.0 for validity
@@ -283,6 +287,7 @@ module "ai_foundry" {
   }
   create_byor              = false # default: false
   create_private_endpoints = false # default: false
+  enable_telemetry         = false
   key_vault_definition = {
     this = {
       existing_resource_id = module.key_vault.resource_id
