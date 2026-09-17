@@ -32,6 +32,7 @@ module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.12.0"
 
+  enable_telemetry       = false
   geography_filter       = "Australia"
   has_availability_zones = true
 }
@@ -88,4 +89,5 @@ module "ai_foundry" {
   }
   create_byor              = false
   create_private_endpoints = false
+  enable_telemetry         = false
 }

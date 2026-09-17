@@ -108,6 +108,7 @@ module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.12.0"
 
+  enable_telemetry       = false
   geography_filter       = "Australia"
   has_availability_zones = true
 }
@@ -302,9 +303,10 @@ module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
   version = "0.9.0"
 
-  location  = azurerm_resource_group.this.location
-  name      = module.naming.bastion_host.name_unique
-  parent_id = azurerm_resource_group.this.id
+  location         = azurerm_resource_group.this.location
+  name             = module.naming.bastion_host.name_unique
+  parent_id        = azurerm_resource_group.this.id
+  enable_telemetry = false
   ip_configuration = {
     name                 = "default-ipconfig"
     subnet_id            = azurerm_subnet.bastion.id
@@ -327,6 +329,7 @@ module "virtual_machine" {
   admin_username                                         = "azureadmin"
   bypass_platform_safety_checks_on_user_schedule_enabled = false
   disable_password_authentication                        = false
+  enable_telemetry                                       = false
   network_interfaces = {
     network_interface_1 = {
       name = "${module.naming.network_interface.name_unique}-vm"
@@ -448,6 +451,7 @@ module "key_vault" {
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
     }
   }
+  enable_telemetry                = false
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
@@ -494,6 +498,7 @@ module "storage_account" {
       metric_categories = ["Transaction"]
     }
   }
+  enable_telemetry = false
   private_endpoints = {
     "blob" = {
       private_dns_zone_resource_ids = [azurerm_private_dns_zone.storage_blob.id]
@@ -530,6 +535,7 @@ module "cosmosdb" {
       metric_categories     = ["SLI", "Requests"]
     }
   }
+  enable_telemetry = false
   ip_range_filter = [
     "168.125.123.255",
     "170.0.0.0/24",                                                                 #TODO: check 0.0.0.0 for validity
@@ -639,6 +645,7 @@ module "ai_foundry" {
   }
   create_byor              = false # default: false
   create_private_endpoints = false # default: false
+  enable_telemetry         = false
   key_vault_definition = {
     this = {
       existing_resource_id = module.key_vault.resource_id
