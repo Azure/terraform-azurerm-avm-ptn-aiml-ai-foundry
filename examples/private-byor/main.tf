@@ -374,7 +374,7 @@ resource "azurerm_private_endpoint" "pe_aisearch" {
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  version = "0.11.0"
 
   location            = azurerm_resource_group.this.location
   name                = module.naming.key_vault.name_unique
