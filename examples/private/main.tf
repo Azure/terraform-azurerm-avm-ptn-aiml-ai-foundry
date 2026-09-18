@@ -43,7 +43,7 @@ module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.12.0"
 
-  enable_telemetry       = false
+  enable_telemetry       = var.enable_telemetry
   geography_filter       = "Australia"
   has_availability_zones = true
 }
@@ -241,7 +241,7 @@ module "bastion_host" {
   location         = azurerm_resource_group.this.location
   name             = module.naming.bastion_host.name_unique
   parent_id        = azurerm_resource_group.this.id
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
   ip_configuration = {
     name                 = "default-ipconfig"
     subnet_id            = azurerm_subnet.bastion.id
@@ -264,7 +264,7 @@ module "virtual_machine" {
   admin_username                                         = "azureadmin"
   bypass_platform_safety_checks_on_user_schedule_enabled = false
   disable_password_authentication                        = false
-  enable_telemetry                                       = false
+  enable_telemetry                                       = var.enable_telemetry
   encryption_at_host_enabled                             = false
   network_interfaces = {
     network_interface_1 = {
@@ -354,7 +354,7 @@ module "ai_foundry" {
   }
   create_byor              = true # default: false
   create_private_endpoints = true # default: false
-  enable_telemetry         = false
+  enable_telemetry         = var.enable_telemetry
   key_vault_definition = {
     this = {
       private_dns_zone_resource_id = azurerm_private_dns_zone.keyvault.id
