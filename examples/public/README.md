@@ -68,7 +68,7 @@ module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.12.0"
 
-  enable_telemetry       = false
+  enable_telemetry       = var.enable_telemetry
   geography_filter       = "Australia"
   has_availability_zones = true
 }
@@ -159,7 +159,7 @@ module "ai_foundry" {
   }
   create_byor              = true
   create_private_endpoints = false
-  enable_telemetry         = false
+  enable_telemetry         = var.enable_telemetry
   key_vault_definition = {
     this = {
       diagnostic_settings = {
@@ -208,7 +208,17 @@ No required inputs.
 
 ## Optional Inputs
 
-No optional inputs.
+The following input variables are optional (have default values):
+
+### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
+
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see <https://aka.ms/avm/telemetryinfo>.  
+If it is set to false, then no telemetry will be collected.
+
+Type: `bool`
+
+Default: `false`
 
 ## Outputs
 

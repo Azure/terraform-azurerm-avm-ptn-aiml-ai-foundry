@@ -117,7 +117,7 @@ module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.12.0"
 
-  enable_telemetry       = false
+  enable_telemetry       = var.enable_telemetry
   geography_filter       = "Australia"
   has_availability_zones = true
 }
@@ -366,7 +366,7 @@ module "bastion_host" {
   location         = azurerm_resource_group.this.location
   name             = module.naming.bastion_host.name_unique
   parent_id        = azurerm_resource_group.this.id
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
   ip_configuration = {
     name                 = "default-ipconfig"
     subnet_id            = azurerm_subnet.bastion.id
@@ -389,7 +389,7 @@ module "virtual_machine" {
   admin_username                                         = "azureadmin"
   bypass_platform_safety_checks_on_user_schedule_enabled = false
   disable_password_authentication                        = false
-  enable_telemetry                                       = false
+  enable_telemetry                                       = var.enable_telemetry
   network_interfaces = {
     network_interface_1 = {
       name = "${module.naming.network_interface.name_unique}-vm"
@@ -483,7 +483,7 @@ module "key_vault" {
   name                            = module.naming.key_vault.name_unique
   resource_group_name             = azurerm_resource_group.this.name
   tenant_id                       = data.azurerm_client_config.current.tenant_id
-  enable_telemetry                = false
+  enable_telemetry                = var.enable_telemetry
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
@@ -543,7 +543,7 @@ module "storage_account" {
       resource_id = azurerm_user_assigned_identity.this.id
     }
   }
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
 }
 
 module "cosmosdb" {
@@ -570,7 +570,7 @@ module "cosmosdb" {
       resource_id = azurerm_user_assigned_identity.this.id
     }
   }
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
   ip_range_filter = [
     "168.125.123.255",
     "170.0.0.0/24",                                                                 #TODO: check 0.0.0.0 for validity
@@ -665,7 +665,7 @@ module "ai_foundry" {
   }
   create_byor              = false # default: false
   create_private_endpoints = false # default: false
-  enable_telemetry         = false
+  enable_telemetry         = var.enable_telemetry
   key_vault_definition = {
     this = {
       existing_resource_id = module.key_vault.resource_id
@@ -772,7 +772,17 @@ No required inputs.
 
 ## Optional Inputs
 
-No optional inputs.
+The following input variables are optional (have default values):
+
+### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
+
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see <https://aka.ms/avm/telemetryinfo>.  
+If it is set to false, then no telemetry will be collected.
+
+Type: `bool`
+
+Default: `false`
 
 ## Outputs
 
