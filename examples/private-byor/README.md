@@ -108,6 +108,7 @@ module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.12.0"
 
+  enable_telemetry       = var.enable_telemetry
   geography_filter       = "Australia"
   has_availability_zones = true
 }
@@ -144,18 +145,18 @@ resource "azurerm_virtual_network" "this" {
 
 # Subnet for private endpoints
 resource "azurerm_subnet" "private_endpoints" {
-  address_prefixes     = ["192.168.1.0/24"]
   name                 = "snet-private-endpoints"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["192.168.1.0/24"]
 }
 
 # Subnet for AI agent services (Container Apps)
 resource "azurerm_subnet" "agent_services" {
-  address_prefixes     = ["192.168.0.0/24"]
   name                 = "snet-agent-services"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["192.168.0.0/24"]
 
   # Required for Container App Environment
   delegation {
@@ -170,18 +171,18 @@ resource "azurerm_subnet" "agent_services" {
 
 # Subnet for Bastion
 resource "azurerm_subnet" "bastion" {
-  address_prefixes     = ["192.168.2.0/26"]
   name                 = "AzureBastionSubnet"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["192.168.2.0/26"]
 }
 
 # Subnet for VM
 resource "azurerm_subnet" "vm" {
-  address_prefixes     = ["192.168.3.0/26"]
   name                 = "snet-vm"
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["192.168.3.0/26"]
 }
 
 # Storage Account Private DNS Zone
@@ -302,9 +303,10 @@ module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
   version = "0.9.0"
 
-  location  = azurerm_resource_group.this.location
-  name      = module.naming.bastion_host.name_unique
-  parent_id = azurerm_resource_group.this.id
+  location         = azurerm_resource_group.this.location
+  name             = module.naming.bastion_host.name_unique
+  parent_id        = azurerm_resource_group.this.id
+  enable_telemetry = var.enable_telemetry
   ip_configuration = {
     name                 = "default-ipconfig"
     subnet_id            = azurerm_subnet.bastion.id
@@ -320,8 +322,14 @@ module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
   version = "0.21.0"
 
-  location = azurerm_resource_group.this.location
-  name     = module.naming.virtual_machine.name_unique
+  location                                               = azurerm_resource_group.this.location
+  name                                                   = module.naming.virtual_machine.name_unique
+  resource_group_name                                    = azurerm_resource_group.this.name
+  zone                                                   = "1"
+  admin_username                                         = "azureadmin"
+  bypass_platform_safety_checks_on_user_schedule_enabled = false
+  disable_password_authentication                        = false
+  enable_telemetry                                       = var.enable_telemetry
   network_interfaces = {
     network_interface_1 = {
       name = "${module.naming.network_interface.name_unique}-vm"
@@ -333,11 +341,6 @@ module "virtual_machine" {
       }
     }
   }
-  resource_group_name                                    = azurerm_resource_group.this.name
-  zone                                                   = "1"
-  admin_username                                         = "azureadmin"
-  bypass_platform_safety_checks_on_user_schedule_enabled = false
-  disable_password_authentication                        = false
   os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
@@ -422,6 +425,7 @@ resource "azurerm_private_endpoint" "pe_aisearch" {
       "searchService"
     ]
   }
+
   private_dns_zone_group {
     name                 = "${azapi_resource.ai_search.name}-dns-config"
     private_dns_zone_ids = [azurerm_private_dns_zone.search.id]
@@ -447,6 +451,7 @@ module "key_vault" {
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
     }
   }
+  enable_telemetry                = var.enable_telemetry
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
@@ -469,6 +474,7 @@ module "storage_account" {
 
   location                 = azurerm_resource_group.this.location
   name                     = module.naming.storage_account.name_unique
+  resource_group_name      = azurerm_resource_group.this.name
   access_tier              = "Hot"
   account_kind             = "StorageV2"
   account_replication_type = "ZRS"
@@ -492,6 +498,7 @@ module "storage_account" {
       metric_categories = ["Transaction"]
     }
   }
+  enable_telemetry = var.enable_telemetry
   private_endpoints = {
     "blob" = {
       private_dns_zone_resource_ids = [azurerm_private_dns_zone.storage_blob.id]
@@ -499,7 +506,6 @@ module "storage_account" {
       subresource_name              = "blob"
     }
   }
-  resource_group_name = azurerm_resource_group.this.name
   tags = {
     environment = "test"
   }
@@ -529,6 +535,7 @@ module "cosmosdb" {
       metric_categories     = ["SLI", "Requests"]
     }
   }
+  enable_telemetry = var.enable_telemetry
   ip_range_filter = [
     "168.125.123.255",
     "170.0.0.0/24",                                                                 #TODO: check 0.0.0.0 for validity
@@ -539,14 +546,30 @@ module "cosmosdb" {
   multiple_write_locations_enabled      = false
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = false
-  private_endpoints = {
-    "cosmosdb" = {
-      private_dns_zone_resource_ids = [azurerm_private_dns_zone.cosmosdb.id]
-      subnet_resource_id            = azurerm_subnet.private_endpoints.id
-      subresource_name              = "sql"
-    }
+  public_network_access_enabled         = true
+}
+
+resource "azurerm_private_endpoint" "cosmosdb" {
+  location            = azurerm_resource_group.this.location
+  name                = "pep-${module.naming.cosmosdb_account.name_unique}"
+  resource_group_name = azurerm_resource_group.this.name
+  subnet_id           = azurerm_subnet.private_endpoints.id
+
+  private_service_connection {
+    is_manual_connection           = false
+    name                           = "pse-cosmosdb"
+    private_connection_resource_id = module.cosmosdb.resource_id
+    subresource_names              = ["sql"]
   }
-  public_network_access_enabled = true
+
+  private_dns_zone_group {
+    name                 = "default"
+    private_dns_zone_ids = [azurerm_private_dns_zone.cosmosdb.id]
+  }
+
+  timeouts {
+    delete = "90m"
+  }
 }
 
 module "ai_foundry" {
@@ -622,6 +645,7 @@ module "ai_foundry" {
   }
   create_byor              = false # default: false
   create_private_endpoints = false # default: false
+  enable_telemetry         = var.enable_telemetry
   key_vault_definition = {
     this = {
       existing_resource_id = module.key_vault.resource_id
@@ -656,13 +680,22 @@ resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
   resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
   type        = "Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts@2025-09-01"
-  when        = "destroy"
+  # Deleting the account is asynchronous, so the purge can be issued while the
+  # account provisioning state is still non terminal, which returns a 409
+  # RequestConflict. Retry until the deletion settles.
+  retry = {
+    error_message_regex  = ["RequestConflict"]
+    interval_seconds     = 30
+    max_interval_seconds = 120
+  }
+  when = "destroy"
 
   depends_on = [time_sleep.purge_ai_foundry_cooldown]
 }
 
 resource "time_sleep" "purge_ai_foundry_cooldown" {
-  destroy_duration = "900s" # 10m
+  # Allow the AI Agents service association link to clear before subnet deletion.
+  destroy_duration = "20m"
 
   depends_on = [azurerm_subnet.agent_services]
 }
@@ -706,6 +739,7 @@ The following resources are used by this module:
 - [azurerm_private_dns_zone_virtual_network_link.search](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.storage_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
 - [azurerm_private_dns_zone_virtual_network_link.storage_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) (resource)
+- [azurerm_private_endpoint.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint.pe_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_public_ip.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
@@ -725,7 +759,17 @@ No required inputs.
 
 ## Optional Inputs
 
-No optional inputs.
+The following input variables are optional (have default values):
+
+### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
+
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see <https://aka.ms/avm/telemetryinfo>.  
+If it is set to false, then no telemetry will be collected.
+
+Type: `bool`
+
+Default: `true`
 
 ## Outputs
 
@@ -786,5 +830,5 @@ Version: 0.21.0
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
 
-The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft's privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
+The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
 <!-- END_TF_DOCS -->

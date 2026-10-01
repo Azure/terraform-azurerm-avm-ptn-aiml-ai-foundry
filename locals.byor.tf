@@ -34,6 +34,16 @@ locals {
   #################################################################
   # Storage Account specific local variables
   #################################################################
+  # Falls back to the module's previous behaviour when a definition omits network_rules.
+  storage_account_network_rules = { for k, v in var.storage_account_definition : k => (
+    v.network_rules != null ? v.network_rules : (var.create_private_endpoints ? {
+      bypass                     = ["AzureServices"]
+      default_action             = "Deny"
+      ip_rules                   = []
+      virtual_network_subnet_ids = []
+      private_link_access        = null
+    } : null)
+  ) }
   storage_account_role_assignments = { for k, v in var.storage_account_definition : k => merge(
     local.storage_account_default_role_assignments,
     var.storage_account_definition[k].role_assignments

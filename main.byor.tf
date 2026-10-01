@@ -19,10 +19,7 @@ module "key_vault" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
-  network_acls = { #TODO check to see if we need to support custom network ACLs and if this should be deny by default.
-    default_action = "Allow"
-    bypass         = "AzureServices"
-  }
+  network_acls                    = each.value.network_acls
   private_endpoints = var.create_private_endpoints ? {
     "vault" = {
       private_dns_zone_resource_ids = each.value.private_dns_zone_resource_id != null ? [each.value.private_dns_zone_resource_id] : []
@@ -31,7 +28,7 @@ module "key_vault" {
     }
   } : {}
   private_endpoints_manage_dns_zone_group = var.private_endpoints_manage_dns_zone_groups
-  public_network_access_enabled           = var.create_private_endpoints ? false : true
+  public_network_access_enabled           = each.value.public_network_access_enabled != null ? each.value.public_network_access_enabled : (var.create_private_endpoints ? false : true)
   role_assignments                        = local.key_vault_role_assignments[each.key]
   tags                                    = each.value.tags
   wait_for_rbac_before_key_operations = {
@@ -60,12 +57,7 @@ module "storage_account" {
   account_tier                        = each.value.account_tier
   diagnostic_settings_storage_account = each.value.diagnostic_settings_storage_account
   enable_telemetry                    = var.enable_telemetry
-  network_rules = var.create_private_endpoints ? {
-    default_action             = "Deny"
-    bypass                     = ["AzureServices"]
-    ip_rules                   = []
-    virtual_network_subnet_ids = []
-  } : null
+  network_rules                       = local.storage_account_network_rules[each.key]
   private_endpoints = var.create_private_endpoints ? {
     for endpoint in each.value.endpoints :
     endpoint.type => {
@@ -76,7 +68,7 @@ module "storage_account" {
     }
   } : {}
   private_endpoints_manage_dns_zone_group = var.private_endpoints_manage_dns_zone_groups
-  public_network_access_enabled           = var.create_private_endpoints ? false : true
+  public_network_access_enabled           = each.value.public_network_access_enabled != null ? each.value.public_network_access_enabled : (var.create_private_endpoints ? false : true)
   role_assignments                        = local.storage_account_role_assignments[each.key] #assumes the same role assignments will be used for all storage accounts in the map.
   shared_access_key_enabled               = each.value.shared_access_key_enabled
   tags                                    = merge(var.tags, each.value.tags)
@@ -101,19 +93,15 @@ module "cosmosdb" {
     max_interval_in_seconds = each.value.consistency_policy.max_interval_in_seconds
     max_staleness_prefix    = each.value.consistency_policy.max_staleness_prefix
   }
-  cors_rule           = each.value.cors_rule
-  diagnostic_settings = each.value.diagnostic_settings
-  enable_telemetry    = var.enable_telemetry
-  geo_locations       = local.cosmosdb_secondary_regions[each.key]
-  ip_range_filter = [
-    "168.125.123.255",
-    "170.0.0.0/24",                                                                 #TODO: check 0.0.0.0 for validity
-    "0.0.0.0",                                                                      #Accept connections from within public Azure datacenters. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal
-    "104.42.195.92", "40.76.54.131", "52.176.6.30", "52.169.50.45", "52.187.184.26" #Allow access from the Azure portal. https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure
-  ]
+  cors_rule                             = each.value.cors_rule
+  diagnostic_settings                   = each.value.diagnostic_settings
+  enable_telemetry                      = var.enable_telemetry
+  geo_locations                         = local.cosmosdb_secondary_regions[each.key]
+  ip_range_filter                       = each.value.ip_range_filter
   local_authentication_disabled         = each.value.local_authentication_disabled
   multiple_write_locations_enabled      = each.value.multiple_write_locations_enabled
-  network_acl_bypass_for_azure_services = true
+  network_acl_bypass_for_azure_services = each.value.network_acl_bypass_for_azure_services
+  network_acl_bypass_resource_ids       = each.value.network_acl_bypass_resource_ids
   partition_merge_enabled               = each.value.partition_merge_enabled
   private_endpoints = var.create_private_endpoints ? {
     "sql" = {
@@ -128,4 +116,5 @@ module "cosmosdb" {
   public_network_access_enabled           = each.value.public_network_access_enabled
   role_assignments                        = each.value.role_assignments
   tags                                    = merge(var.tags, each.value.tags)
+  virtual_network_rules                   = each.value.virtual_network_rules
 }

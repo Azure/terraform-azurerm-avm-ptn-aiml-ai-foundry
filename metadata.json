@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "AI-ML - AI Foundry",
+  "moduleDescription": "AVM Pattern Module for AI-ML - AI Foundry",
+  "canonicalType": "ai-ml/ai-foundry",
+  "owners": [
+    "segraef",
+    "mbilalamjad"
+  ],
+  "telemetryIdPrefix": "46d3xtrf.ptn.0508df9"
+}

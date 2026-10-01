@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Azure AI Foundry Project",
+  "moduleDescription": "Deploys an AI Foundry project with optional AI agent service and project connections, including Cosmos DB and Storage data-plane role assignments for the project and parent account identities.",
+  "canonicalType": "ai-ml/ai-foundry/ai-foundry-project",
+  "telemetryIdPrefix": "46d3xtrf.ptn.e9b347e"
+}
