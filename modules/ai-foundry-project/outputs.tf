@@ -1,6 +1,6 @@
 output "ai_agent_capability_host_id" {
   description = "Resource ID of the AI agent capability host"
-  value       = var.create_ai_agent_service ? azapi_resource.ai_agent_capability_host[0].id : null
+  value       = var.create_ai_agent_service && var.create_project_connections ? azapi_resource.ai_agent_capability_host[0].id : null
 }
 
 output "ai_foundry_project_id" {
