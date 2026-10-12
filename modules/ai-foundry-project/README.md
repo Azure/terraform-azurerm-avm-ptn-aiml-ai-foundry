@@ -129,6 +129,46 @@ Type: `bool`
 
 Default: `false`
 
+### <a name="input_resource_types"></a> [resource\_types](#input\_resource\_types)
+
+Description: AzAPI resource types and API versions used by the AI Foundry project submodule.
+
+- `cognitiveservices_accounts_projects` - Resource type and API version for AI Foundry projects.
+- `cognitiveservices_accounts_projects_capability_hosts` - Resource type and API version for project-level AI agent capability hosts.
+- `cognitiveservices_accounts_projects_connections` - Resource type and API version for project connections.
+
+Type:
+
+```hcl
+object({
+    cognitiveservices_accounts_projects                  = optional(string, "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview")
+    cognitiveservices_accounts_projects_capability_hosts = optional(string, "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview")
+    cognitiveservices_accounts_projects_connections      = optional(string, "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview")
+  })
+```
+
+Default: `{}`
+
+### <a name="input_retry"></a> [retry](#input\_retry)
+
+Description: Retry configuration applied to supported AzAPI resources declared by the AI Foundry project submodule.
+
+- `error_message_regex` - List of regex patterns matching error messages that trigger a retry.
+- `interval_seconds` - Initial interval between retries in seconds.
+- `max_interval_seconds` - Maximum interval between retries in seconds.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string), ["IfMatchPreconditionFailed"])
+    interval_seconds     = optional(number)
+    max_interval_seconds = optional(number)
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_sku"></a> [sku](#input\_sku)
 
 Description: SKU for the AI Foundry project
@@ -152,6 +192,28 @@ Description: Tags to apply to resources
 Type: `map(string)`
 
 Default: `null`
+
+### <a name="input_timeouts"></a> [timeouts](#input\_timeouts)
+
+Description: Default per-operation timeouts applied to supported AzAPI resources declared by the AI Foundry project submodule.
+
+- `create` - Timeout for create operations.
+- `read` - Timeout for read operations.
+- `update` - Timeout for update operations.
+- `delete` - Timeout for delete operations.
+
+Type:
+
+```hcl
+object({
+    create = optional(string, "90m")
+    read   = optional(string, "5m")
+    update = optional(string, "90m")
+    delete = optional(string, "90m")
+  })
+```
+
+Default: `{}`
 
 ## Outputs
 

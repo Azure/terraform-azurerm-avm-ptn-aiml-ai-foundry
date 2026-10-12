@@ -387,14 +387,6 @@ map(object({
 
 Default: `{}`
 
-### <a name="input_cognitive_services_api_version"></a> [cognitive\_services\_api\_version](#input\_cognitive\_services\_api\_version)
-
-Description: API version used for Microsoft.CognitiveServices account resources. Use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
-
-Type: `string`
-
-Default: `"2025-10-01-preview"`
-
 ### <a name="input_cosmosdb_definition"></a> [cosmosdb\_definition](#input\_cosmosdb\_definition)
 
 Description: Configuration object for the Azure Cosmos DB account to be created for GenAI services.
@@ -719,6 +711,57 @@ object({
 
 Default: `{}`
 
+### <a name="input_resource_types"></a> [resource\_types](#input\_resource\_types)
+
+Description: AzAPI resource types and API versions used by this module.
+
+- `cognitiveservices_accounts` - Resource type and API version for the AI Foundry account. Defaults to `2025-10-01-preview`; use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
+- `cognitiveservices_accounts_capability_hosts` - Resource type and API version for the account-level AI agent capability host. Defaults to `2025-10-01-preview`; use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
+- `cognitiveservices_accounts_deployments` - Resource type and API version for AI model deployments. Defaults to `2025-10-01-preview`; use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
+- `search_search_services` - Resource type and API version for AI Search services created by this pattern module.
+- `cognitiveservices_accounts_projects` - Resource type overrides passed to the AI Foundry project submodule.
+- `cognitiveservices_accounts_projects.cognitiveservices_accounts_projects` - Resource type and API version for AI Foundry projects.
+- `cognitiveservices_accounts_projects.cognitiveservices_accounts_projects_capability_hosts` - Resource type and API version for project-level AI agent capability hosts.
+- `cognitiveservices_accounts_projects.cognitiveservices_accounts_projects_connections` - Resource type and API version for project connections.
+
+Type:
+
+```hcl
+object({
+    cognitiveservices_accounts                  = optional(string, "Microsoft.CognitiveServices/accounts@2025-10-01-preview")
+    cognitiveservices_accounts_capability_hosts = optional(string, "Microsoft.CognitiveServices/accounts/capabilityHosts@2025-10-01-preview")
+    cognitiveservices_accounts_deployments      = optional(string, "Microsoft.CognitiveServices/accounts/deployments@2025-10-01-preview")
+    search_search_services                      = optional(string, "Microsoft.Search/searchServices@2024-06-01-preview")
+    cognitiveservices_accounts_projects = optional(object({
+      cognitiveservices_accounts_projects                  = optional(string)
+      cognitiveservices_accounts_projects_capability_hosts = optional(string)
+      cognitiveservices_accounts_projects_connections      = optional(string)
+    }), {})
+  })
+```
+
+Default: `{}`
+
+### <a name="input_retry"></a> [retry](#input\_retry)
+
+Description: Retry configuration applied to supported AzAPI resources declared by this module and its applicable submodules.
+
+- `error_message_regex` - List of regex patterns matching error messages that trigger a retry.
+- `interval_seconds` - Initial interval between retries in seconds.
+- `max_interval_seconds` - Maximum interval between retries in seconds.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string), ["IfMatchPreconditionFailed"])
+    interval_seconds     = optional(number)
+    max_interval_seconds = optional(number)
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_storage_account_definition"></a> [storage\_account\_definition](#input\_storage\_account\_definition)
 
 Description: Configuration object for the Azure Storage Account to be created for GenAI services.
@@ -823,6 +866,28 @@ Description: (Optional) Tags to be applied to all resources.
 Type: `map(string)`
 
 Default: `null`
+
+### <a name="input_timeouts"></a> [timeouts](#input\_timeouts)
+
+Description: Default per-operation timeouts applied to supported AzAPI resources declared by this module and its applicable submodules. GMU Foundry deployments can exceed 45 minutes, so create, update, and delete default to 90 minutes.
+
+- `create` - Timeout for create operations.
+- `read` - Timeout for read operations.
+- `update` - Timeout for update operations.
+- `delete` - Timeout for delete operations.
+
+Type:
+
+```hcl
+object({
+    create = optional(string, "90m")
+    read   = optional(string, "5m")
+    update = optional(string, "90m")
+    delete = optional(string, "90m")
+  })
+```
+
+Default: `{}`
 
 ## Outputs
 

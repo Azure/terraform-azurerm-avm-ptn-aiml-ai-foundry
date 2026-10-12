@@ -9,6 +9,12 @@ data "modtm_module_source" "telemetry" {
 }
 
 locals {
+  avm_azapi_header = join(" ", [for k, v in local.avm_azapi_headers : "${k}=${v}"])
+  avm_azapi_headers = !var.enable_telemetry ? {} : {
+    avm_module_source  = one(data.modtm_module_source.telemetry).module_source
+    avm_module_version = one(data.modtm_module_source.telemetry).module_version
+    random_id          = one(random_uuid.telemetry).result
+  }
   # If your module does not support a location, then set this local to "unknown"
   # If the location is sourced from a collection or other value, then you can update this local to set it to the location
   main_location = var.location

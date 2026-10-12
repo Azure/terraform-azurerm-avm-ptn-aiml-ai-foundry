@@ -6,7 +6,7 @@ resource "azapi_resource" "ai_search" {
   location  = var.location
   name      = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-${each.key}-ai-foundry-ai-search-${random_string.resource_token.result}" : "${each.key}-ai-foundry-ai-search-${random_string.resource_token.result}")
   parent_id = var.resource_group_resource_id
-  type      = "Microsoft.Search/searchServices@2024-06-01-preview"
+  type      = var.resource_types.search_search_services
   body = {
     sku = {
       name = each.value.sku
@@ -46,7 +46,20 @@ resource "azapi_resource" "ai_search" {
       } : {}
     )
   }
+  retry                     = var.retry
   schema_validation_enabled = true
+  tags                      = each.value.tags
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
+    }
+  }
 }
 
 resource "azurerm_private_endpoint" "pe_aisearch" {
