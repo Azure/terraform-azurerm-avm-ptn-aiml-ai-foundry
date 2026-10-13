@@ -17,7 +17,7 @@ DESCRIPTION
 
 variable "retry" {
   type = object({
-    error_message_regex  = optional(list(string), ["IfMatchPreconditionFailed", "RequestConflict", "provisioning state is not terminal"])
+    error_message_regex  = optional(list(string), ["IfMatchPreconditionFailed", "RequestConflict", "CannotDeleteResource", "provisioning state is not terminal", "nested resources exist"])
     interval_seconds     = optional(number)
     max_interval_seconds = optional(number)
   })
