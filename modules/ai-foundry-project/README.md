@@ -161,7 +161,7 @@ Type:
 
 ```hcl
 object({
-    error_message_regex  = optional(list(string), ["IfMatchPreconditionFailed"])
+    error_message_regex  = optional(list(string), ["IfMatchPreconditionFailed", "RequestConflict", "provisioning state is not terminal"])
     interval_seconds     = optional(number)
     max_interval_seconds = optional(number)
   })
