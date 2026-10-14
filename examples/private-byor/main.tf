@@ -282,7 +282,7 @@ module "virtual_machine" {
   }
   patch_assessment_mode = "AutomaticByPlatform"
   patch_mode            = "AutomaticByPlatform"
-  sku_size              = "Standard_D4s_v3"
+  sku_size              = var.virtual_machine_sku_size
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"

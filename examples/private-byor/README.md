@@ -347,7 +347,7 @@ module "virtual_machine" {
   }
   patch_assessment_mode = "AutomaticByPlatform"
   patch_mode            = "AutomaticByPlatform"
-  sku_size              = "Standard_D4s_v3"
+  sku_size              = var.virtual_machine_sku_size
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
@@ -770,6 +770,14 @@ If it is set to false, then no telemetry will be collected.
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_virtual_machine_sku_size"></a> [virtual\_machine\_sku\_size](#input\_virtual\_machine\_sku\_size)
+
+Description: SKU size for the Windows test virtual machine. Override with a size available in the selected region and zone that supports the Generation 2 image.
+
+Type: `string`
+
+Default: `"Standard_D4s_v6"`
 
 ## Outputs
 
