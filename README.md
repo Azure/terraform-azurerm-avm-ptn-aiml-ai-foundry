@@ -1001,7 +1001,7 @@ Version: 0.12.0
 
 Source: Azure/avm-res-documentdb-databaseaccount/azurerm
 
-Version: 0.10.0
+Version: 0.11.0
 
 ### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
 

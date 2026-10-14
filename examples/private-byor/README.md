@@ -4,6 +4,8 @@
 
 This deploys the module with private networking and Bring Your Own Resources (BYOR) services.
 
+Local authentication is disabled for the Foundry account and Cosmos DB, and public network access is disabled for Cosmos DB and Key Vault. The Bastion public IP preserves the Azure-managed `FirstPartyUsage` IP tag when Azure injects it; other IP tags remain managed by Terraform.
+
 ## Architecture
 
 This example demonstrates a private deployment with custom Key Vault, Storage, Cosmos DB, and AI Search:
@@ -297,6 +299,10 @@ resource "azurerm_public_ip" "example" {
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "Standard"
   zones               = [1, 2, 3]
+
+  lifecycle {
+    ignore_changes = [ip_tags["FirstPartyUsage"]]
+  }
 }
 
 module "bastion_host" {
@@ -466,6 +472,7 @@ module "key_vault" {
       subresource_name              = "vault"
     }
   }
+  public_network_access_enabled = false
 }
 
 module "storage_account" {
@@ -513,7 +520,7 @@ module "storage_account" {
 
 module "cosmosdb" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "0.10.0"
+  version = "0.11.0"
 
   location                   = azurerm_resource_group.this.location
   name                       = module.naming.cosmosdb_account.name_unique
@@ -546,7 +553,7 @@ module "cosmosdb" {
   multiple_write_locations_enabled      = false
   network_acl_bypass_for_azure_services = true
   partition_merge_enabled               = false
-  public_network_access_enabled         = true
+  public_network_access_enabled         = false
 }
 
 resource "azurerm_private_endpoint" "cosmosdb" {
@@ -580,6 +587,7 @@ module "ai_foundry" {
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service       = true
+    disable_local_auth            = true
     name                          = module.naming.cognitive_account.name_unique
     private_dns_zone_resource_ids = [azurerm_private_dns_zone.openai.id, azurerm_private_dns_zone.cognitiveservices.id, azurerm_private_dns_zone.ai_services.id]
     network_injections = [{
@@ -803,7 +811,7 @@ Version: 0.9.0
 
 Source: Azure/avm-res-documentdb-databaseaccount/azurerm
 
-Version: 0.10.0
+Version: 0.11.0
 
 ### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
 

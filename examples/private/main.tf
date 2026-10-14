@@ -232,6 +232,10 @@ resource "azurerm_public_ip" "example" {
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "Standard"
   zones               = [1, 2, 3]
+
+  lifecycle {
+    ignore_changes = [ip_tags["FirstPartyUsage"]]
+  }
 }
 
 module "bastion_host" {
@@ -302,6 +306,7 @@ module "ai_foundry" {
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service       = true
+    disable_local_auth            = true
     name                          = module.naming.cognitive_account.name_unique
     private_dns_zone_resource_ids = [azurerm_private_dns_zone.openai.id, azurerm_private_dns_zone.cognitiveservices.id, azurerm_private_dns_zone.ai_services.id]
     network_injections = [{
