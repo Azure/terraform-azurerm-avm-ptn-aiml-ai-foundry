@@ -76,7 +76,7 @@ module "storage_account" {
 
 module "cosmosdb" {
   source   = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version  = "0.10.0"
+  version  = "0.11.0"
   for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                   = var.location

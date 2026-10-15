@@ -2,7 +2,7 @@ resource "azapi_resource" "ai_foundry_project" {
   location  = var.location
   name      = var.name
   parent_id = var.ai_foundry_id
-  type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
+  type      = var.resource_types.cognitiveservices_accounts_projects
   body = {
     sku = {
       name = var.sku
@@ -25,11 +25,20 @@ resource "azapi_resource" "ai_foundry_project" {
     "identity.principalId",
     "properties.internalId"
   ]
-  retry = {
-    error_message_regex = ["IfMatchPreconditionFailed"]
-  }
+  retry                     = var.retry
   schema_validation_enabled = false
   tags                      = var.tags
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
+    }
+  }
 }
 
 locals {
@@ -48,7 +57,7 @@ resource "azapi_resource" "connection_storage" {
 
   name      = basename(var.create_project_connections ? "${var.name}-${substr(md5(lower(basename(var.storage_account_id))), 0, 6)}" : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  type      = var.resource_types.cognitiveservices_accounts_projects_connections
   body = {
     properties = {
       category = "AzureStorageAccount"
@@ -64,7 +73,19 @@ resource "azapi_resource" "connection_storage" {
   response_export_values = [
     "identity.principalId"
   ]
+  retry                     = var.retry
   schema_validation_enabled = false
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
+    }
+  }
 
   depends_on = [azapi_resource.connection_cosmos, azurerm_role_assignment.storage_role_assignments]
 }
@@ -74,7 +95,7 @@ resource "azapi_resource" "connection_cosmos" {
 
   name      = basename(var.create_project_connections ? "${var.name}-${substr(md5(lower(basename(var.cosmos_db_id))), 0, 6)}" : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  type      = var.resource_types.cognitiveservices_accounts_projects_connections
   body = {
     properties = {
       category = "CosmosDb"
@@ -90,7 +111,19 @@ resource "azapi_resource" "connection_cosmos" {
   response_export_values = [
     "identity.principalId"
   ]
+  retry                     = var.retry
   schema_validation_enabled = false
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
+    }
+  }
 
   depends_on = [azurerm_role_assignment.cosmosdb_role_assignments]
 }
@@ -100,7 +133,7 @@ resource "azapi_resource" "connection_search" {
 
   name      = basename(var.create_project_connections ? "${var.name}-${substr(md5(lower(basename(var.ai_search_id))), 0, 6)}" : "/n/o/t/u/s/e/d")
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  type      = var.resource_types.cognitiveservices_accounts_projects_connections
   body = {
     properties = {
       category = "CognitiveSearch"
@@ -114,7 +147,19 @@ resource "azapi_resource" "connection_search" {
       }
     }
   }
+  retry                     = var.retry
   schema_validation_enabled = false
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
+    }
+  }
 
   lifecycle {
     ignore_changes = [name]
@@ -130,7 +175,7 @@ resource "azapi_resource" "ai_agent_capability_host" {
 
   name      = var.ai_agent_host_name
   parent_id = azapi_resource.ai_foundry_project.id
-  type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
+  type      = var.resource_types.cognitiveservices_accounts_projects_capability_hosts
   body = {
     properties = {
       capabilityHostKind = "Agents"
@@ -145,7 +190,19 @@ resource "azapi_resource" "ai_agent_capability_host" {
       ] : []
     }
   }
+  retry                     = var.retry
   schema_validation_enabled = false
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
+    }
+  }
 
   depends_on = [
     azapi_resource.connection_storage,

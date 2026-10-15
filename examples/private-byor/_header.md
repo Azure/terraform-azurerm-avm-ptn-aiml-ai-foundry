@@ -2,6 +2,8 @@
 
 This deploys the module with private networking and Bring Your Own Resources (BYOR) services.
 
+Local authentication is disabled for the Foundry account and Cosmos DB, and public network access is disabled for Cosmos DB and Key Vault. The Bastion public IP preserves the Azure-managed `FirstPartyUsage` IP tag when Azure injects it; other IP tags remain managed by Terraform.
+
 ## Architecture
 
 This example demonstrates a private deployment with custom Key Vault, Storage, Cosmos DB, and AI Search:

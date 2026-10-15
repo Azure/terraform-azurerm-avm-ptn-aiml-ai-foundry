@@ -2,7 +2,7 @@ resource "azapi_resource" "ai_foundry" {
   location  = var.location
   name      = local.ai_foundry_name
   parent_id = var.resource_group_resource_id
-  type      = "Microsoft.CognitiveServices/accounts@${var.cognitive_services_api_version}"
+  type      = var.resource_types.cognitiveservices_accounts
   body = {
 
     kind = "AIServices",
@@ -29,8 +29,20 @@ resource "azapi_resource" "ai_foundry" {
   # after child projects are deleted (avoids 412 IfMatchPreconditionFailed on
   # terraform destroy); keep the telemetry User-Agent header when enabled.
   delete_headers            = merge({ "If-Match" = "*" }, var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : {})
+  retry                     = var.retry
   schema_validation_enabled = false
   tags                      = var.tags
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
+    }
+  }
 
   lifecycle {
     ignore_changes = [
@@ -44,13 +56,25 @@ resource "azapi_resource" "ai_agent_capability_host" {
 
   name      = "ai-agent-service-${random_string.resource_token.result}"
   parent_id = azapi_resource.ai_foundry.id
-  type      = "Microsoft.CognitiveServices/accounts/capabilityHosts@${var.cognitive_services_api_version}"
+  type      = var.resource_types.cognitiveservices_accounts_capability_hosts
   body = {
     properties = {
       capabilityHostKind = "Agents"
     }
   }
+  retry                     = var.retry
   schema_validation_enabled = false
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
+    }
+  }
 
   depends_on = [azapi_resource.ai_foundry]
 }
@@ -60,7 +84,7 @@ resource "azapi_resource" "ai_model_deployment" {
 
   name      = each.value.name
   parent_id = azapi_resource.ai_foundry.id
-  type      = "Microsoft.CognitiveServices/accounts/deployments@${var.cognitive_services_api_version}"
+  type      = var.resource_types.cognitiveservices_accounts_deployments
   body = {
     properties = {
       model = {
@@ -74,6 +98,19 @@ resource "azapi_resource" "ai_model_deployment" {
     sku = {
       name     = each.value.scale.type
       capacity = each.value.scale.capacity
+    }
+  }
+  retry = var.retry
+  tags  = var.tags
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
     }
   }
 
@@ -127,7 +164,7 @@ resource "azapi_update_resource" "ai_foundry_cmk" {
   count = var.ai_foundry.customer_managed_key != null ? 1 : 0
 
   resource_id = azapi_resource.ai_foundry.id
-  type        = "Microsoft.CognitiveServices/accounts@${var.cognitive_services_api_version}"
+  type        = var.resource_types.cognitiveservices_accounts
   body = {
     properties = {
       encryption = {
@@ -139,6 +176,18 @@ resource "azapi_update_resource" "ai_foundry_cmk" {
           identityClientId = data.azurerm_user_assigned_identity.cmk[0].client_id
         }
       }
+    }
+  }
+  retry = var.retry
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
     }
   }
 

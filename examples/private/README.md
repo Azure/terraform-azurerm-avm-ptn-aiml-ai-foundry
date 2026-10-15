@@ -4,6 +4,8 @@
 
 This deploys the module with private networking and secure access.
 
+Local authentication is disabled for the Foundry account and Cosmos DB. The Bastion public IP preserves the Azure-managed `FirstPartyUsage` IP tag when Azure injects it; other IP tags remain managed by Terraform.
+
 ## Architecture
 
 This example demonstrates a deployment with private endpoints for secure connectivity:
@@ -273,6 +275,10 @@ resource "azurerm_public_ip" "example" {
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "Standard"
   zones               = [1, 2, 3]
+
+  lifecycle {
+    ignore_changes = [ip_tags["FirstPartyUsage"]]
+  }
 }
 
 module "bastion_host" {
@@ -324,7 +330,7 @@ module "virtual_machine" {
   }
   patch_assessment_mode = "AutomaticByPlatform"
   patch_mode            = "AutomaticByPlatform"
-  sku_size              = "Standard_D4s_v3"
+  sku_size              = var.virtual_machine_sku_size
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
@@ -343,6 +349,7 @@ module "ai_foundry" {
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service       = true
+    disable_local_auth            = true
     name                          = module.naming.cognitive_account.name_unique
     private_dns_zone_resource_ids = [azurerm_private_dns_zone.openai.id, azurerm_private_dns_zone.cognitiveservices.id, azurerm_private_dns_zone.ai_services.id]
     network_injections = [{
@@ -506,6 +513,14 @@ If it is set to false, then no telemetry will be collected.
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_virtual_machine_sku_size"></a> [virtual\_machine\_sku\_size](#input\_virtual\_machine\_sku\_size)
+
+Description: SKU size for the Windows test virtual machine. Override with a size available in the selected region and zone that supports the Generation 2 image.
+
+Type: `string`
+
+Default: `"Standard_D4s_v6"`
 
 ## Outputs
 

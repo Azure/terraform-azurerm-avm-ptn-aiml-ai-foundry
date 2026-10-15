@@ -2,6 +2,8 @@
 
 This deploys the module with private networking and secure access.
 
+Local authentication is disabled for the Foundry account and Cosmos DB. The Bastion public IP preserves the Azure-managed `FirstPartyUsage` IP tag when Azure injects it; other IP tags remain managed by Terraform.
+
 ## Architecture
 
 This example demonstrates a deployment with private endpoints for secure connectivity:
