@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    modtm = {
+      source  = "azure/modtm"
+      version = "~> 0.3"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -300,6 +304,9 @@ module "virtual_machine" {
 # This is the module call for AI Foundry Pattern - Standard Private Configuration
 module "ai_foundry" {
   source = "../../"
+  providers = {
+    modtm = modtm
+  }
 
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location

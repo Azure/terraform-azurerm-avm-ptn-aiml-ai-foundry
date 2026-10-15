@@ -78,11 +78,7 @@ module "cosmosdb" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
   version = "0.11.0"
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    modtm = modtm
   }
   for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
