@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    modtm = {
+      source  = "azure/modtm"
+      version = "~> 0.3"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -174,6 +178,9 @@ module "cosmosdb" {
 
 module "ai_foundry" {
   source = "../../"
+  providers = {
+    modtm = modtm
+  }
 
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location
