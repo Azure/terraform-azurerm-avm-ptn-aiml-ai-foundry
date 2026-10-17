@@ -29,6 +29,7 @@ resource "azapi_resource" "ai_foundry" {
   # after child projects are deleted (avoids 412 IfMatchPreconditionFailed on
   # terraform destroy); keep the telemetry User-Agent header when enabled.
   delete_headers            = merge({ "If-Match" = "*" }, var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : {})
+  response_export_values    = ["identity.userAssignedIdentities"]
   retry                     = var.retry
   schema_validation_enabled = false
   tags                      = var.tags

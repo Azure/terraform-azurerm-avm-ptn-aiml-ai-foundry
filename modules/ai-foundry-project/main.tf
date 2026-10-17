@@ -1,3 +1,11 @@
+data "azapi_resource" "project_user_assigned_identity" {
+  for_each = var.managed_identities.user_assigned_resource_ids
+
+  resource_id            = each.value
+  type                   = "Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31"
+  response_export_values = ["properties.principalId"]
+}
+
 resource "azapi_resource" "ai_foundry_project" {
   location  = var.location
   name      = var.name
@@ -8,7 +16,8 @@ resource "azapi_resource" "ai_foundry_project" {
       name = var.sku
     }
     identity = {
-      type = "SystemAssigned"
+      type                   = local.project_identity_type
+      userAssignedIdentities = length(var.managed_identities.user_assigned_resource_ids) > 0 ? local.project_user_assigned_identities : null
     }
     properties = {
       displayName = var.display_name
@@ -23,6 +32,7 @@ resource "azapi_resource" "ai_foundry_project" {
   delete_headers = { "If-Match" = "*" }
   response_export_values = [
     "identity.principalId",
+    "identity.userAssignedIdentities",
     "properties.internalId"
   ]
   retry                     = var.retry
@@ -39,11 +49,6 @@ resource "azapi_resource" "ai_foundry_project" {
       delete = timeouts.value.delete
     }
   }
-}
-
-locals {
-  # Extract project internal ID and format as GUID for container naming
-  project_id_guid = var.create_ai_agent_service ? "${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 0, 8)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 8, 4)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 12, 4)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 16, 4)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 20, 12)}" : ""
 }
 
 resource "time_sleep" "wait_project_identities" {

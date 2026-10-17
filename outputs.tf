@@ -52,6 +52,16 @@ output "ai_foundry_project_system_identity_principal_id" {
   value       = { for project, value in var.ai_projects : project => module.ai_foundry_project[project].ai_foundry_project_system_identity_principal_id }
 }
 
+output "ai_foundry_project_user_assigned_identity_resource_ids" {
+  description = "User-assigned managed identity resource IDs attached to each AI Foundry project."
+  value       = { for project, value in var.ai_projects : project => module.ai_foundry_project[project].user_assigned_identity_resource_ids }
+}
+
+output "ai_foundry_user_assigned_identity_resource_ids" {
+  description = "User-assigned managed identity resource IDs attached to the AI Foundry account."
+  value       = try(toset(keys(azapi_resource.ai_foundry.output.identity.userAssignedIdentities)), toset([]))
+}
+
 output "ai_model_deployment_ids" {
   description = "The resource IDs of all AI model deployments."
   value       = { for k, v in azapi_resource.ai_model_deployment : k => v.id }
