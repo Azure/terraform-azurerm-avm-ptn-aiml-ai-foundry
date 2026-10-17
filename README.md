@@ -36,7 +36,74 @@ This module supports two ways of providing the dependent data services (Key Vaul
 - Feature requests that affect the **Foundry account, projects, agent service, connections, RBAC, or the Foundry account's own private endpoint** apply to both modes and are in scope regardless of BYOR/CYOR.
 - See the `standard-*-byor` examples for reference BYOR deployments.
 
+## Unit testing
+
+Run `avm test unit` from the repository root. The root tests exercise the actual
+project and Cosmos DB child modules, checking parameter propagation rather than
+testing Registry modules in isolation. Coverage includes independent project
+role assignments and scopes, empty assignment defaults, and Cosmos DB local
+authentication with default, explicitly disabled, and explicitly enabled values.
+Azure operations are mocked or overridden; these tests do not deploy resources.
+Standalone project tests provide additional identity and ARM body coverage.
+
 ## Example Deployments
+
+### Consumer access to Foundry and projects
+
+Use the root `role_assignments` map for access **on the Foundry account** and
+`ai_projects[<key>].role_assignments` for access **on that project**. These are
+independent of the service-identity grants on dependent storage, Search, and Cosmos DB.
+Both maps default to `{}` and create no assignments when omitted. Projects retain
+their existing identity and connection defaults.
+
+For example, add these arguments to your Foundry module call:
+
+```hcl
+role_assignments = {
+  account_reader = {
+    role_definition_id_or_name = "Reader"
+    principal_id               = var.reader_group_object_id
+    principal_type             = "Group"
+    description                = "Read access to the Foundry account"
+  }
+}
+
+ai_projects = {
+  research = {
+    name         = "research"
+    display_name = "Research"
+    description  = "Research project"
+    role_assignments = {
+      developer = {
+        role_definition_id_or_name = var.project_role_definition_resource_id
+        principal_id               = var.developer_service_principal_object_id
+        principal_type             = "ServicePrincipal"
+      }
+    }
+  }
+}
+```
+
+Use principal **object IDs**, not application/client IDs or managed-identity resource
+IDs. Role definitions accept a display name or a fully qualified role definition
+resource ID. The AVM interfaces utility resolves names at the exact target scope.
+Optional fields are `name` (a lowercase UUID), `description`, `condition`,
+`condition_version`, `delegated_managed_identity_resource_id`, and `principal_type`.
+Use `condition_version = "2.0"` with a condition. AzAPI makes no Entra principal
+lookup, so the standard compatibility field `skip_service_principal_aad_check`
+has no effect; supply `principal_type = "ServicePrincipal"` explicitly when required.
+The utility generates a persistent random UUID when `name` is omitted. Keep map
+keys stable, even when principal IDs are not known until apply. To change a role or
+principal after creation, replace the map entry using a new key.
+
+The existing `ai_foundry.role_assignments` interface and its resource addresses
+are unchanged. Do not configure the same scope/principal/role combination through
+both interfaces: Azure rejects duplicate assignments. No state migration is needed
+for this additive capability. Removing a new map entry revokes that assignment on
+the next apply; rollback does not alter legacy or dependent-resource grants.
+
+The independently consumable `modules/ai-foundry-project` submodule also accepts
+`role_assignments` directly and returns a keyed `role_assignments` summary.
 
 | Example                   | Description                                | Key Features                                      |
 | ------------------------- | ------------------------------------------ | ------------------------------------------------- |
@@ -57,8 +124,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.38)
 
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
-
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.7)
 
 - <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.13)
@@ -71,6 +136,8 @@ The following resources are used by this module:
 - [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_model_deployment](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.ai_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.role_assignments](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_update_resource.ai_foundry_cmk](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/update_resource) (resource)
 - [azurerm_monitor_diagnostic_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_monitor_diagnostic_setting.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
@@ -81,9 +148,8 @@ The following resources are used by this module:
 - [azurerm_role_assignment.cmk_key_vault_crypto_user](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.foundry_role_assignments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.this_aisearch](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
-- [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_string.resource_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) (resource)
-- [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
+- [terraform_data.telemetry](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) (resource)
 - [time_sleep.ai_foundry_wait](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.cmk_rbac_wait](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
@@ -92,7 +158,6 @@ The following resources are used by this module:
 - [azurerm_key_vault_key.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_key) (data source)
 - [azurerm_user_assigned_identity.ai_foundry_account](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) (data source)
 - [azurerm_user_assigned_identity.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) (data source)
-- [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -266,6 +331,10 @@ Description: Configuration map for AI Foundry projects to be created. Each proje
   - `display_name` - The display name of the AI Foundry project.
   - `description` - The description of the AI Foundry project.
   - `create_project_connections` - (Optional) Whether to create connections to dependent resources. Default is false.
+  - `role_assignments` - (Optional) Map of role assignments scoped to this project; defaults to `{}`. Uses the same fields as the root `role_assignments` input: optional UUID `name`, required `role_definition_id_or_name` and `principal_id`, and optional `description`, `skip_service_principal_aad_check`, `condition`, `condition_version`, `delegated_managed_identity_resource_id`, and `principal_type`. Use stable, arbitrary map keys and principal object IDs, not application/client IDs.
+  - `managed_identities` - (Optional) Identity configuration for the project. The system-assigned identity defaults to enabled to preserve existing behavior.
+    - `system_assigned` - (Optional) Whether to enable the system-assigned identity. Defaults to true; set explicitly to false for a UAMI-only project.
+    - `user_assigned_resource_ids` - (Optional) Set of user-assigned managed identity resource IDs to attach to the project.
   - `cosmos_db_connection` - (Optional) Configuration for Cosmos DB connection.
     - `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to connect to.
     - `new_resource_map_key` - (Optional) The map key of a new Cosmos DB account to be created and connected.
@@ -288,6 +357,21 @@ map(object({
     display_name               = string
     description                = string
     create_project_connections = optional(bool, false)
+    role_assignments = optional(map(object({
+      name                                   = optional(string, null)
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
+    })), {})
+    managed_identities = optional(object({
+      system_assigned            = optional(bool, true)
+      user_assigned_resource_ids = optional(set(string), [])
+    }), { system_assigned = true })
     cosmos_db_connection = optional(object({
       existing_resource_id = optional(string, null)
       new_resource_map_key = optional(string, null)
@@ -590,6 +674,26 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_ignore_body_changes"></a> [ignore\_body\_changes](#input\_ignore\_body\_changes)
+
+Description: Body-relative paths to ignore for consumer-configured role assignments. Empty lists send all configured properties. Ignored configuration is not sent to Azure until the path is removed; changes take effect after apply.
+
+- `authorization_role_assignments` - Paths on account role assignments.
+- `cognitiveservices_accounts_projects.authorization_role_assignments` - Paths passed to project role assignments.
+
+Type:
+
+```hcl
+object({
+    authorization_role_assignments = optional(list(string), [])
+    cognitiveservices_accounts_projects = optional(object({
+      authorization_role_assignments = optional(list(string), [])
+    }), {})
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_key_vault_definition"></a> [key\_vault\_definition](#input\_key\_vault\_definition)
 
 Description: Configuration object for the Azure Key Vault to be created for GenAI services.
@@ -715,11 +819,13 @@ Default: `{}`
 
 Description: AzAPI resource types and API versions used by this module.
 
+- `authorization_role_assignments` - Resource type and API version for consumer-configured account role assignments.
 - `cognitiveservices_accounts` - Resource type and API version for the AI Foundry account. Defaults to `2025-10-01-preview`; use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
 - `cognitiveservices_accounts_capability_hosts` - Resource type and API version for the account-level AI agent capability host. Defaults to `2025-10-01-preview`; use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
 - `cognitiveservices_accounts_deployments` - Resource type and API version for AI model deployments. Defaults to `2025-10-01-preview`; use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
 - `search_search_services` - Resource type and API version for AI Search services created by this pattern module.
 - `cognitiveservices_accounts_projects` - Resource type overrides passed to the AI Foundry project submodule.
+- `cognitiveservices_accounts_projects.authorization_role_assignments` - Resource type and API version for consumer-configured project role assignments.
 - `cognitiveservices_accounts_projects.cognitiveservices_accounts_projects` - Resource type and API version for AI Foundry projects.
 - `cognitiveservices_accounts_projects.cognitiveservices_accounts_projects_capability_hosts` - Resource type and API version for project-level AI agent capability hosts.
 - `cognitiveservices_accounts_projects.cognitiveservices_accounts_projects_connections` - Resource type and API version for project connections.
@@ -728,11 +834,13 @@ Type:
 
 ```hcl
 object({
+    authorization_role_assignments              = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
     cognitiveservices_accounts                  = optional(string, "Microsoft.CognitiveServices/accounts@2025-10-01-preview")
     cognitiveservices_accounts_capability_hosts = optional(string, "Microsoft.CognitiveServices/accounts/capabilityHosts@2025-10-01-preview")
     cognitiveservices_accounts_deployments      = optional(string, "Microsoft.CognitiveServices/accounts/deployments@2025-10-01-preview")
     search_search_services                      = optional(string, "Microsoft.Search/searchServices@2024-06-01-preview")
     cognitiveservices_accounts_projects = optional(object({
+      authorization_role_assignments                       = optional(string)
       cognitiveservices_accounts_projects                  = optional(string)
       cognitiveservices_accounts_projects_capability_hosts = optional(string)
       cognitiveservices_accounts_projects_connections      = optional(string)
@@ -758,6 +866,40 @@ object({
     interval_seconds     = optional(number)
     max_interval_seconds = optional(number)
   })
+```
+
+Default: `{}`
+
+### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
+
+Description: A map of role assignments to create on the AI Foundry account. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - (Optional) The name of the role assignment. If not set, a random UUID will be generated. Changing this forces the creation of a new resource.
+- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
+- `principal_id` - The ID of the principal to assign the role to.
+- `description` - (Optional) The description of the role assignment.
+- `skip_service_principal_aad_check` - (Optional) If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
+- `condition` - (Optional) The condition which will be used to scope the role assignment.
+- `condition_version` - (Optional) The version of the condition syntax. Leave as `null` if you are not using a condition, if you are then valid values are '2.0'.
+- `delegated_managed_identity_resource_id` - (Optional) The delegated Azure Resource Id which contains a Managed Identity. Changing this forces a new resource to be created. This field is only used in cross-tenant scenario.
+- `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
+
+> Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
+
+Type:
+
+```hcl
+map(object({
+    name                                   = optional(string, null)
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
 ```
 
 Default: `{}`
@@ -929,6 +1071,14 @@ Description: The name of the AI Foundry Project.
 
 Description: The principal ID of the AI Foundry project's system-assigned managed identity.
 
+### <a name="output_ai_foundry_project_user_assigned_identity_resource_ids"></a> [ai\_foundry\_project\_user\_assigned\_identity\_resource\_ids](#output\_ai\_foundry\_project\_user\_assigned\_identity\_resource\_ids)
+
+Description: User-assigned managed identity resource IDs attached to each AI Foundry project.
+
+### <a name="output_ai_foundry_user_assigned_identity_resource_ids"></a> [ai\_foundry\_user\_assigned\_identity\_resource\_ids](#output\_ai\_foundry\_user\_assigned\_identity\_resource\_ids)
+
+Description: User-assigned managed identity resource IDs attached to the AI Foundry account.
+
 ### <a name="output_ai_model_deployment_ids"></a> [ai\_model\_deployment\_ids](#output\_ai\_model\_deployment\_ids)
 
 Description: The resource IDs of all AI model deployments.
@@ -990,6 +1140,12 @@ The following Modules are called:
 Source: ./modules/ai-foundry-project
 
 Version:
+
+### <a name="module_avm_interfaces"></a> [avm\_interfaces](#module\_avm\_interfaces)
+
+Source: Azure/avm-utl-interfaces/azure
+
+Version: 0.9.0
 
 ### <a name="module_avm_utl_regions"></a> [avm\_utl\_regions](#module\_avm\_utl\_regions)
 

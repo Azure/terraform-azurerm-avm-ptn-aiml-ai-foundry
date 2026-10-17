@@ -1,9 +1,12 @@
 locals {
-  # Account-level user-assigned managed identity principals. These come from a data source
+  # Account and project user-assigned managed identity principals. These come from a data source
   # (resolved at plan time) and are safe to use as for_each keys. The project's own
   # system-assigned identity principal is only known after apply, so it gets its own
   # count-based role assignments below to avoid "Invalid for_each argument" errors.
-  account_umi_principal_ids = toset(var.account_user_assigned_identity_principal_ids)
+  account_umi_principal_ids = setunion(
+    toset(var.account_user_assigned_identity_principal_ids),
+    toset([for identity in data.azapi_resource.project_user_assigned_identity : identity.output.properties.principalId])
+  )
   ai_search_default_role_assignments = {
     search_index_data_contributor = {
       name                       = "${var.name}-search-index-data-contributor"
@@ -29,37 +32,37 @@ locals {
 }
 
 resource "azurerm_role_assignment" "ai_search_role_assignments" {
-  for_each = var.create_project_connections ? local.ai_search_default_role_assignments : {}
+  for_each = { for key, role in local.project_connection_roles : key => role if var.create_project_connections && contains(keys(local.ai_search_default_role_assignments), role.role_key) }
 
-  principal_id   = azapi_resource.ai_foundry_project.output.identity.principalId
+  principal_id   = each.value.principal_id
   scope          = var.create_project_connections ? var.ai_search_id : "/n/o/t/u/s/e/d"
   principal_type = "ServicePrincipal"
   #name                 = each.key
-  role_definition_name = each.value.role_definition_id_or_name
+  role_definition_name = each.value.role_name
 
   depends_on = [time_sleep.wait_project_identities]
 }
 
 resource "azurerm_role_assignment" "cosmosdb_role_assignments" {
-  for_each = var.create_project_connections ? local.cosmosdb_default_role_assignments : {}
+  for_each = { for key, role in local.project_connection_roles : key => role if var.create_project_connections && contains(keys(local.cosmosdb_default_role_assignments), role.role_key) }
 
-  principal_id   = azapi_resource.ai_foundry_project.output.identity.principalId
+  principal_id   = each.value.principal_id
   scope          = var.create_project_connections ? var.cosmos_db_id : "/n/o/t/u/s/e/d"
   principal_type = "ServicePrincipal"
   #name                 = each.key
-  role_definition_name = each.value.role_definition_id_or_name
+  role_definition_name = each.value.role_name
 
   depends_on = [time_sleep.wait_project_identities]
 }
 
 resource "azurerm_role_assignment" "storage_role_assignments" {
-  for_each = var.create_project_connections ? local.storage_account_default_role_assignments : {}
+  for_each = { for key, role in local.project_connection_roles : key => role if var.create_project_connections && contains(keys(local.storage_account_default_role_assignments), role.role_key) }
 
-  principal_id   = azapi_resource.ai_foundry_project.output.identity.principalId
+  principal_id   = each.value.principal_id
   scope          = var.create_project_connections ? var.storage_account_id : "/n/o/t/u/s/e/d"
   principal_type = "ServicePrincipal"
   #name                 = each.key
-  role_definition_name = each.value.role_definition_id_or_name
+  role_definition_name = each.value.role_name
 
   depends_on = [time_sleep.wait_project_identities]
 }
@@ -71,10 +74,10 @@ resource "azurerm_role_assignment" "storage_role_assignments" {
 # (issue #72).
 #
 # Split into two resources because for_each cannot accept values that are only known after apply
-# (the project SMI principal_id). The account-level UMI principal_ids come from a data source
+# (the project SMI principal_id). The account and project UMI principal_ids come from a data source
 # and are known at plan time.
 resource "azurerm_cosmosdb_sql_role_assignment" "enterprise_memory_db_project_smi" {
-  count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
+  count = var.create_ai_agent_service && var.create_project_connections && var.managed_identities.system_assigned ? 1 : 0
 
   account_name        = basename(var.cosmos_db_id)
   principal_id        = azapi_resource.ai_foundry_project.output.identity.principalId
@@ -106,7 +109,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "enterprise_memory_db_account_um
 # Storage Blob Data Owner with ABAC conditions. Same split: project SMI via count, account UMIs
 # via for_each over the known-at-plan-time set.
 resource "azurerm_role_assignment" "storage_blob_data_owner_project_smi" {
-  count = var.create_ai_agent_service && var.create_project_connections ? 1 : 0
+  count = var.create_ai_agent_service && var.create_project_connections && var.managed_identities.system_assigned ? 1 : 0
 
   principal_id         = azapi_resource.ai_foundry_project.output.identity.principalId
   scope                = var.storage_account_id

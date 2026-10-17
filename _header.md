@@ -34,7 +34,74 @@ This module supports two ways of providing the dependent data services (Key Vaul
 - Feature requests that affect the **Foundry account, projects, agent service, connections, RBAC, or the Foundry account's own private endpoint** apply to both modes and are in scope regardless of BYOR/CYOR.
 - See the `standard-*-byor` examples for reference BYOR deployments.
 
+## Unit testing
+
+Run `avm test unit` from the repository root. The root tests exercise the actual
+project and Cosmos DB child modules, checking parameter propagation rather than
+testing Registry modules in isolation. Coverage includes independent project
+role assignments and scopes, empty assignment defaults, and Cosmos DB local
+authentication with default, explicitly disabled, and explicitly enabled values.
+Azure operations are mocked or overridden; these tests do not deploy resources.
+Standalone project tests provide additional identity and ARM body coverage.
+
 ## Example Deployments
+
+### Consumer access to Foundry and projects
+
+Use the root `role_assignments` map for access **on the Foundry account** and
+`ai_projects[<key>].role_assignments` for access **on that project**. These are
+independent of the service-identity grants on dependent storage, Search, and Cosmos DB.
+Both maps default to `{}` and create no assignments when omitted. Projects retain
+their existing identity and connection defaults.
+
+For example, add these arguments to your Foundry module call:
+
+```hcl
+role_assignments = {
+  account_reader = {
+    role_definition_id_or_name = "Reader"
+    principal_id               = var.reader_group_object_id
+    principal_type             = "Group"
+    description                = "Read access to the Foundry account"
+  }
+}
+
+ai_projects = {
+  research = {
+    name         = "research"
+    display_name = "Research"
+    description  = "Research project"
+    role_assignments = {
+      developer = {
+        role_definition_id_or_name = var.project_role_definition_resource_id
+        principal_id               = var.developer_service_principal_object_id
+        principal_type             = "ServicePrincipal"
+      }
+    }
+  }
+}
+```
+
+Use principal **object IDs**, not application/client IDs or managed-identity resource
+IDs. Role definitions accept a display name or a fully qualified role definition
+resource ID. The AVM interfaces utility resolves names at the exact target scope.
+Optional fields are `name` (a lowercase UUID), `description`, `condition`,
+`condition_version`, `delegated_managed_identity_resource_id`, and `principal_type`.
+Use `condition_version = "2.0"` with a condition. AzAPI makes no Entra principal
+lookup, so the standard compatibility field `skip_service_principal_aad_check`
+has no effect; supply `principal_type = "ServicePrincipal"` explicitly when required.
+The utility generates a persistent random UUID when `name` is omitted. Keep map
+keys stable, even when principal IDs are not known until apply. To change a role or
+principal after creation, replace the map entry using a new key.
+
+The existing `ai_foundry.role_assignments` interface and its resource addresses
+are unchanged. Do not configure the same scope/principal/role combination through
+both interfaces: Azure rejects duplicate assignments. No state migration is needed
+for this additive capability. Removing a new map entry revokes that assignment on
+the next apply; rollback does not alter legacy or dependent-resource grants.
+
+The independently consumable `modules/ai-foundry-project` submodule also accepts
+`role_assignments` directly and returns a keyed `role_assignments` summary.
 
 | Example                   | Description                                | Key Features                                      |
 | ------------------------- | ------------------------------------------ | ------------------------------------------------- |

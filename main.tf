@@ -25,8 +25,12 @@ module "ai_foundry_project" {
   cosmos_db_id               = try(coalesce(each.value.cosmos_db_connection.existing_resource_id, try(module.cosmosdb[each.value.cosmos_db_connection.new_resource_map_key].resource_id, null)), null)
   create_ai_agent_service    = var.ai_foundry.create_ai_agent_service
   create_project_connections = each.value.create_project_connections
+  enable_telemetry           = var.enable_telemetry
+  ignore_body_changes        = var.ignore_body_changes.cognitiveservices_accounts_projects
+  managed_identities         = each.value.managed_identities
   resource_types             = var.resource_types.cognitiveservices_accounts_projects
   retry                      = var.retry
+  role_assignments           = each.value.role_assignments
   storage_account_id         = try(coalesce(each.value.storage_account_connection.existing_resource_id, try(module.storage_account[each.value.storage_account_connection.new_resource_map_key].resource_id, null)), null)
   tags                       = var.tags
   timeouts                   = var.timeouts

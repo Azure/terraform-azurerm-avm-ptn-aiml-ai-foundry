@@ -1,10 +1,29 @@
+variable "ignore_body_changes" {
+  type = object({
+    authorization_role_assignments = optional(list(string), [])
+    cognitiveservices_accounts_projects = optional(object({
+      authorization_role_assignments = optional(list(string), [])
+    }), {})
+  })
+  default     = {}
+  description = <<DESCRIPTION
+Body-relative paths to ignore for consumer-configured role assignments. Empty lists send all configured properties. Ignored configuration is not sent to Azure until the path is removed; changes take effect after apply.
+
+- `authorization_role_assignments` - Paths on account role assignments.
+- `cognitiveservices_accounts_projects.authorization_role_assignments` - Paths passed to project role assignments.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "resource_types" {
   type = object({
+    authorization_role_assignments              = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
     cognitiveservices_accounts                  = optional(string, "Microsoft.CognitiveServices/accounts@2025-10-01-preview")
     cognitiveservices_accounts_capability_hosts = optional(string, "Microsoft.CognitiveServices/accounts/capabilityHosts@2025-10-01-preview")
     cognitiveservices_accounts_deployments      = optional(string, "Microsoft.CognitiveServices/accounts/deployments@2025-10-01-preview")
     search_search_services                      = optional(string, "Microsoft.Search/searchServices@2024-06-01-preview")
     cognitiveservices_accounts_projects = optional(object({
+      authorization_role_assignments                       = optional(string)
       cognitiveservices_accounts_projects                  = optional(string)
       cognitiveservices_accounts_projects_capability_hosts = optional(string)
       cognitiveservices_accounts_projects_connections      = optional(string)
@@ -14,11 +33,13 @@ variable "resource_types" {
   description = <<DESCRIPTION
 AzAPI resource types and API versions used by this module.
 
+- `authorization_role_assignments` - Resource type and API version for consumer-configured account role assignments.
 - `cognitiveservices_accounts` - Resource type and API version for the AI Foundry account. Defaults to `2025-10-01-preview`; use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
 - `cognitiveservices_accounts_capability_hosts` - Resource type and API version for the account-level AI agent capability host. Defaults to `2025-10-01-preview`; use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
 - `cognitiveservices_accounts_deployments` - Resource type and API version for AI model deployments. Defaults to `2025-10-01-preview`; use `2025-07-01-preview` for compatibility with AzAPI provider versions that do not include `2025-10-01-preview`.
 - `search_search_services` - Resource type and API version for AI Search services created by this pattern module.
 - `cognitiveservices_accounts_projects` - Resource type overrides passed to the AI Foundry project submodule.
+- `cognitiveservices_accounts_projects.authorization_role_assignments` - Resource type and API version for consumer-configured project role assignments.
 - `cognitiveservices_accounts_projects.cognitiveservices_accounts_projects` - Resource type and API version for AI Foundry projects.
 - `cognitiveservices_accounts_projects.cognitiveservices_accounts_projects_capability_hosts` - Resource type and API version for project-level AI agent capability hosts.
 - `cognitiveservices_accounts_projects.cognitiveservices_accounts_projects_connections` - Resource type and API version for project connections.

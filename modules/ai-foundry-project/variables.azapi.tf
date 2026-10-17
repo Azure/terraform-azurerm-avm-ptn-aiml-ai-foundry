@@ -1,5 +1,19 @@
+variable "ignore_body_changes" {
+  type = object({
+    authorization_role_assignments = optional(list(string), [])
+  })
+  default     = {}
+  description = <<DESCRIPTION
+Body-relative paths to ignore for consumer-configured project role assignments.
+
+- `authorization_role_assignments` - Paths on project role assignments. Empty lists send all configured properties. Ignored configuration is not sent to Azure until the path is removed; changes take effect after apply.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "resource_types" {
   type = object({
+    authorization_role_assignments                       = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
     cognitiveservices_accounts_projects                  = optional(string, "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview")
     cognitiveservices_accounts_projects_capability_hosts = optional(string, "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview")
     cognitiveservices_accounts_projects_connections      = optional(string, "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview")
@@ -8,6 +22,7 @@ variable "resource_types" {
   description = <<DESCRIPTION
 AzAPI resource types and API versions used by the AI Foundry project submodule.
 
+- `authorization_role_assignments` - Resource type and API version for consumer-configured project role assignments.
 - `cognitiveservices_accounts_projects` - Resource type and API version for AI Foundry projects.
 - `cognitiveservices_accounts_projects_capability_hosts` - Resource type and API version for project-level AI agent capability hosts.
 - `cognitiveservices_accounts_projects_connections` - Resource type and API version for project connections.
