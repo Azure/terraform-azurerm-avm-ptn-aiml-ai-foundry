@@ -14,8 +14,11 @@ mock_provider "azapi" {
     }
   }
 }
+
 mock_provider "azurerm" {}
+
 mock_provider "random" {}
+
 mock_provider "time" {}
 
 run "attaches_user_assigned_identity_without_removing_system_identity" {
@@ -44,8 +47,13 @@ run "attaches_user_assigned_identity_without_removing_system_identity" {
     condition     = contains(keys(azapi_resource.ai_foundry_project.body.identity.userAssignedIdentities), "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test-uami")
     error_message = "The project request must include the configured user-assigned identity resource ID."
   }
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    random  = random
+    time    = time
+  }
 }
-
 
 run "preserves_system_identity_when_managed_identities_are_omitted" {
   command = plan
@@ -64,6 +72,12 @@ run "preserves_system_identity_when_managed_identities_are_omitted" {
   assert {
     condition     = azapi_resource.ai_foundry_project.body.identity.type == "SystemAssigned"
     error_message = "The project submodule must preserve the existing system-assigned identity default."
+  }
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    random  = random
+    time    = time
   }
 }
 
@@ -103,6 +117,12 @@ run "supports_user_assigned_identity_without_system_identity" {
     ]) && length(azurerm_role_assignment.ai_search_role_assignments) == 2
     error_message = "UAMI-only connections must grant the connection roles to the user-assigned principal."
   }
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    random  = random
+    time    = time
+  }
 }
 
 run "rejects_connections_without_any_identity" {
@@ -123,4 +143,10 @@ run "rejects_connections_without_any_identity" {
   }
 
   expect_failures = [var.create_project_connections]
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    random  = random
+    time    = time
+  }
 }

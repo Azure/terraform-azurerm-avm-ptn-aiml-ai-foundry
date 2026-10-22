@@ -1,16 +1,14 @@
-# Provider mocks reject the storage dependency's ephemeral AzAPI resource even
-# with no storage instances. Override Azure operations instead, using dummy
-# credentials so these tests cannot use the developer's Azure session.
-provider "azapi" {
-  subscription_id            = "00000000-0000-0000-0000-000000000001"
-  tenant_id                  = "00000000-0000-0000-0000-000000000003"
-  client_id                  = "00000000-0000-0000-0000-000000000002"
-  client_secret              = "unit-test-placeholder"
-  use_cli                    = false
-  use_msi                    = false
-  use_oidc                   = false
-  skip_provider_registration = true
+mock_provider "azapi" {
+  mock_data "azapi_client_config" {
+    defaults = {
+      subscription_id          = "00000000-0000-0000-0000-000000000001"
+      tenant_id                = "00000000-0000-0000-0000-000000000003"
+      object_id                = "00000000-0000-0000-0000-000000000002"
+      subscription_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000001"
+    }
+  }
 }
+
 mock_provider "azurerm" {
   mock_data "azurerm_client_config" {
     defaults = {
@@ -20,7 +18,11 @@ mock_provider "azurerm" {
     }
   }
 }
+
+mock_provider "modtm" {}
+
 mock_provider "random" {}
+
 mock_provider "time" {}
 
 override_module {

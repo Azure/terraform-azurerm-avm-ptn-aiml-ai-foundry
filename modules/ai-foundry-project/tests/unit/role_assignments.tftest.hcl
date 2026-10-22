@@ -6,6 +6,7 @@ mock_provider "azapi" {
   }
   mock_resource "azapi_resource" {
     defaults = {
+      tags = {}
       output = {
         properties = { internalId = "project-internal-id" }
         identity   = { principalId = "00000000-0000-0000-0000-000000000010" }
@@ -23,8 +24,11 @@ mock_provider "azapi" {
     }
   }
 }
+
 mock_provider "azurerm" {}
+
 mock_provider "time" {}
+
 mock_provider "random" {}
 
 variables {
@@ -46,6 +50,38 @@ override_resource {
       properties = { internalId = "research" }
       identity   = { principalId = "00000000-0000-0000-0000-000000000010" }
     }
+  }
+}
+
+run "telemetry_omits_tags_without_disabling_project_tags" {
+  command = apply
+
+  variables {
+    enable_telemetry = true
+    tags = {
+      environment = "unit"
+    }
+  }
+
+  assert {
+    condition = (
+      length(azapi_resource.telemetry) == 1 &&
+      length(azapi_resource.telemetry[0].tags) == 0 &&
+      azapi_resource.telemetry[0].parent_id == "/subscriptions/00000000-0000-0000-0000-000000000001" &&
+      length(azapi_resource.telemetry[0].body.properties.template.resources) == 0
+    )
+    error_message = "SFR3 telemetry must remain an empty subscription deployment without consumer tags."
+  }
+
+  assert {
+    condition     = azapi_resource.ai_foundry_project.tags == var.tags
+    error_message = "The telemetry-only tag exemption must not change the project's consumer tags."
+  }
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    random  = random
+    time    = time
   }
 }
 
@@ -126,6 +162,12 @@ run "standalone_project_assignments" {
     condition     = output.role_assignments["reader"].scope == azapi_resource.ai_foundry_project.id && output.role_assignments["delegated"].principal_id == var.role_assignments["delegated"].principal_id
     error_message = "The project assignment summary must reflect deployed assignment properties."
   }
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    random  = random
+    time    = time
+  }
 }
 
 run "empty_defaults_preserve_project_behavior" {
@@ -142,6 +184,12 @@ run "empty_defaults_preserve_project_behavior" {
     )
     error_message = "Omitting role assignments must create no grants and preserve identity and connection defaults."
   }
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    random  = random
+    time    = time
+  }
 }
 
 run "reject_invalid_delegated_identity" {
@@ -157,6 +205,12 @@ run "reject_invalid_delegated_identity" {
     }
   }
   expect_failures = [var.role_assignments]
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    random  = random
+    time    = time
+  }
 }
 
 run "forwards_azapi_controls" {
@@ -196,5 +250,11 @@ run "forwards_azapi_controls" {
       length(azapi_resource.role_assignments["reader"].response_export_values) == 0
     )
     error_message = "Consumer role assignments must honor AzAPI type, retry, timeout and response-export controls; write-only ignore_body_changes must not persist in state."
+  }
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    random  = random
+    time    = time
   }
 }

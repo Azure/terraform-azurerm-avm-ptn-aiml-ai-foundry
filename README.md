@@ -38,7 +38,12 @@ This module supports two ways of providing the dependent data services (Key Vaul
 
 ## Unit testing
 
-Run `avm test unit` from the repository root. The root tests exercise the actual
+Run `avm test unit` from the repository root. The repository tool override selects
+Terraform `1.17.0` because mocking the Storage dependency's ephemeral AzAPI action
+requires its ephemeral-resource mock support. This authoring-tool selection does
+not raise the module's consumer Terraform requirement.
+
+The root tests exercise the actual
 project and Cosmos DB child modules, checking parameter propagation rather than
 testing Registry modules in isolation. Coverage includes independent project
 role assignments and scopes, empty assignment defaults, and Cosmos DB local
@@ -177,6 +182,8 @@ The following requirements are needed by this module:
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.38)
+
+- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.7)
 
