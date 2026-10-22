@@ -37,6 +37,7 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    # tflint-ignore: terraform_unused_required_providers
     modtm = {
       source  = "azure/modtm"
       version = "~> 0.3"
@@ -65,8 +66,9 @@ locals {
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.12.0"
+  version = "0.13.0"
 
+  location               = var.location
   enable_telemetry       = var.enable_telemetry
   geography_filter       = "Australia"
   has_availability_zones = true
@@ -78,8 +80,8 @@ resource "random_shuffle" "locations" {
 }
 
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.3"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 
   suffix        = [local.base_name]
   unique-length = 5
@@ -92,9 +94,6 @@ resource "azurerm_resource_group" "this" {
 
 module "ai_foundry" {
   source = "../../"
-  providers = {
-    modtm = modtm
-  }
 
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location
@@ -170,6 +169,14 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: The Azure region for this module's resources or telemetry deployment.
+
+Type: `string`
+
+Default: `"eastus"`
+
 ## Outputs
 
 No outputs.
@@ -186,15 +193,15 @@ Version:
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
-Source: Azure/naming/azurerm
+Source: Azure/avm-utl-naming/azure
 
-Version: 0.4.3
+Version: 0.2.0
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.12.0
+Version: 0.13.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

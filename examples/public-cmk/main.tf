@@ -6,6 +6,7 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    # tflint-ignore: terraform_unused_required_providers
     modtm = {
       source  = "azure/modtm"
       version = "~> 0.3"
@@ -44,8 +45,9 @@ locals {
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.12.0"
+  version = "0.13.0"
 
+  location               = var.location
   enable_telemetry       = var.enable_telemetry
   geography_filter       = "Australia"
   has_availability_zones = true
@@ -57,8 +59,8 @@ resource "random_shuffle" "locations" {
 }
 
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.3"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 
   suffix        = [local.base_name]
   unique-length = 5
@@ -123,9 +125,6 @@ resource "azurerm_key_vault_key" "cmk" {
 # AI Foundry module with CMK encryption
 module "ai_foundry" {
   source = "../../"
-  providers = {
-    modtm = modtm
-  }
 
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location

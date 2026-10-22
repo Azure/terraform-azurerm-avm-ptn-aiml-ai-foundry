@@ -77,6 +77,7 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    # tflint-ignore: terraform_unused_required_providers
     modtm = {
       source  = "azure/modtm"
       version = "~> 0.3"
@@ -112,8 +113,9 @@ data "azurerm_client_config" "current" {}
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.12.0"
+  version = "0.13.0"
 
+  location               = var.location
   enable_telemetry       = var.enable_telemetry
   geography_filter       = "Australia"
   has_availability_zones = true
@@ -129,8 +131,8 @@ locals {
 }
 
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.3"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 
   suffix        = [local.base_name]
   unique-length = 5
@@ -585,9 +587,6 @@ resource "azurerm_private_endpoint" "cosmosdb" {
 
 module "ai_foundry" {
   source = "../../"
-  providers = {
-    modtm = modtm
-  }
 
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location
@@ -788,6 +787,14 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: The Azure region for this module's resources or telemetry deployment.
+
+Type: `string`
+
+Default: `"eastus"`
+
 ### <a name="input_virtual_machine_sku_size"></a> [virtual\_machine\_sku\_size](#input\_virtual\_machine\_sku\_size)
 
 Description: SKU size for the Windows test virtual machine. Override with a size available in the selected region and zone that supports the Generation 2 image.
@@ -830,15 +837,15 @@ Version: 0.10.2
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
-Source: Azure/naming/azurerm
+Source: Azure/avm-utl-naming/azure
 
-Version: 0.4.3
+Version: 0.2.0
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.12.0
+Version: 0.13.0
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 

@@ -994,7 +994,7 @@ Version:
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.12.0
+Version: 0.13.0
 
 ### <a name="module_cosmosdb"></a> [cosmosdb](#module\_cosmosdb)
 

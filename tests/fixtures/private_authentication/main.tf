@@ -8,11 +8,4 @@ module "cosmosdb" {
   enable_telemetry              = false
   local_authentication_disabled = true
   sql_databases                 = {}
-  providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
-  }
 }
