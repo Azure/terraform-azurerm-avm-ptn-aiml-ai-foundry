@@ -38,10 +38,15 @@ This module supports two ways of providing the dependent data services (Key Vaul
 
 ## Unit testing
 
-Run `avm test unit` from the repository root. The repository tool override selects
-Terraform `1.17.0` because mocking the Storage dependency's ephemeral AzAPI action
-requires its ephemeral-resource mock support. This authoring-tool selection does
-not raise the module's consumer Terraform requirement.
+Run `avm test unit` from the repository root.
+[`.avm/tool-version-overrides.json`](.avm/tool-version-overrides.json) selects
+Terraform `1.17.0` for managed development commands, not only unit tests. The
+override is needed for unit tests that mock the Storage dependency's ephemeral
+AzAPI action, which the managed default Terraform `1.16.5` cannot mock. It does
+not change the module's consumer `required_version` constraint. Remove the
+override once the managed default supports these mocks. The override file
+accepts only tool/version entries, so this explanation lives here rather than
+in a JSON comment.
 
 The root tests exercise the actual
 project and Cosmos DB child modules, checking parameter propagation rather than
@@ -97,13 +102,13 @@ scoped ARM deployment. With telemetry enabled, the deployment identity needs
 permission to manage subscription deployments in the selected location. The
 module forwards `enable_telemetry` to this dependency.
 
-Examples now use `Azure/avm-utl-naming/azure` `0.2.0` with
-`legacy_mode = true`. Retain that setting for existing deployments: it preserves
-the previous `Azure/naming/azurerm` `0.4.3` rendering and uses the naming module's
-declarative moves to retain both random seeds. It is not a one-time migration
-flag. Removing it selects a different naming implementation and can replace
-resources whose names change. Review the complete upgrade plan; a zero-change
-infrastructure plan must not be assumed from these compatibility settings.
+Fresh examples use `Azure/avm-utl-naming/azure` `0.2.0` with its default modern
+renderer and `names` output. This utility is used only by examples, not by the
+reusable Foundry module. Modern names can differ from the previous
+`Azure/naming/azurerm` `0.4.3` or `legacy_mode = true` examples. Reusing an existing
+example's state can therefore replace resources whose names change; inspect the
+complete plan before applying. Existing deployments that need the old naming
+contract should retain `legacy_mode = true` and their legacy output references.
 
 ## Example Deployments
 
