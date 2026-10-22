@@ -47,6 +47,10 @@ run "attaches_user_assigned_identity_without_removing_system_identity" {
     condition     = contains(keys(azapi_resource.ai_foundry_project.body.identity.userAssignedIdentities), "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test-uami")
     error_message = "The project request must include the configured user-assigned identity resource ID."
   }
+  assert {
+    condition     = output.user_assigned_identity_resource_ids == var.managed_identities.user_assigned_resource_ids
+    error_message = "Mixed-identity projects must return the attached resource ID set without depending on a computed response export."
+  }
   providers = {
     azapi   = azapi
     azurerm = azurerm
@@ -70,8 +74,12 @@ run "preserves_system_identity_when_managed_identities_are_omitted" {
   }
 
   assert {
-    condition     = azapi_resource.ai_foundry_project.body.identity.type == "SystemAssigned"
-    error_message = "The project submodule must preserve the existing system-assigned identity default."
+    condition = (
+      jsonencode(azapi_resource.ai_foundry_project.body.identity) == jsonencode({ type = "SystemAssigned" }) &&
+      jsonencode(azapi_resource.ai_foundry_project.response_export_values) == jsonencode(["identity.principalId", "properties.internalId"]) &&
+      output.user_assigned_identity_resource_ids == toset([])
+    )
+    error_message = "The default project must exactly preserve the released identity body and export selection, with an empty plan-known UAMI ID set."
   }
   providers = {
     azapi   = azapi
@@ -105,6 +113,10 @@ run "supports_user_assigned_identity_without_system_identity" {
   assert {
     condition     = azapi_resource.ai_foundry_project.body.identity.type == "UserAssigned"
     error_message = "A project configured with only a user-assigned identity must emit UserAssigned identity type."
+  }
+  assert {
+    condition     = output.user_assigned_identity_resource_ids == var.managed_identities.user_assigned_resource_ids
+    error_message = "UAMI-only projects must return their attached resource IDs as a plan-known set."
   }
 
   assert {

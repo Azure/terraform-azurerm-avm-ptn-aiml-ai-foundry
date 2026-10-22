@@ -59,7 +59,7 @@ output "ai_foundry_project_user_assigned_identity_resource_ids" {
 
 output "ai_foundry_user_assigned_identity_resource_ids" {
   description = "User-assigned managed identity resource IDs attached to the AI Foundry account."
-  value       = try(toset(keys(azapi_resource.ai_foundry.output.identity.userAssignedIdentities)), toset([]))
+  value       = try(toset(keys(azapi_resource.ai_foundry.body.identity.userAssignedIdentities)), toset([]))
 }
 
 output "ai_model_deployment_ids" {

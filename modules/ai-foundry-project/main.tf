@@ -18,10 +18,12 @@ resource "azapi_resource" "ai_foundry_project" {
     sku = {
       name = var.sku
     }
-    identity = {
-      type                   = local.project_identity_type
-      userAssignedIdentities = local.project_user_assigned_identities
-    }
+    identity = merge(
+      { type = local.project_identity_type },
+      length(local.project_user_assigned_identity_ids) > 0 ? {
+        userAssignedIdentities = local.project_user_assigned_identities
+      } : {}
+    )
     properties = {
       displayName = var.display_name
       description = var.description
@@ -33,9 +35,9 @@ resource "azapi_resource" "ai_foundry_project" {
   # wildcard header plus a retry on that error makes terraform destroy resilient
   # to the race.
   delete_headers = { "If-Match" = "*" }
+  # Changing this projection makes existing principal/internal IDs unknown during upgrades.
   response_export_values = [
     "identity.principalId",
-    "identity.userAssignedIdentities",
     "properties.internalId"
   ]
   retry                     = var.retry

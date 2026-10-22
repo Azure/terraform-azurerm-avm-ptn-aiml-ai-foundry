@@ -103,6 +103,25 @@ run "account_alias_attaches_identity_resource_id" {
     )
     error_message = "The account must attach the real ARM ID, retain its default SMI, and pass the principal under its caller-owned alias."
   }
+  assert {
+    condition = (
+      azapi_resource.ai_foundry.response_export_values == null &&
+      output.ai_foundry_user_assigned_identity_resource_ids == toset(values(var.ai_foundry.user_assigned_identities))
+    )
+    error_message = "Attached identity IDs must be known from the account body without changing the released null export selection."
+  }
+}
+
+run "account_without_user_assigned_identities_has_empty_id_set" {
+  command = plan
+
+  assert {
+    condition = (
+      azapi_resource.ai_foundry.response_export_values == null &&
+      output.ai_foundry_user_assigned_identity_resource_ids == toset([])
+    )
+    error_message = "The default account must retain its released export selection and return an empty identity ID set at plan time."
+  }
 }
 
 run "account_scope_and_standard_fields" {

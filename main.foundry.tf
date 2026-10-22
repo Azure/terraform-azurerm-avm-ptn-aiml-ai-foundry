@@ -28,8 +28,9 @@ resource "azapi_resource" "ai_foundry" {
   # Always send a wildcard If-Match on delete so the account can be removed even
   # after child projects are deleted (avoids 412 IfMatchPreconditionFailed on
   # terraform destroy); keep the telemetry User-Agent header when enabled.
-  delete_headers            = merge({ "If-Match" = "*" }, var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : {})
-  response_export_values    = ["identity.userAssignedIdentities"]
+  delete_headers = merge({ "If-Match" = "*" }, var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : {})
+  # Preserve the released provider-default projection rather than invalidating existing outputs.
+  response_export_values    = null
   retry                     = var.retry
   schema_validation_enabled = false
   tags                      = var.tags

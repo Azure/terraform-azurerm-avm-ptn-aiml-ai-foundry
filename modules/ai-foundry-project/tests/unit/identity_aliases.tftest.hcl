@@ -67,7 +67,8 @@ run "shared_alias_creates_one_grant_and_preserves_azure_names" {
   assert {
     condition = (
       azapi_resource.ai_foundry_project.body.identity.type == "UserAssigned" &&
-      toset(keys(azapi_resource.ai_foundry_project.body.identity.userAssignedIdentities)) == toset(values(var.user_assigned_identities))
+      toset(keys(azapi_resource.ai_foundry_project.body.identity.userAssignedIdentities)) == toset(values(var.user_assigned_identities)) &&
+      output.user_assigned_identity_resource_ids == toset(values(var.user_assigned_identities))
     )
     error_message = "The alias map must attach the actual identity ARM ID, not the tracking alias, without enabling the system identity."
   }
@@ -86,6 +87,41 @@ run "shared_alias_creates_one_grant_and_preserves_azure_names" {
       azurerm_role_assignment.storage_blob_data_owner_account_umi["identity:application"].name == uuidv5("dns", "alias-project-accountumi-00000000-0000-0000-0000-000000000002-teststorageblobdataowner")
     )
     error_message = "Azure assignment names must remain derived from principal IDs, not tracking aliases."
+  }
+}
+
+run "released_system_identity_outputs_remain_azure_derived" {
+  command   = apply
+  state_key = "released-system-contract"
+
+  override_resource {
+    target = azapi_resource.ai_foundry_project
+    values = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.CognitiveServices/accounts/test/projects/alias-project"
+      output = {
+        identity   = { principalId = "00000000-0000-0000-0000-000000000010" }
+        properties = { internalId = "0123456789abcdef0123456789abcdef" }
+      }
+    }
+  }
+
+  assert {
+    condition = (
+      jsonencode(azapi_resource.ai_foundry_project.body.identity) == jsonencode({ type = "SystemAssigned" }) &&
+      jsonencode(azapi_resource.ai_foundry_project.response_export_values) == jsonencode(["identity.principalId", "properties.internalId"]) &&
+      output.ai_foundry_project_system_identity_principal_id == "00000000-0000-0000-0000-000000000010" &&
+      output.ai_foundry_project_internal_id == "0123456789abcdef0123456789abcdef" &&
+      output.project_id_guid == "01234567-89ab-cdef-0123-456789abcdef"
+    )
+    error_message = "Released system principal and internal IDs must still come from Azure resource output using the unchanged projection and identity body."
+  }
+  assert {
+    condition = (
+      azurerm_cosmosdb_sql_role_assignment.enterprise_memory_db_project_smi[0].principal_id == output.ai_foundry_project_system_identity_principal_id &&
+      azurerm_role_assignment.storage_blob_data_owner_project_smi[0].principal_id == output.ai_foundry_project_system_identity_principal_id &&
+      alltrue([for assignment in azurerm_role_assignment.ai_search_role_assignments : assignment.principal_id == output.ai_foundry_project_system_identity_principal_id])
+    )
+    error_message = "Existing service assignments must retain the actual system-assigned principal rather than a configured or generated substitute."
   }
 }
 

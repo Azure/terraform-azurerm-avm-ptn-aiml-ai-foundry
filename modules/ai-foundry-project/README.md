@@ -20,6 +20,13 @@ address; review and preserve its existing state binding rather than applying a
 destroy/create plan. Alias-based project identities are new in this unreleased
 feature.
 
+Attached user-assigned identity resource ID outputs come from the managed
+resource identity body, separately from principal object IDs resolved from Azure.
+For unchanged identity settings, the released project identity body and
+principal/internal-ID export selection are preserved. Review upgrades for
+unexpected replacement of existing service assignments or project data; do not
+apply a destructive plan to refresh computed IDs.
+
 ## Consumer access to this project
 
 The optional `role_assignments` map creates RBAC assignments on the exact project
