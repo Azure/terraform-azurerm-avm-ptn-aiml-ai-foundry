@@ -8,6 +8,13 @@ If it is set to false, then no telemetry will be collected.
 DESCRIPTION
 }
 
+variable "location" {
+  type        = string
+  default     = "eastus"
+  description = "The Azure region for this module's resources or telemetry deployment."
+  nullable    = false
+}
+
 variable "virtual_machine_sku_size" {
   type        = string
   default     = "Standard_D4s_v6"
