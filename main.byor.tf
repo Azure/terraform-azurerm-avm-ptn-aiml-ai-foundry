@@ -7,11 +7,8 @@ module "avm_utl_regions" {
 }
 
 module "key_vault" {
-  source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
-  providers = {
-    modtm = modtm
-  }
+  source   = "Azure/avm-res-keyvault-vault/azurerm"
+  version  = "0.10.2"
   for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                        = var.location
@@ -48,11 +45,8 @@ module "key_vault" {
 # removing for testing PE DNS zone strategy when platform flag is false
 
 module "storage_account" {
-  source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.9"
-  providers = {
-    modtm = modtm
-  }
+  source   = "Azure/avm-res-storage-storageaccount/azurerm"
+  version  = "0.6.9"
   for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                            = var.location
@@ -82,11 +76,8 @@ module "storage_account" {
 }
 
 module "cosmosdb" {
-  source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "0.11.0"
-  providers = {
-    modtm = modtm
-  }
+  source   = "Azure/avm-res-documentdb-databaseaccount/azurerm"
+  version  = "0.11.0"
   for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                   = var.location

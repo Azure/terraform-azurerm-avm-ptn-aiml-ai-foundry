@@ -4,9 +4,6 @@ resource "terraform_data" "identity" {
 
 module "foundry" {
   source = "../../.."
-  providers = {
-    modtm = modtm
-  }
 
   base_name                  = "unknown"
   location                   = "australiaeast"
