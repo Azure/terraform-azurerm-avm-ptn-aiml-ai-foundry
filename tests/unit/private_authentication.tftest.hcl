@@ -96,3 +96,40 @@ run "sql_account_without_databases_disables_local_authentication" {
     error_message = "Each root definition must configure its own Cosmos DB child instance."
   }
 }
+
+run "released_auth_wrapper" {
+  command = apply
+
+  module {
+    source = "./tests/fixtures/private_authentication"
+  }
+
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    modtm   = modtm
+    random  = random
+    time    = time
+  }
+
+  assert {
+    condition     = output.local_authentication_disabled == true
+    error_message = "The upstream authentication wrapper must retain its secure SQL API account configuration."
+  }
+}
+
+run "telemetry_enabled_preserves_wildcard_delete" {
+  command = plan
+
+  variables {
+    enable_telemetry = true
+  }
+
+  assert {
+    condition = (
+      length(azapi_resource.ai_foundry.delete_headers) == 1 &&
+      azapi_resource.ai_foundry.delete_headers["If-Match"] == "*"
+    )
+    error_message = "Telemetry must not replace the wildcard deletion precondition or add obsolete custom request headers."
+  }
+}
