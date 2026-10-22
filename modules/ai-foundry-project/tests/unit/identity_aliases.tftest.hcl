@@ -37,7 +37,7 @@ run "unknown" {
   command = plan
 
   module {
-    source = "./tests/fixtures/unknown-identities"
+    source = "../../tests/fixtures/unknown-project-identities"
   }
 }
 

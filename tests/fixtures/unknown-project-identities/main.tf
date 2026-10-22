@@ -4,7 +4,7 @@ resource "terraform_data" "identity" {
 }
 
 module "project" {
-  source = "../../.."
+  source = "../../../modules/ai-foundry-project"
 
   ai_agent_host_name = "test-agent"
   ai_foundry_id      = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.CognitiveServices/accounts/test"
