@@ -1,0 +1,178 @@
+###############################################################################
+# Example values for an AI Foundry deployment into an existing ALZ spoke.
+# Copy to terraform.tfvars and replace every placeholder.
+###############################################################################
+
+subscription_id = "00000000-0000-0000-0000-000000000000"
+# Must be a region where the Foundry Agent Service supports private VNet
+# injection, and must match the region of the VNet holding the agent subnet.
+# westus2 is NOT supported. See variables.tf for the full list.
+location        = "swedencentral"
+base_name       = "aifnd"
+environment     = "prod"
+
+tags = {
+  workload    = "ai-foundry"
+  environment = "prod"
+  costCenter  = "0000"
+  owner       = "ai-platform@contoso.com"
+}
+
+###############################################################################
+# Existing landing zone networking (owned by the platform team)
+###############################################################################
+
+private_endpoint_subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-spoke-ai-prod/providers/Microsoft.Network/virtualNetworks/vnet-spoke-ai-prod/subnets/snet-privateendpoints"
+
+# Option A - the platform team already created the delegated agent subnet.
+agent_subnet = {
+  resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-spoke-ai-prod/providers/Microsoft.Network/virtualNetworks/vnet-spoke-ai-prod/subnets/snet-ai-agents"
+}
+
+# Option B - let this configuration create the delegated subnet in the spoke.
+# agent_subnet = {
+#   create                              = true
+#   name                                = "snet-ai-agents"
+#   address_prefixes                    = ["10.10.4.0/24"]
+#   virtual_network_name                = "vnet-spoke-ai-prod"
+#   virtual_network_resource_group_name = "rg-spoke-ai-prod"
+# }
+
+###############################################################################
+# Existing platform private DNS zones (connectivity subscription)
+###############################################################################
+
+# Option A - this configuration attaches the DNS zone groups.
+manage_private_dns_zone_groups     = true
+private_dns_zone_resource_group_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-platform-dns"
+
+# Override individual zones only when they do not live in the resource group above.
+# private_dns_zone_resource_ids = {
+#   search = "/subscriptions/1111.../resourceGroups/rg-dns-search/providers/Microsoft.Network/privateDnsZones/privatelink.search.windows.net"
+# }
+
+# Option B - an Azure Policy DeployIfNotExists assignment registers the A records.
+# manage_private_dns_zone_groups = false
+
+###############################################################################
+# Observability (ALZ management subscription)
+###############################################################################
+
+log_analytics_workspace_resource_id = "/subscriptions/22222222-2222-2222-2222-222222222222/resourceGroups/rg-management/providers/Microsoft.OperationalInsights/workspaces/law-alz-prod"
+
+###############################################################################
+# AI Foundry
+###############################################################################
+
+ai_foundry = {
+  create_ai_agent_service = true
+  disable_local_auth      = true
+
+  role_assignments = {
+    ai_developers = {
+      role_definition_id_or_name = "Azure AI Developer"
+      principal_id               = "33333333-3333-3333-3333-333333333333" # Entra ID group object ID
+      principal_type             = "Group"
+    }
+  }
+}
+
+ai_projects = {
+  project_1 = {
+    name         = "project-1"
+    display_name = "Contoso AI Project"
+    description  = "First AI Foundry project in the landing zone."
+  }
+}
+
+ai_model_deployments = {
+  gpt-4_1 = {
+    name = "gpt-4.1"
+    model = {
+      format  = "OpenAI"
+      name    = "gpt-4.1"
+      version = "2025-04-14"
+    }
+    scale = {
+      type     = "GlobalStandard"
+      capacity = 50
+    }
+  }
+  text-embedding-3-large = {
+    name = "text-embedding-3-large"
+    model = {
+      format  = "OpenAI"
+      name    = "text-embedding-3-large"
+      version = "1"
+    }
+    scale = {
+      type     = "GlobalStandard"
+      capacity = 50
+    }
+  }
+}
+
+###############################################################################
+# Cosmos DB (optional)
+###############################################################################
+
+# Defaults to a zone-redundant account. Some regions periodically run out of
+# zonal capacity and return "ServiceUnavailable ... high demand ... for the
+# zonal redundant (Availability Zones) accounts". Set this to false to deploy
+# a single-zone account instead.
+# cosmosdb = {
+#   zone_redundant = false
+# }
+
+###############################################################################
+# Azure AI Search (optional)
+###############################################################################
+
+# AI Search may be deployed in a different region from the Foundry account.
+# Use this when the workload region has no AI Search capacity
+# (InsufficientResourcesAvailable). The private endpoint stays in the workload
+# VNet, so resolution is unchanged, at the cost of cross-region latency.
+# ai_search = {
+#   location      = "westus3"
+#   sku           = "standard"
+#   replica_count = 2
+# }
+
+###############################################################################
+# Azure AI Video Indexer (optional)
+###############################################################################
+
+# OFF by default. Enable to analyse EXISTING video - scene and shot boundary
+# detection, keyframes, transcription, OCR, faces, objects and speakers. It
+# produces a time-coded index that an agent or model can reason over; it does
+# not generate video.
+#
+# Enabling this also creates a DEDICATED storage account and a user-assigned
+# managed identity. Nothing else here depends on it, so it can be added to a
+# running deployment or removed again on its own.
+#
+# If you consume platform DNS zones, you must also supply a zone for
+# privatelink.api.videoindexer.ai via private_dns_zone_resource_ids
+# ("video_indexer") or private_dns_zone_resource_group_id.
+
+# deploy_video_indexer = true
+
+# video_indexer = {
+#   # Video Indexer is available in fewer regions than AI Foundry. Set this if
+#   # the workload region has none. The dedicated storage account follows it.
+#   location = "eastus2"
+#
+#   # false (default) keeps the account private, reachable only over its
+#   # private endpoint. IMPORTANT: this also disables the Video Indexer WEB APP
+#   # and the Insights/Editor widgets - the account becomes REST API only.
+#   # Set true if your users need the portal experience.
+#   public_network_access_enabled = false
+#
+#   # Wire Video Indexer to the Foundry account for textual summarization.
+#   # Requires a deployed chat model; leave false when ai_model_deployments = {}.
+#   connect_to_ai_foundry = false
+#
+#   # Replication for the dedicated storage account. Defaults to LRS because
+#   # this holds re-derivable artefacts rather than the source of truth.
+#   storage_account_replication_type = "LRS"
+# }
