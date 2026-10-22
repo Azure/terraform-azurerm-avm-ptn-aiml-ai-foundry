@@ -73,6 +73,36 @@ override_resource {
   }
 }
 
+run "account_alias_attaches_identity_resource_id" {
+  command = plan
+
+  variables {
+    ai_foundry = {
+      name                    = "test-foundry"
+      create_ai_agent_service = false
+      user_assigned_identities = {
+        application = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/application"
+      }
+    }
+  }
+
+  override_data {
+    target = data.azapi_resource.ai_foundry_account_keyed
+    values = {
+      output = { properties = { principalId = "00000000-0000-0000-0000-000000000002" } }
+    }
+  }
+
+  assert {
+    condition = (
+      azapi_resource.ai_foundry.body.identity.type == "SystemAssigned, UserAssigned" &&
+      toset(keys(azapi_resource.ai_foundry.body.identity.userAssignedIdentities)) == toset(values(var.ai_foundry.user_assigned_identities)) &&
+      local.ai_foundry_user_assigned_identity_principals["application"].principal_id == "00000000-0000-0000-0000-000000000002"
+    )
+    error_message = "The account must attach the real ARM ID, retain its default SMI, and pass the principal under its caller-owned alias."
+  }
+}
+
 run "account_scope_and_standard_fields" {
   command   = apply
   state_key = "account"

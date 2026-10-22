@@ -59,6 +59,13 @@ run "shared_alias_creates_one_grant_and_preserves_azure_names" {
 
   assert {
     condition = (
+      azapi_resource.ai_foundry_project.body.identity.type == "UserAssigned" &&
+      toset(keys(azapi_resource.ai_foundry_project.body.identity.userAssignedIdentities)) == toset(values(var.user_assigned_identities))
+    )
+    error_message = "The alias map must attach the actual identity ARM ID, not the tracking alias, without enabling the system identity."
+  }
+  assert {
+    condition = (
       keys(azurerm_cosmosdb_sql_role_assignment.enterprise_memory_db_account_umi) == ["identity:application"] &&
       keys(azurerm_role_assignment.storage_blob_data_owner_account_umi) == ["identity:application"] &&
       length(azurerm_cosmosdb_sql_role_assignment.enterprise_memory_db_project_smi) == 0 &&
