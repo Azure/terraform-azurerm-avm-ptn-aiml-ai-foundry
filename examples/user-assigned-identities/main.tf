@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 1.12, < 2.0"
 
   required_providers {
+    modtm = {
+      source  = "registry.terraform.io/azure/modtm"
+      version = "~> 0.3"
+    }
     azapi = {
       source  = "Azure/azapi"
       version = "~> 2.12"
@@ -9,11 +13,6 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.38"
-    }
-    # tflint-ignore: terraform_unused_required_providers
-    modtm = {
-      source  = "registry.terraform.io/azure/modtm"
-      version = "~> 0.3"
     }
     random = {
       source  = "hashicorp/random"
@@ -86,6 +85,9 @@ module "user_assigned_identity" {
 
 module "ai_foundry" {
   source = "../../"
+  providers = {
+    modtm = modtm
+  }
 
   base_name                  = local.base_name
   location                   = azapi_resource.resource_group.location

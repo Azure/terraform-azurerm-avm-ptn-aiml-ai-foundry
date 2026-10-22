@@ -2,14 +2,13 @@ terraform {
   required_version = ">= 1.9, < 2.0"
 
   required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 4.0"
-    }
-    # tflint-ignore: terraform_unused_required_providers
     modtm = {
       source  = "registry.terraform.io/azure/modtm"
       version = "~> 0.3"
+    }
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -73,6 +72,9 @@ resource "azurerm_log_analytics_workspace" "this" {
 
 module "ai_foundry" {
   source = "../../"
+  providers = {
+    modtm = modtm
+  }
 
   base_name                  = local.base_name
   location                   = azurerm_resource_group.this.location

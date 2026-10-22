@@ -4,13 +4,8 @@ resource "terraform_data" "identity" {
 
 module "foundry" {
   source = "../../.."
-
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    modtm = modtm
   }
 
   base_name                  = "unknown"

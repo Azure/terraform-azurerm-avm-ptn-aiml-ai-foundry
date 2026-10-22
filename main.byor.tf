@@ -7,17 +7,12 @@ module "avm_utl_regions" {
 }
 
 module "key_vault" {
-  source   = "Azure/avm-res-keyvault-vault/azurerm"
-  version  = "0.10.2"
-  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
-
+  source  = "Azure/avm-res-keyvault-vault/azurerm"
+  version = "0.10.2"
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    modtm = modtm
   }
+  for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                        = var.location
   name                            = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-kv-${random_string.resource_token.result}" : "kv-fndry-${random_string.resource_token.result}")
@@ -53,17 +48,12 @@ module "key_vault" {
 # removing for testing PE DNS zone strategy when platform flag is false
 
 module "storage_account" {
-  source   = "Azure/avm-res-storage-storageaccount/azurerm"
-  version  = "0.6.9"
-  for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
-
+  source  = "Azure/avm-res-storage-storageaccount/azurerm"
+  version = "0.6.9"
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    modtm = modtm
   }
+  for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                            = var.location
   name                                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${local.base_name_storage}${lower(each.key)}fndrysa${random_string.resource_token.result}" : "${lower(each.key)}fndrysa${random_string.resource_token.result}")
@@ -92,17 +82,12 @@ module "storage_account" {
 }
 
 module "cosmosdb" {
-  source   = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version  = "0.11.0"
-  for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
-
+  source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
+  version = "0.11.0"
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    modtm = modtm
   }
+  for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                   = var.location
   name                       = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-${each.key}-foundry-cosmosdb-${random_string.resource_token.result}" : "${each.key}-foundry-cosmosdb-${random_string.resource_token.result}")
