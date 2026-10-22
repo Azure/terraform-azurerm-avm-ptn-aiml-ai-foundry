@@ -46,6 +46,60 @@ authentication with default, explicitly disabled, and explicitly enabled values.
 Azure operations are mocked or overridden; these tests do not deploy resources.
 Standalone project tests provide additional identity and ARM body coverage.
 
+## User-assigned identities created in the same deployment
+
+Use readable, stable aliases rather than computed Azure IDs as iteration keys:
+
+```hcl
+ai_foundry = {
+  user_assigned_identities = {
+    application = module.application_identity.resource_id
+  }
+}
+ai_projects = {
+  research = {
+    name         = "research"
+    display_name = "Research"
+    description  = "Research project"
+    user_assigned_identities = {
+      application = module.application_identity.resource_id
+    }
+  }
+}
+```
+
+The alias must be known at plan time; its resource ID and principal ID may be
+unknown until apply. Reuse the same alias for an identity shared by the account
+and a project so dependent-service grants are not duplicated. Give distinct
+identities distinct aliases. Do not configure one identity through both the
+alias map and `managed_identities.user_assigned_resource_ids`.
+
+The released Foundry identity set remains supported for existing identities whose
+IDs are known during planning. Keep existing configurations on that path to
+preserve their principal-keyed grant addresses. Switching an existing grant to an
+alias changes its Terraform address; it is not an automatic state migration.
+Inspect the plan and preserve the existing binding before changing that input.
+The new maps do not change Azure assignment naming formulas or existing
+system-assigned identity grant keys. The `user-assigned-identities` example
+creates an identity and attaches it to the account and two projects in one apply.
+
+## Utility dependency upgrades
+
+The regions utility now uses version `0.13.0`. Its region catalog, filtering and
+output definitions are unchanged from `0.12.0`, but it requires a deployment
+location and replaces its old telemetry bindings with an empty, subscription-
+scoped ARM deployment. With telemetry enabled, the deployment identity needs
+permission to manage subscription deployments in the selected location. The
+module forwards `enable_telemetry` to this dependency.
+
+Examples now use `Azure/avm-utl-naming/azure` `0.2.0` with
+`legacy_mode = true`. Retain that setting for existing deployments: it preserves
+the previous `Azure/naming/azurerm` `0.4.3` rendering and uses the naming module's
+declarative moves to retain both random seeds. It is not a one-time migration
+flag. Removing it selects a different naming implementation and can replace
+resources whose names change. Review the complete upgrade plan; a zero-change
+infrastructure plan must not be assumed from these compatibility settings.
+
 ## Example Deployments
 
 ### Consumer access to Foundry and projects
@@ -153,6 +207,7 @@ The following resources are used by this module:
 - [time_sleep.ai_foundry_wait](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.cmk_rbac_wait](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
+- [azapi_resource.ai_foundry_account_keyed](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource) (data source)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 - [azurerm_key_vault.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) (data source)
 - [azurerm_key_vault_key.cmk](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_key) (data source)
@@ -215,6 +270,7 @@ Description: Configuration object for the Azure AI Foundry service to be created
 - `managed_identities` - (Optional) Identity configuration for the AI Foundry account.
   - `system_assigned` - (Optional) Enable the system-assigned managed identity. Default true.
   - `user_assigned_resource_ids` - (Optional) Set of user-assigned managed identity resource IDs to attach to the account. When the Foundry account also creates an AI Agent service, every user-assigned identity is granted the Cosmos DB and Storage data-plane roles required by the Standard Agent Setup.
+- `user_assigned_identities` - (Optional) Map of stable, readable aliases to user-assigned identity resource IDs. Use this for identities created in the same apply. Keys must be known at plan time; values may be computed. Do not also put these identities in `managed_identities.user_assigned_resource_ids`. Reuse the same alias when sharing an identity with a project.
 - `customer_managed_key` - (Optional) Customer-managed key encryption configuration. Requires a Key Vault with an existing key and a user-assigned managed identity with "Key Vault Crypto User" role on the Key Vault.
   - `key_vault_resource_id` - Resource ID of the Key Vault containing the encryption key.
   - `key_name` - Name of the Key Vault key to use for encryption.
@@ -259,6 +315,7 @@ object({
       system_assigned            = optional(bool, true)
       user_assigned_resource_ids = optional(set(string), [])
     }), { system_assigned = true, user_assigned_resource_ids = [] })
+    user_assigned_identities = optional(map(string), {})
     customer_managed_key = optional(object({
       key_vault_resource_id              = string
       key_name                           = string
@@ -335,6 +392,7 @@ Description: Configuration map for AI Foundry projects to be created. Each proje
   - `managed_identities` - (Optional) Identity configuration for the project. The system-assigned identity defaults to enabled to preserve existing behavior.
     - `system_assigned` - (Optional) Whether to enable the system-assigned identity. Defaults to true; set explicitly to false for a UAMI-only project.
     - `user_assigned_resource_ids` - (Optional) Set of user-assigned managed identity resource IDs to attach to the project.
+  - `user_assigned_identities` - (Optional) Map of stable, readable aliases to user-assigned identity resource IDs. Use this for same-apply identities. Keys must be known at plan time; values may be computed. Reuse the account alias for a shared identity and do not also configure it in the identity set.
   - `cosmos_db_connection` - (Optional) Configuration for Cosmos DB connection.
     - `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to connect to.
     - `new_resource_map_key` - (Optional) The map key of a new Cosmos DB account to be created and connected.
@@ -372,6 +430,7 @@ map(object({
       system_assigned            = optional(bool, true)
       user_assigned_resource_ids = optional(set(string), [])
     }), { system_assigned = true })
+    user_assigned_identities = optional(map(string), {})
     cosmos_db_connection = optional(object({
       existing_resource_id = optional(string, null)
       new_resource_map_key = optional(string, null)
@@ -1151,7 +1210,7 @@ Version: 0.9.0
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.12.0
+Version: 0.13.0
 
 ### <a name="module_cosmosdb"></a> [cosmosdb](#module\_cosmosdb)
 

@@ -44,6 +44,60 @@ authentication with default, explicitly disabled, and explicitly enabled values.
 Azure operations are mocked or overridden; these tests do not deploy resources.
 Standalone project tests provide additional identity and ARM body coverage.
 
+## User-assigned identities created in the same deployment
+
+Use readable, stable aliases rather than computed Azure IDs as iteration keys:
+
+```hcl
+ai_foundry = {
+  user_assigned_identities = {
+    application = module.application_identity.resource_id
+  }
+}
+ai_projects = {
+  research = {
+    name         = "research"
+    display_name = "Research"
+    description  = "Research project"
+    user_assigned_identities = {
+      application = module.application_identity.resource_id
+    }
+  }
+}
+```
+
+The alias must be known at plan time; its resource ID and principal ID may be
+unknown until apply. Reuse the same alias for an identity shared by the account
+and a project so dependent-service grants are not duplicated. Give distinct
+identities distinct aliases. Do not configure one identity through both the
+alias map and `managed_identities.user_assigned_resource_ids`.
+
+The released Foundry identity set remains supported for existing identities whose
+IDs are known during planning. Keep existing configurations on that path to
+preserve their principal-keyed grant addresses. Switching an existing grant to an
+alias changes its Terraform address; it is not an automatic state migration.
+Inspect the plan and preserve the existing binding before changing that input.
+The new maps do not change Azure assignment naming formulas or existing
+system-assigned identity grant keys. The `user-assigned-identities` example
+creates an identity and attaches it to the account and two projects in one apply.
+
+## Utility dependency upgrades
+
+The regions utility now uses version `0.13.0`. Its region catalog, filtering and
+output definitions are unchanged from `0.12.0`, but it requires a deployment
+location and replaces its old telemetry bindings with an empty, subscription-
+scoped ARM deployment. With telemetry enabled, the deployment identity needs
+permission to manage subscription deployments in the selected location. The
+module forwards `enable_telemetry` to this dependency.
+
+Examples now use `Azure/avm-utl-naming/azure` `0.2.0` with
+`legacy_mode = true`. Retain that setting for existing deployments: it preserves
+the previous `Azure/naming/azurerm` `0.4.3` rendering and uses the naming module's
+declarative moves to retain both random seeds. It is not a one-time migration
+flag. Removing it selects a different naming implementation and can replace
+resources whose names change. Review the complete upgrade plan; a zero-change
+infrastructure plan must not be assumed from these compatibility settings.
+
 ## Example Deployments
 
 ### Consumer access to Foundry and projects

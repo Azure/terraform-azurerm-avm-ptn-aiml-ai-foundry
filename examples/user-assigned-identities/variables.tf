@@ -6,3 +6,10 @@ This variable controls whether or not telemetry is enabled for the module. For m
 DESCRIPTION
   nullable    = false
 }
+
+variable "location" {
+  type        = string
+  default     = "eastus"
+  description = "The Azure region for this module's resources or telemetry deployment."
+  nullable    = false
+}

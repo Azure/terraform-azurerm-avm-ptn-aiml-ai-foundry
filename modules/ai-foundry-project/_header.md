@@ -2,6 +2,22 @@
 
 This deploys the module in its simplest form.
 
+## User-assigned identities
+
+Use `user_assigned_identities = { application = module.identity.resource_id }`
+for identities created in the same apply. Map keys are stable, readable aliases,
+not generated GUIDs or Azure resource IDs. Keep the same alias when sharing an
+identity with `account_user_assigned_identities`; shared aliases must resolve to
+the same resource ID. The standard `managed_identities` input still controls
+the system-assigned identity and accepts existing user-assigned identity IDs.
+Do not supply one identity in both inputs or under different aliases.
+
+Existing system-assigned grant keys and legacy account principal-ID keys are
+unchanged. Moving an existing identity grant to an alias changes its Terraform
+address; review and preserve its existing state binding rather than applying a
+destroy/create plan. Alias-based project identities are new in this unreleased
+feature.
+
 ## Consumer access to this project
 
 The optional `role_assignments` map creates RBAC assignments on the exact project

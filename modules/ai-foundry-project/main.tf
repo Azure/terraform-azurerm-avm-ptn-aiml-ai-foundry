@@ -1,5 +1,8 @@
 data "azapi_resource" "project_user_assigned_identity" {
-  for_each = var.managed_identities.user_assigned_resource_ids
+  for_each = merge(
+    { for id in var.managed_identities.user_assigned_resource_ids : id => id },
+    { for key, id in var.user_assigned_identities : "identity:${key}" => id }
+  )
 
   resource_id            = each.value
   type                   = "Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31"
@@ -17,7 +20,7 @@ resource "azapi_resource" "ai_foundry_project" {
     }
     identity = {
       type                   = local.project_identity_type
-      userAssignedIdentities = length(var.managed_identities.user_assigned_resource_ids) > 0 ? local.project_user_assigned_identities : null
+      userAssignedIdentities = local.project_user_assigned_identities
     }
     properties = {
       displayName = var.display_name

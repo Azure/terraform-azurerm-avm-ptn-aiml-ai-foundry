@@ -20,6 +20,7 @@ variable "ai_projects" {
       system_assigned            = optional(bool, true)
       user_assigned_resource_ids = optional(set(string), [])
     }), { system_assigned = true })
+    user_assigned_identities = optional(map(string), {})
     cosmos_db_connection = optional(object({
       existing_resource_id = optional(string, null)
       new_resource_map_key = optional(string, null)
@@ -51,6 +52,7 @@ Configuration map for AI Foundry projects to be created. Each project can have i
   - `managed_identities` - (Optional) Identity configuration for the project. The system-assigned identity defaults to enabled to preserve existing behavior.
     - `system_assigned` - (Optional) Whether to enable the system-assigned identity. Defaults to true; set explicitly to false for a UAMI-only project.
     - `user_assigned_resource_ids` - (Optional) Set of user-assigned managed identity resource IDs to attach to the project.
+  - `user_assigned_identities` - (Optional) Map of stable, readable aliases to user-assigned identity resource IDs. Use this for same-apply identities. Keys must be known at plan time; values may be computed. Reuse the account alias for a shared identity and do not also configure it in the identity set.
   - `cosmos_db_connection` - (Optional) Configuration for Cosmos DB connection.
     - `existing_resource_id` - (Optional) The resource ID of an existing Cosmos DB account to connect to.
     - `new_resource_map_key` - (Optional) The map key of a new Cosmos DB account to be created and connected.
@@ -68,7 +70,7 @@ DESCRIPTION
   validation {
     condition = alltrue(flatten([
       for project in values(var.ai_projects) : [
-        for id in project.managed_identities.user_assigned_resource_ids :
+        for id in concat(tolist(project.managed_identities.user_assigned_resource_ids), values(project.user_assigned_identities)) :
         can(provider::azapi::parse_resource_id("Microsoft.ManagedIdentity/userAssignedIdentities", id))
       ]
     ]))
@@ -77,7 +79,7 @@ DESCRIPTION
   validation {
     condition = alltrue([
       for project in values(var.ai_projects) :
-      !project.create_project_connections || project.managed_identities.system_assigned || length(project.managed_identities.user_assigned_resource_ids) > 0
+      !project.create_project_connections || project.managed_identities.system_assigned || length(project.managed_identities.user_assigned_resource_ids) > 0 || length(project.user_assigned_identities) > 0
     ])
     error_message = "Project connections require a system-assigned identity or at least one user-assigned identity."
   }

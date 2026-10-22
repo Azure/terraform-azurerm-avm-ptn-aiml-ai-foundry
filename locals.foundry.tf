@@ -48,6 +48,7 @@ locals {
   } : null
   ai_foundry_user_assigned_identity_ids = toset(concat(
     tolist(var.ai_foundry.managed_identities.user_assigned_resource_ids),
+    values(var.ai_foundry.user_assigned_identities),
     local.ai_foundry_cmk_user_assigned_identity_ids
   ))
   # Principal IDs of user-assigned identities the consumer attached to the Foundry account
@@ -56,6 +57,12 @@ locals {
     for id in tolist(var.ai_foundry.managed_identities.user_assigned_resource_ids) :
     data.azurerm_user_assigned_identity.ai_foundry_account[id].principal_id
   ]
+  ai_foundry_user_assigned_identity_principals = {
+    for key, identity in data.azapi_resource.ai_foundry_account_keyed : key => {
+      resource_id  = var.ai_foundry.user_assigned_identities[key]
+      principal_id = identity.output.properties.principalId
+    }
+  }
   foundry_default_role_assignments = {
     #holding this variable in the event we need to add static defaults in the future.
   }

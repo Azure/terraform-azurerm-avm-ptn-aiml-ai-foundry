@@ -2,8 +2,8 @@ locals {
   project_principal_ids = merge(
     var.managed_identities.system_assigned ? { system_assigned = azapi_resource.ai_foundry_project.output.identity.principalId } : {},
     {
-      for id in var.managed_identities.user_assigned_resource_ids :
-      id => data.azapi_resource.project_user_assigned_identity[id].output.properties.principalId
+      for key, identity in data.azapi_resource.project_user_assigned_identity :
+      key => identity.output.properties.principalId
     }
   )
   project_connection_roles = {
@@ -18,13 +18,14 @@ locals {
       ]
     ]) : entry.key => entry
   }
-  project_user_assigned_identities = length(var.managed_identities.user_assigned_resource_ids) > 0 ? {
-    for id in var.managed_identities.user_assigned_resource_ids : id => {}
+  project_user_assigned_identity_ids = concat(tolist(var.managed_identities.user_assigned_resource_ids), values(var.user_assigned_identities))
+  project_user_assigned_identities = length(local.project_user_assigned_identity_ids) > 0 ? {
+    for id in local.project_user_assigned_identity_ids : id => {}
   } : null
   project_identity_type = (
-    var.managed_identities.system_assigned && length(var.managed_identities.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" :
+    var.managed_identities.system_assigned && length(local.project_user_assigned_identity_ids) > 0 ? "SystemAssigned, UserAssigned" :
     var.managed_identities.system_assigned ? "SystemAssigned" :
-    length(var.managed_identities.user_assigned_resource_ids) > 0 ? "UserAssigned" :
+    length(local.project_user_assigned_identity_ids) > 0 ? "UserAssigned" :
     "None"
   )
 

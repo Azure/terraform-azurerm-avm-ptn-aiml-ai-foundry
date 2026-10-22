@@ -4,6 +4,22 @@
 
 This deploys the module in its simplest form.
 
+## User-assigned identities
+
+Use `user_assigned_identities = { application = module.identity.resource_id }`
+for identities created in the same apply. Map keys are stable, readable aliases,
+not generated GUIDs or Azure resource IDs. Keep the same alias when sharing an
+identity with `account_user_assigned_identities`; shared aliases must resolve to
+the same resource ID. The standard `managed_identities` input still controls
+the system-assigned identity and accepts existing user-assigned identity IDs.
+Do not supply one identity in both inputs or under different aliases.
+
+Existing system-assigned grant keys and legacy account principal-ID keys are
+unchanged. Moving an existing identity grant to an alias changes its Terraform
+address; review and preserve its existing state binding rather than applying a
+destroy/create plan. Alias-based project identities are new in this unreleased
+feature.
+
 ## Consumer access to this project
 
 The optional `role_assignments` map creates RBAC assignments on the exact project
@@ -46,8 +62,6 @@ The following requirements are needed by this module:
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
-
-- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.7)
 
 - <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.9)
 
@@ -128,9 +142,24 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_account_user_assigned_identities"></a> [account\_user\_assigned\_identities](#input\_account\_user\_assigned\_identities)
+
+Description: Parent account user-assigned identities keyed by stable, readable aliases, with their ARM resource ID and principal object ID. Values may be unknown at plan time. Reuse the alias in user\_assigned\_identities when sharing an identity.
+
+Type:
+
+```hcl
+map(object({
+    resource_id  = string
+    principal_id = string
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_account_user_assigned_identity_principal_ids"></a> [account\_user\_assigned\_identity\_principal\_ids](#input\_account\_user\_assigned\_identity\_principal\_ids)
 
-Description: Principal IDs of any user-assigned managed identities attached to the parent AI Foundry account. These principals are granted the same Cosmos DB and Storage data-plane roles as the project's system-assigned identity, per the Standard Agent Setup documentation.
+Description: Legacy plan-known principal IDs of user-assigned managed identities attached to the parent account. These principals retain their released grant keys. Use account\_user\_assigned\_identities for apply-time principals. Do not supply the same identity through both inputs.
 
 Type: `list(string)`
 
@@ -170,7 +199,9 @@ Default: `false`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
-Description: This variable controls whether or not telemetry is enabled for the module. For more information see <https://aka.ms/avm/telemetryinfo>. If it is set to false, then no telemetry will be collected.
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see <https://aka.ms/avm/telemetryinfo>.  
+If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
 
@@ -335,6 +366,14 @@ object({
     delete = optional(string, "90m")
   })
 ```
+
+Default: `{}`
+
+### <a name="input_user_assigned_identities"></a> [user\_assigned\_identities](#input\_user\_assigned\_identities)
+
+Description: User-assigned identity resource IDs keyed by stable, readable aliases. Use this map for identities created in the same apply; keys must be known during planning, while values may be computed. Reuse the parent's alias for a shared identity. Do not also supply the identity in managed\_identities.user\_assigned\_resource\_ids.
+
+Type: `map(string)`
 
 Default: `{}`
 

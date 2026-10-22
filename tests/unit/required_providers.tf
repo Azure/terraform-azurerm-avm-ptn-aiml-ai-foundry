@@ -3,9 +3,6 @@ terraform {
     azapi = {
       source = "Azure/azapi"
     }
-    modtm = {
-      source = "Azure/modtm"
-    }
     azurerm = {
       source = "hashicorp/azurerm"
     }

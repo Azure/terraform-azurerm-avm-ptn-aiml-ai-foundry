@@ -35,10 +35,34 @@ variable "account_capability_host_id" {
   description = "Resource ID of the account-level capability host (if exists) to ensure it completes before project capability host creation"
 }
 
+variable "account_user_assigned_identities" {
+  type = map(object({
+    resource_id  = string
+    principal_id = string
+  }))
+  default     = {}
+  description = "Parent account user-assigned identities keyed by stable, readable aliases, with their ARM resource ID and principal object ID. Values may be unknown at plan time. Reuse the alias in user_assigned_identities when sharing an identity."
+  nullable    = false
+
+  validation {
+    condition = alltrue([
+      for identity in values(var.account_user_assigned_identities) :
+      can(provider::azapi::parse_resource_id("Microsoft.ManagedIdentity/userAssignedIdentities", identity.resource_id))
+    ])
+    error_message = "Each account user-assigned identity resource_id must be a valid user-assigned identity resource ID."
+  }
+  validation {
+    condition = length(distinct([
+      for identity in values(var.account_user_assigned_identities) : lower(identity.resource_id)
+    ])) == length(var.account_user_assigned_identities)
+    error_message = "Account user-assigned identities must use one alias per resource ID."
+  }
+}
+
 variable "account_user_assigned_identity_principal_ids" {
   type        = list(string)
   default     = []
-  description = "Principal IDs of any user-assigned managed identities attached to the parent AI Foundry account. These principals are granted the same Cosmos DB and Storage data-plane roles as the project's system-assigned identity, per the Standard Agent Setup documentation."
+  description = "Legacy plan-known principal IDs of user-assigned managed identities attached to the parent account. These principals retain their released grant keys. Use account_user_assigned_identities for apply-time principals. Do not supply the same identity through both inputs."
   nullable    = false
 }
 
@@ -66,7 +90,7 @@ variable "create_project_connections" {
   description = "Whether to create project connections for AI Foundry, Cosmos DB, Key Vault, and AI Search. If set to false, the project will not create connections to these resources."
 
   validation {
-    condition     = !var.create_project_connections || var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) > 0
+    condition     = !var.create_project_connections || var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) > 0 || length(var.user_assigned_identities) > 0
     error_message = "Project connections require a system-assigned identity or at least one user-assigned identity."
   }
 }
@@ -75,7 +99,9 @@ variable "enable_telemetry" {
   type        = bool
   default     = true
   description = <<DESCRIPTION
-This variable controls whether or not telemetry is enabled for the module. For more information see <https://aka.ms/avm/telemetryinfo>. If it is set to false, then no telemetry will be collected.
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
 DESCRIPTION
   nullable    = false
 }
@@ -121,4 +147,33 @@ variable "tags" {
   type        = map(string)
   default     = null
   description = "Tags to apply to resources"
+}
+
+variable "user_assigned_identities" {
+  type        = map(string)
+  default     = {}
+  description = "User-assigned identity resource IDs keyed by stable, readable aliases. Use this map for identities created in the same apply; keys must be known during planning, while values may be computed. Reuse the parent's alias for a shared identity. Do not also supply the identity in managed_identities.user_assigned_resource_ids."
+  nullable    = false
+
+  validation {
+    condition = alltrue([
+      for id in values(var.user_assigned_identities) :
+      can(provider::azapi::parse_resource_id("Microsoft.ManagedIdentity/userAssignedIdentities", id))
+    ])
+    error_message = "Each user_assigned_identities value must be a valid user-assigned identity resource ID."
+  }
+  validation {
+    condition = alltrue([
+      for key in setintersection(toset(keys(var.user_assigned_identities)), toset(keys(var.account_user_assigned_identities))) :
+      lower(var.user_assigned_identities[key]) == lower(var.account_user_assigned_identities[key].resource_id)
+    ])
+    error_message = "A shared account and project identity alias must refer to the same resource ID."
+  }
+  validation {
+    condition = length(distinct(concat(
+      [for id in values(merge({ for key, identity in var.account_user_assigned_identities : key => identity.resource_id }, var.user_assigned_identities)) : lower(id)],
+      [for id in var.managed_identities.user_assigned_resource_ids : lower(id)]
+    ))) == length(merge(var.account_user_assigned_identities, var.user_assigned_identities)) + length(var.managed_identities.user_assigned_resource_ids)
+    error_message = "Use one alias per user-assigned identity across the account and project, and do not also include that identity in managed_identities.user_assigned_resource_ids."
+  }
 }

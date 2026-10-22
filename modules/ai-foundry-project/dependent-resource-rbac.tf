@@ -1,11 +1,11 @@
 locals {
-  # Account and project user-assigned managed identity principals. These come from a data source
-  # (resolved at plan time) and are safe to use as for_each keys. The project's own
-  # system-assigned identity principal is only known after apply, so it gets its own
-  # count-based role assignments below to avoid "Invalid for_each argument" errors.
-  account_umi_principal_ids = setunion(
-    toset(var.account_user_assigned_identity_principal_ids),
-    toset([for identity in data.azapi_resource.project_user_assigned_identity : identity.output.properties.principalId])
+  # Retain released principal-ID keys for legacy account grants. New identity
+  # paths use caller-owned aliases, never computed ARM IDs or principal IDs.
+  account_umi_principal_ids = merge(
+    { for id in toset(var.account_user_assigned_identity_principal_ids) : id => id },
+    { for key, identity in var.account_user_assigned_identities : "identity:${key}" => identity.principal_id },
+    { for key, id in var.user_assigned_identities : "identity:${key}" => data.azapi_resource.project_user_assigned_identity["identity:${key}"].output.properties.principalId },
+    { for id in var.managed_identities.user_assigned_resource_ids : "resource:${id}" => data.azapi_resource.project_user_assigned_identity[id].output.properties.principalId }
   )
   ai_search_default_role_assignments = {
     search_index_data_contributor = {
@@ -73,9 +73,7 @@ resource "azurerm_role_assignment" "storage_role_assignments" {
 # provisions dynamically at first agent deployment. Container-level scoping was insufficient
 # (issue #72).
 #
-# Split into two resources because for_each cannot accept values that are only known after apply
-# (the project SMI principal_id). The account and project UMI principal_ids come from a data source
-# and are known at plan time.
+# The project SMI uses count; alias-keyed UAMI maps permit apply-time principals.
 resource "azurerm_cosmosdb_sql_role_assignment" "enterprise_memory_db_project_smi" {
   count = var.create_ai_agent_service && var.create_project_connections && var.managed_identities.system_assigned ? 1 : 0
 
@@ -92,7 +90,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "enterprise_memory_db_project_sm
 }
 
 resource "azurerm_cosmosdb_sql_role_assignment" "enterprise_memory_db_account_umi" {
-  for_each = var.create_ai_agent_service && var.create_project_connections ? local.account_umi_principal_ids : toset([])
+  for_each = var.create_ai_agent_service && var.create_project_connections ? local.account_umi_principal_ids : {}
 
   account_name        = basename(var.cosmos_db_id)
   principal_id        = each.value
@@ -101,13 +99,19 @@ resource "azurerm_cosmosdb_sql_role_assignment" "enterprise_memory_db_account_um
   scope               = "${var.cosmos_db_id}/dbs/enterprise_memory"
   name                = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}-accountumi-${each.value}-enterprisememory_dbsqlrole")
 
+  lifecycle {
+    precondition {
+      condition     = length(distinct([for id in values(local.account_umi_principal_ids) : lower(id)])) == length(local.account_umi_principal_ids)
+      error_message = "Each dependent-service principal must have one tracking key. Do not supply the same identity through legacy account principal IDs and project/account aliases."
+    }
+  }
   depends_on = [
     azapi_resource.ai_agent_capability_host
   ]
 }
 
 # Storage Blob Data Owner with ABAC conditions. Same split: project SMI via count, account UMIs
-# via for_each over the known-at-plan-time set.
+# via for_each over plan-known keys.
 resource "azurerm_role_assignment" "storage_blob_data_owner_project_smi" {
   count = var.create_ai_agent_service && var.create_project_connections && var.managed_identities.system_assigned ? 1 : 0
 
@@ -136,7 +140,7 @@ resource "azurerm_role_assignment" "storage_blob_data_owner_project_smi" {
 }
 
 resource "azurerm_role_assignment" "storage_blob_data_owner_account_umi" {
-  for_each = var.create_ai_agent_service && var.create_project_connections ? local.account_umi_principal_ids : toset([])
+  for_each = var.create_ai_agent_service && var.create_project_connections ? local.account_umi_principal_ids : {}
 
   principal_id         = each.value
   scope                = var.storage_account_id
@@ -157,6 +161,12 @@ resource "azurerm_role_assignment" "storage_blob_data_owner_account_umi" {
   principal_type       = "ServicePrincipal"
   role_definition_name = "Storage Blob Data Owner"
 
+  lifecycle {
+    precondition {
+      condition     = length(distinct([for id in values(local.account_umi_principal_ids) : lower(id)])) == length(local.account_umi_principal_ids)
+      error_message = "Each dependent-service principal must have one tracking key. Do not supply the same identity through legacy account principal IDs and project/account aliases."
+    }
+  }
   depends_on = [
     azapi_resource.ai_agent_capability_host
   ]

@@ -41,8 +41,9 @@ data "azurerm_client_config" "current" {}
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.12.0"
+  version = "0.13.0"
 
+  location               = var.location
   enable_telemetry       = var.enable_telemetry
   geography_filter       = "Australia"
   has_availability_zones = true
@@ -58,9 +59,10 @@ locals {
 }
 
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.3"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 
+  legacy_mode   = true
   suffix        = [local.base_name]
   unique-length = 5
 }
