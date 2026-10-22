@@ -5,6 +5,14 @@ resource "terraform_data" "identity" {
 module "foundry" {
   source = "../../.."
 
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    modtm   = modtm
+    random  = random
+    time    = time
+  }
+
   base_name                  = "unknown"
   location                   = "australiaeast"
   resource_group_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test"

@@ -11,6 +11,14 @@ module "key_vault" {
   version  = "0.10.2"
   for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    modtm   = modtm
+    random  = random
+    time    = time
+  }
+
   location                        = var.location
   name                            = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-kv-${random_string.resource_token.result}" : "kv-fndry-${random_string.resource_token.result}")
   resource_group_name             = local.resource_group_name
@@ -49,6 +57,14 @@ module "storage_account" {
   version  = "0.6.9"
   for_each = { for k, v in var.storage_account_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    modtm   = modtm
+    random  = random
+    time    = time
+  }
+
   location                            = var.location
   name                                = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${local.base_name_storage}${lower(each.key)}fndrysa${random_string.resource_token.result}" : "${lower(each.key)}fndrysa${random_string.resource_token.result}")
   resource_group_name                 = local.resource_group_name
@@ -79,6 +95,14 @@ module "cosmosdb" {
   source   = "Azure/avm-res-documentdb-databaseaccount/azurerm"
   version  = "0.11.0"
   for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
+
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    modtm   = modtm
+    random  = random
+    time    = time
+  }
 
   location                   = var.location
   name                       = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-${each.key}-foundry-cosmosdb-${random_string.resource_token.result}" : "${each.key}-foundry-cosmosdb-${random_string.resource_token.result}")

@@ -41,6 +41,11 @@ Terraform `1.17.0` because mocking the Storage dependency's ephemeral AzAPI acti
 requires its ephemeral-resource mock support. This authoring-tool selection does
 not raise the module's consumer Terraform requirement.
 
+The pinned Key Vault, Storage and Cosmos DB dependencies still require ModTM.
+Their explicit provider mappings retain the existing default configurations,
+including `Azure/modtm`, for dependency and mock compatibility; the Foundry
+module's managed telemetry itself uses AzAPI, not ModTM.
+
 The root tests exercise the actual
 project and Cosmos DB child modules, checking parameter propagation rather than
 testing Registry modules in isolation. Coverage includes independent project
