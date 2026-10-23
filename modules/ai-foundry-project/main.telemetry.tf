@@ -24,8 +24,6 @@ locals {
   avm_telemetry_version_token = replace(coalesce(local.avm_module_version, "0.0.0"), ".", "-")
 }
 
-# SFR3 forbids tags on the managed telemetry deployment.
-# tflint-ignore: avm_azapi_resource_tags_required
 resource "azapi_resource" "telemetry" {
   count = var.enable_telemetry ? 1 : 0
 
