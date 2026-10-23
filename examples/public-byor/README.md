@@ -62,7 +62,7 @@ terraform {
     }
     # tflint-ignore: terraform_unused_required_providers
     modtm = {
-      source  = "azure/modtm"
+      source  = "Azure/modtm"
       version = "~> 0.3"
     }
     random = {
@@ -112,12 +112,12 @@ module "naming" {
 
 resource "azurerm_resource_group" "this" {
   location = random_shuffle.locations.result[0]
-  name     = module.naming.resource_group.name_unique
+  name     = module.naming.names.resource_group.name_unique
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
   location            = azurerm_resource_group.this.location
-  name                = module.naming.log_analytics_workspace.name_unique
+  name                = module.naming.names.operational_insights_workspace.name_unique
   resource_group_name = azurerm_resource_group.this.name
   retention_in_days   = 30
   sku                 = "PerGB2018"
@@ -127,7 +127,7 @@ resource "azurerm_log_analytics_workspace" "this" {
 
 resource "azapi_resource" "ai_search" {
   location  = azurerm_resource_group.this.location
-  name      = module.naming.search_service.name_unique
+  name      = module.naming.names.search_service.name_unique
   parent_id = azurerm_resource_group.this.id
   type      = "Microsoft.Search/searchServices@2024-06-01-preview"
   body = {
@@ -169,7 +169,7 @@ module "key_vault" {
   version = "0.10.2"
 
   location                        = azurerm_resource_group.this.location
-  name                            = module.naming.key_vault.name_unique
+  name                            = module.naming.names.key_vault_vault.name_unique
   resource_group_name             = azurerm_resource_group.this.name
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   enable_telemetry                = var.enable_telemetry
@@ -187,7 +187,7 @@ module "storage_account" {
   version = "0.6.9"
 
   location                 = azurerm_resource_group.this.location
-  name                     = module.naming.storage_account.name_unique
+  name                     = module.naming.names.storage_account.name_unique
   resource_group_name      = azurerm_resource_group.this.name
   access_tier              = "Hot"
   account_kind             = "StorageV2"
@@ -201,7 +201,7 @@ module "cosmosdb" {
   version = "0.10.0"
 
   location            = azurerm_resource_group.this.location
-  name                = module.naming.cosmosdb_account.name_unique
+  name                = module.naming.names.database_account.name_unique
   resource_group_name = azurerm_resource_group.this.name
   # Azure no longer permits enabling Analytical Storage during account creation.
   analytical_storage_enabled = false
@@ -236,7 +236,7 @@ module "ai_foundry" {
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service = true
-    name                    = module.naming.cognitive_account.name_unique
+    name                    = module.naming.names.cognitive_services_account.name_unique
   }
   ai_model_deployments = {
     "gpt-4o" = {

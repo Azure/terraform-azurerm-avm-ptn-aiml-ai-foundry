@@ -2,6 +2,8 @@
 
 This deploys the module with private networking, BYOR services, and Customer Managed Keys (CMK).
 
+The Windows VM uses the naming module's `virtual_machine_windows` variant for its guest computer name, which is limited to 15 characters. Its Azure resource name uses the separate `compute_virtual_machine` variant.
+
 ## Architecture
 
 This example demonstrates a fully secured private deployment with encryption using customer-managed keys:

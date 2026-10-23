@@ -2,6 +2,8 @@
 
 This deploys the module with private networking and Bring Your Own Resources (BYOR) services.
 
+The Windows VM uses the naming module's `virtual_machine_windows` variant for its guest computer name, which is limited to 15 characters. Its Azure resource name uses the separate `compute_virtual_machine` variant.
+
 Local authentication is disabled for the Foundry account and Cosmos DB, and public network access is disabled for Cosmos DB and Key Vault. The Bastion public IP preserves the Azure-managed `FirstPartyUsage` IP tag when Azure injects it; other IP tags remain managed by Terraform.
 
 ## Architecture

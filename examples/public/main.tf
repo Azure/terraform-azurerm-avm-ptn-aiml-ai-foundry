@@ -8,7 +8,7 @@ terraform {
     }
     # tflint-ignore: terraform_unused_required_providers
     modtm = {
-      source  = "azure/modtm"
+      source  = "Azure/modtm"
       version = "~> 0.3"
     }
     random = {
@@ -59,12 +59,12 @@ module "naming" {
 
 resource "azurerm_resource_group" "this" {
   location = random_shuffle.locations.result[0]
-  name     = module.naming.resource_group.name_unique
+  name     = module.naming.names.resource_group.name_unique
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
   location            = azurerm_resource_group.this.location
-  name                = module.naming.log_analytics_workspace.name_unique
+  name                = module.naming.names.operational_insights_workspace.name_unique
   resource_group_name = azurerm_resource_group.this.name
   retention_in_days   = 30
   sku                 = "PerGB2018"
@@ -78,7 +78,7 @@ module "ai_foundry" {
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service = true
-    name                    = module.naming.cognitive_account.name_unique
+    name                    = module.naming.names.cognitive_services_account.name_unique
   }
   ai_model_deployments = {
     "gpt-4o" = {

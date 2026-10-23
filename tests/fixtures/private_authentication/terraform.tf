@@ -14,7 +14,7 @@ terraform {
     }
     # tflint-ignore: terraform_unused_required_providers
     modtm = {
-      source  = "azure/modtm"
+      source  = "Azure/modtm"
       version = "~> 0.3"
     }
     # tflint-ignore: terraform_unused_required_providers

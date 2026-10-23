@@ -26,7 +26,9 @@ resource "azapi_resource" "ai_foundry" {
     }
   }
   # Child-project deletion changes the account ETag; preserve wildcard deletion.
-  delete_headers            = { "If-Match" = "*" }
+  delete_headers = { "If-Match" = "*" }
+  # Preserve the released provider-default projection rather than invalidating existing outputs.
+  response_export_values    = null
   retry                     = var.retry
   schema_validation_enabled = false
   tags                      = var.tags
