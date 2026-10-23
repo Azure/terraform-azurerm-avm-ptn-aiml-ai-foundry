@@ -273,6 +273,7 @@ module "virtual_machine" {
   zone                                                   = "1"
   admin_username                                         = "azureadmin"
   bypass_platform_safety_checks_on_user_schedule_enabled = false
+  computer_name                                          = module.naming.names.virtual_machine_windows.name_unique
   disable_password_authentication                        = false
   enable_telemetry                                       = var.enable_telemetry
   encryption_at_host_enabled                             = false

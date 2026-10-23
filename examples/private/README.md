@@ -4,6 +4,8 @@
 
 This deploys the module with private networking and secure access.
 
+The Windows VM uses the naming module's `virtual_machine_windows` variant for its guest computer name, which is limited to 15 characters. Its Azure resource name uses the separate `compute_virtual_machine` variant.
+
 Local authentication is disabled for the Foundry account and Cosmos DB. The Bastion public IP preserves the Azure-managed `FirstPartyUsage` IP tag when Azure injects it; other IP tags remain managed by Terraform.
 
 ## Architecture
@@ -316,6 +318,7 @@ module "virtual_machine" {
   zone                                                   = "1"
   admin_username                                         = "azureadmin"
   bypass_platform_safety_checks_on_user_schedule_enabled = false
+  computer_name                                          = module.naming.names.virtual_machine_windows.name_unique
   disable_password_authentication                        = false
   enable_telemetry                                       = var.enable_telemetry
   encryption_at_host_enabled                             = false
