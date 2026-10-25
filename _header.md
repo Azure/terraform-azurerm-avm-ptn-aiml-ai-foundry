@@ -34,7 +34,138 @@ This module supports two ways of providing the dependent data services (Key Vaul
 - Feature requests that affect the **Foundry account, projects, agent service, connections, RBAC, or the Foundry account's own private endpoint** apply to both modes and are in scope regardless of BYOR/CYOR.
 - See the `standard-*-byor` examples for reference BYOR deployments.
 
+## Unit testing
+
+Run `avm test unit` from the repository root.
+[`.avm/tool-version-overrides.json`](.avm/tool-version-overrides.json) selects
+Terraform `1.17.0` for managed development commands, not only unit tests. The
+override is needed for unit tests that mock the Storage dependency's ephemeral
+AzAPI action, which the managed default Terraform `1.16.5` cannot mock. It does
+not change the module's consumer `required_version` constraint. Remove the
+override once the managed default supports these mocks. The override file
+accepts only tool/version entries, so this explanation lives here rather than
+in a JSON comment.
+
+The root tests exercise the actual
+project and Cosmos DB child modules, checking parameter propagation rather than
+testing Registry modules in isolation. Coverage includes independent project
+role assignments and scopes, empty assignment defaults, and Cosmos DB local
+authentication with default, explicitly disabled, and explicitly enabled values.
+Azure operations are mocked or overridden; these tests do not deploy resources.
+Standalone project tests provide additional identity and ARM body coverage.
+
+## User-assigned identities created in the same deployment
+
+Use readable, stable aliases rather than computed Azure IDs as iteration keys:
+
+```hcl
+ai_foundry = {
+  user_assigned_identities = {
+    application = module.application_identity.resource_id
+  }
+}
+ai_projects = {
+  research = {
+    name         = "research"
+    display_name = "Research"
+    description  = "Research project"
+    user_assigned_identities = {
+      application = module.application_identity.resource_id
+    }
+  }
+}
+```
+
+The alias must be known at plan time; its resource ID and principal ID may be
+unknown until apply. Reuse the same alias for an identity shared by the account
+and a project so dependent-service grants are not duplicated. Give distinct
+identities distinct aliases. Do not configure one identity through both the
+alias map and `managed_identities.user_assigned_resource_ids`.
+
+The released Foundry identity set remains supported for existing identities whose
+IDs are known during planning. Keep existing configurations on that path to
+preserve their principal-keyed grant addresses. Switching an existing grant to an
+alias changes its Terraform address; it is not an automatic state migration.
+Inspect the plan and preserve the existing binding before changing that input.
+The new maps do not change Azure assignment naming formulas or existing
+system-assigned identity grant keys. The `user-assigned-identities` example
+creates an identity and attaches it to the account and two projects in one apply.
+
+## Utility dependency upgrades
+
+The regions utility now uses version `0.13.0`. Its region catalog, filtering and
+output definitions are unchanged from `0.12.0`, but it requires a deployment
+location and replaces its old telemetry bindings with an empty, subscription-
+scoped ARM deployment. With telemetry enabled, the deployment identity needs
+permission to manage subscription deployments in the selected location. The
+module forwards `enable_telemetry` to this dependency.
+
+Fresh examples use `Azure/avm-utl-naming/azure` `0.2.0` with its default modern
+renderer and `names` output. This utility is used only by examples, not by the
+reusable Foundry module. Modern names can differ from the previous
+`Azure/naming/azurerm` `0.4.3` or `legacy_mode = true` examples. Reusing an existing
+example's state can therefore replace resources whose names change; inspect the
+complete plan before applying. Existing deployments that need the old naming
+contract should retain `legacy_mode = true` and their legacy output references.
+
 ## Example Deployments
+
+### Consumer access to Foundry and projects
+
+Use the root `role_assignments` map for access **on the Foundry account** and
+`ai_projects[<key>].role_assignments` for access **on that project**. These are
+independent of the service-identity grants on dependent storage, Search, and Cosmos DB.
+Both maps default to `{}` and create no assignments when omitted. Projects retain
+their existing identity and connection defaults.
+
+For example, add these arguments to your Foundry module call:
+
+```hcl
+role_assignments = {
+  account_reader = {
+    role_definition_id_or_name = "Reader"
+    principal_id               = var.reader_group_object_id
+    principal_type             = "Group"
+    description                = "Read access to the Foundry account"
+  }
+}
+
+ai_projects = {
+  research = {
+    name         = "research"
+    display_name = "Research"
+    description  = "Research project"
+    role_assignments = {
+      developer = {
+        role_definition_id_or_name = var.project_role_definition_resource_id
+        principal_id               = var.developer_service_principal_object_id
+        principal_type             = "ServicePrincipal"
+      }
+    }
+  }
+}
+```
+
+Use principal **object IDs**, not application/client IDs or managed-identity resource
+IDs. Role definitions accept a display name or a fully qualified role definition
+resource ID. The AVM interfaces utility resolves names at the exact target scope.
+Optional fields are `name` (a lowercase UUID), `description`, `condition`,
+`condition_version`, `delegated_managed_identity_resource_id`, and `principal_type`.
+Use `condition_version = "2.0"` with a condition. AzAPI makes no Entra principal
+lookup, so the standard compatibility field `skip_service_principal_aad_check`
+has no effect; supply `principal_type = "ServicePrincipal"` explicitly when required.
+The utility generates a persistent random UUID when `name` is omitted. Keep map
+keys stable, even when principal IDs are not known until apply. To change a role or
+principal after creation, replace the map entry using a new key.
+
+The existing `ai_foundry.role_assignments` interface and its resource addresses
+are unchanged. Do not configure the same scope/principal/role combination through
+both interfaces: Azure rejects duplicate assignments. No state migration is needed
+for this additive capability. Removing a new map entry revokes that assignment on
+the next apply; rollback does not alter legacy or dependent-resource grants.
+
+The independently consumable `modules/ai-foundry-project` submodule also accepts
+`role_assignments` directly and returns a keyed `role_assignments` summary.
 
 | Example                   | Description                                | Key Features                                      |
 | ------------------------- | ------------------------------------------ | ------------------------------------------------- |

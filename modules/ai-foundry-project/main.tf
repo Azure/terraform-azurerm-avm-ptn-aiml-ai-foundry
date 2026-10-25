@@ -1,3 +1,14 @@
+data "azapi_resource" "project_user_assigned_identity" {
+  for_each = merge(
+    { for id in var.managed_identities.user_assigned_resource_ids : id => id },
+    { for key, id in var.user_assigned_identities : "identity:${key}" => id }
+  )
+
+  resource_id            = each.value
+  type                   = "Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31"
+  response_export_values = ["properties.principalId"]
+}
+
 resource "azapi_resource" "ai_foundry_project" {
   location  = var.location
   name      = var.name
@@ -7,9 +18,12 @@ resource "azapi_resource" "ai_foundry_project" {
     sku = {
       name = var.sku
     }
-    identity = {
-      type = "SystemAssigned"
-    }
+    identity = merge(
+      { type = local.project_identity_type },
+      length(local.project_user_assigned_identity_ids) > 0 ? {
+        userAssignedIdentities = local.project_user_assigned_identities
+      } : {}
+    )
     properties = {
       displayName = var.display_name
       description = var.description
@@ -21,6 +35,7 @@ resource "azapi_resource" "ai_foundry_project" {
   # wildcard header plus a retry on that error makes terraform destroy resilient
   # to the race.
   delete_headers = { "If-Match" = "*" }
+  # Changing this projection makes existing principal/internal IDs unknown during upgrades.
   response_export_values = [
     "identity.principalId",
     "properties.internalId"
@@ -39,11 +54,6 @@ resource "azapi_resource" "ai_foundry_project" {
       delete = timeouts.value.delete
     }
   }
-}
-
-locals {
-  # Extract project internal ID and format as GUID for container naming
-  project_id_guid = var.create_ai_agent_service ? "${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 0, 8)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 8, 4)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 12, 4)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 16, 4)}-${substr(azapi_resource.ai_foundry_project.output.properties.internalId, 20, 12)}" : ""
 }
 
 resource "time_sleep" "wait_project_identities" {

@@ -19,6 +19,7 @@ module "ai_foundry_project" {
   location                                     = local.location
   name                                         = each.value.name
   account_capability_host_id                   = try(azapi_resource.ai_agent_capability_host[0].id, null)
+  account_user_assigned_identities             = local.ai_foundry_user_assigned_identity_principals
   account_user_assigned_identity_principal_ids = local.ai_foundry_user_assigned_principal_ids
   #ai_search_id               = try(coalesce(each.value.ai_search_connection.existing_resource_id, try(module.ai_search[each.value.ai_search_connection.new_resource_map_key].resource_id, null)), null)
   ai_search_id               = try(coalesce(each.value.ai_search_connection.existing_resource_id, try(azapi_resource.ai_search[each.value.ai_search_connection.new_resource_map_key].id, null)), null)
@@ -26,11 +27,15 @@ module "ai_foundry_project" {
   create_ai_agent_service    = var.ai_foundry.create_ai_agent_service
   create_project_connections = each.value.create_project_connections
   enable_telemetry           = var.enable_telemetry
+  ignore_body_changes        = var.ignore_body_changes.cognitiveservices_accounts_projects
+  managed_identities         = each.value.managed_identities
   resource_types             = var.resource_types.cognitiveservices_accounts_projects
   retry                      = var.retry
+  role_assignments           = each.value.role_assignments
   storage_account_id         = try(coalesce(each.value.storage_account_connection.existing_resource_id, try(module.storage_account[each.value.storage_account_connection.new_resource_map_key].resource_id, null)), null)
   tags                       = var.tags
   timeouts                   = var.timeouts
+  user_assigned_identities   = each.value.user_assigned_identities
 
   depends_on = [
     azapi_resource.ai_foundry,

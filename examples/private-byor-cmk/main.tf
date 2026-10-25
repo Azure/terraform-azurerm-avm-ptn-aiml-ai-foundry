@@ -12,7 +12,7 @@ terraform {
     }
     # tflint-ignore: terraform_unused_required_providers
     modtm = {
-      source  = "azure/modtm"
+      source  = "Azure/modtm"
       version = "~> 0.3"
     }
     random = {
@@ -73,20 +73,20 @@ module "naming" {
 
 resource "azurerm_resource_group" "this" {
   location = random_shuffle.locations.result[0]
-  name     = module.naming.resource_group.name_unique
+  name     = module.naming.names.resource_group.name_unique
 }
 
 # User-Assigned Managed Identity for CMK
 resource "azurerm_user_assigned_identity" "cmk" {
   location            = azurerm_resource_group.this.location
-  name                = module.naming.user_assigned_identity.name_unique
+  name                = module.naming.names.user_assigned_identity.name_unique
   resource_group_name = azurerm_resource_group.this.name
 }
 
 # Key Vault for CMK
 resource "azurerm_key_vault" "this" {
   location                   = azurerm_resource_group.this.location
-  name                       = module.naming.key_vault.name_unique
+  name                       = module.naming.names.key_vault_vault.name_unique
   resource_group_name        = azurerm_resource_group.this.name
   sku_name                   = "standard"
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -130,7 +130,7 @@ resource "azurerm_key_vault_key" "cmk" {
 # Virtual Network for private endpoints and agent services
 resource "azurerm_virtual_network" "this" {
   location            = azurerm_resource_group.this.location
-  name                = module.naming.virtual_network.name_unique
+  name                = module.naming.names.virtual_network.name_unique
   resource_group_name = azurerm_resource_group.this.name
   address_space       = ["192.168.0.0/16"]
 }
@@ -285,7 +285,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "ai_services" {
 resource "azurerm_public_ip" "example" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.this.location
-  name                = module.naming.public_ip.name_unique
+  name                = module.naming.names.public_ip_address.name_unique
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "Standard"
   zones               = [1, 2, 3]
@@ -296,7 +296,7 @@ module "bastion_host" {
   version = "0.9.0"
 
   location         = azurerm_resource_group.this.location
-  name             = module.naming.bastion_host.name_unique
+  name             = module.naming.names.bastion_host.name_unique
   parent_id        = azurerm_resource_group.this.id
   enable_telemetry = var.enable_telemetry
   ip_configuration = {
@@ -315,16 +315,17 @@ module "virtual_machine" {
   version = "0.21.0"
 
   location                                               = azurerm_resource_group.this.location
-  name                                                   = module.naming.virtual_machine.name_unique
+  name                                                   = module.naming.names.compute_virtual_machine.name_unique
   resource_group_name                                    = azurerm_resource_group.this.name
   zone                                                   = "1"
   admin_username                                         = "azureadmin"
   bypass_platform_safety_checks_on_user_schedule_enabled = false
+  computer_name                                          = module.naming.names.virtual_machine_windows.name_unique
   disable_password_authentication                        = false
   enable_telemetry                                       = var.enable_telemetry
   network_interfaces = {
     network_interface_1 = {
-      name = "${module.naming.network_interface.name_unique}-vm"
+      name = "${module.naming.names.network_interface.name_unique}-vm"
       ip_configurations = {
         ip_configuration_1 = {
           name                          = "internal"
@@ -353,7 +354,7 @@ module "virtual_machine" {
 
 resource "azurerm_log_analytics_workspace" "this" {
   location            = azurerm_resource_group.this.location
-  name                = module.naming.log_analytics_workspace.name_unique
+  name                = module.naming.names.operational_insights_workspace.name_unique
   resource_group_name = azurerm_resource_group.this.name
   retention_in_days   = 30
   sku                 = "PerGB2018"
@@ -364,13 +365,13 @@ resource "azurerm_log_analytics_workspace" "this" {
 
 resource "azurerm_user_assigned_identity" "this" {
   location            = azurerm_resource_group.this.location
-  name                = module.naming.user_assigned_identity.name_unique
+  name                = module.naming.names.user_assigned_identity.name_unique
   resource_group_name = azurerm_resource_group.this.name
 }
 
 resource "azapi_resource" "ai_search" {
   location  = azurerm_resource_group.this.location
-  name      = module.naming.search_service.name_unique
+  name      = module.naming.names.search_service.name_unique
   parent_id = azurerm_resource_group.this.id
   type      = "Microsoft.Search/searchServices@2024-06-01-preview"
   body = {
@@ -412,7 +413,7 @@ module "key_vault" {
   version = "0.10.2"
 
   location                        = azurerm_resource_group.this.location
-  name                            = module.naming.key_vault.name_unique
+  name                            = module.naming.names.key_vault_vault.name_unique
   resource_group_name             = azurerm_resource_group.this.name
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   enable_telemetry                = var.enable_telemetry
@@ -462,7 +463,7 @@ module "storage_account" {
   version = "0.6.9"
 
   location                 = azurerm_resource_group.this.location
-  name                     = module.naming.storage_account.name_unique
+  name                     = module.naming.names.storage_account.name_unique
   resource_group_name      = azurerm_resource_group.this.name
   access_tier              = "Hot"
   account_kind             = "StorageV2"
@@ -483,7 +484,7 @@ module "cosmosdb" {
   version = "0.10.0"
 
   location                   = azurerm_resource_group.this.location
-  name                       = module.naming.cosmosdb_account.name_unique
+  name                       = module.naming.names.database_account.name_unique
   resource_group_name        = azurerm_resource_group.this.name
   analytical_storage_enabled = true
   automatic_failover_enabled = true
@@ -524,7 +525,7 @@ module "ai_foundry" {
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
     create_ai_agent_service = true
-    name                    = module.naming.cognitive_account.name_unique
+    name                    = module.naming.names.cognitive_services_account.name_unique
     customer_managed_key = {
       key_vault_resource_id              = module.key_vault.resource_id
       key_name                           = "cmk"
@@ -629,7 +630,7 @@ module "ai_foundry" {
 
 resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
-  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
+  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.names.cognitive_services_account.name_unique}"
   type        = "Microsoft.Resources/resourceGroups/deletedAccounts@2021-04-30"
   # Deleting the account is asynchronous, so the purge can be issued while the
   # account provisioning state is still non terminal, which returns a 409

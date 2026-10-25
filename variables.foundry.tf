@@ -25,6 +25,7 @@ variable "ai_foundry" {
       system_assigned            = optional(bool, true)
       user_assigned_resource_ids = optional(set(string), [])
     }), { system_assigned = true, user_assigned_resource_ids = [] })
+    user_assigned_identities = optional(map(string), {})
     customer_managed_key = optional(object({
       key_vault_resource_id              = string
       key_name                           = string
@@ -71,6 +72,7 @@ Configuration object for the Azure AI Foundry service to be created for AI workl
 - `managed_identities` - (Optional) Identity configuration for the AI Foundry account.
   - `system_assigned` - (Optional) Enable the system-assigned managed identity. Default true.
   - `user_assigned_resource_ids` - (Optional) Set of user-assigned managed identity resource IDs to attach to the account. When the Foundry account also creates an AI Agent service, every user-assigned identity is granted the Cosmos DB and Storage data-plane roles required by the Standard Agent Setup.
+- `user_assigned_identities` - (Optional) Map of stable, readable aliases to user-assigned identity resource IDs. Use this for identities created in the same apply. Keys must be known at plan time; values may be computed. Do not also put these identities in `managed_identities.user_assigned_resource_ids`. Reuse the same alias when sharing an identity with a project.
 - `customer_managed_key` - (Optional) Customer-managed key encryption configuration. Requires a Key Vault with an existing key and a user-assigned managed identity with "Key Vault Crypto User" role on the Key Vault.
   - `key_vault_resource_id` - Resource ID of the Key Vault containing the encryption key.
   - `key_name` - Name of the Key Vault key to use for encryption.
@@ -86,4 +88,18 @@ Configuration object for the Azure AI Foundry service to be created for AI workl
   - `delegated_managed_identity_resource_id` - (Optional) Resource ID of the delegated managed identity.
   - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
 DESCRIPTION
+
+  validation {
+    condition = alltrue([
+      for id in values(var.ai_foundry.user_assigned_identities) :
+      can(provider::azapi::parse_resource_id("Microsoft.ManagedIdentity/userAssignedIdentities", id))
+    ])
+    error_message = "Each ai_foundry.user_assigned_identities value must be a valid user-assigned identity resource ID."
+  }
+  validation {
+    condition = length(distinct([
+      for id in concat(values(var.ai_foundry.user_assigned_identities), tolist(var.ai_foundry.managed_identities.user_assigned_resource_ids)) : lower(id)
+    ])) == length(var.ai_foundry.user_assigned_identities) + length(var.ai_foundry.managed_identities.user_assigned_resource_ids)
+    error_message = "Each Foundry user-assigned identity must appear only once, either under one alias or in managed_identities.user_assigned_resource_ids."
+  }
 }

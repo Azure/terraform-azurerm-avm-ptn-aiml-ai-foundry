@@ -7,3 +7,11 @@ data "azurerm_user_assigned_identity" "ai_foundry_account" {
   name                = split("/", each.value)[8]
   resource_group_name = split("/", each.value)[4]
 }
+
+data "azapi_resource" "ai_foundry_account_keyed" {
+  for_each = var.ai_foundry.user_assigned_identities
+
+  resource_id            = each.value
+  type                   = "Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31"
+  response_export_values = ["properties.principalId"]
+}

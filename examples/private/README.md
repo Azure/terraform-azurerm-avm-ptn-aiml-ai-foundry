@@ -4,6 +4,8 @@
 
 This deploys the module with private networking and secure access.
 
+The Windows VM uses the naming module's `virtual_machine_windows` variant for its guest computer name, which is limited to 15 characters. Its Azure resource name uses the separate `compute_virtual_machine` variant.
+
 Local authentication is disabled for the Foundry account and Cosmos DB. The Bastion public IP preserves the Azure-managed `FirstPartyUsage` IP tag when Azure injects it; other IP tags remain managed by Terraform.
 
 ## Architecture
@@ -55,7 +57,7 @@ terraform {
     }
     # tflint-ignore: terraform_unused_required_providers
     modtm = {
-      source  = "azure/modtm"
+      source  = "Azure/modtm"
       version = "~> 0.3"
     }
     random = {
@@ -116,13 +118,13 @@ module "naming" {
 
 resource "azurerm_resource_group" "this" {
   location = random_shuffle.locations.result[0]
-  name     = module.naming.resource_group.name_unique
+  name     = module.naming.names.resource_group.name_unique
 }
 
 # Virtual Network for private endpoints and agent services
 resource "azurerm_virtual_network" "this" {
   location            = azurerm_resource_group.this.location
-  name                = module.naming.virtual_network.name_unique
+  name                = module.naming.names.virtual_network.name_unique
   resource_group_name = azurerm_resource_group.this.name
   address_space       = ["192.168.0.0/16"]
 }
@@ -277,7 +279,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "ai_services" {
 resource "azurerm_public_ip" "example" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.this.location
-  name                = module.naming.public_ip.name_unique
+  name                = module.naming.names.public_ip_address.name_unique
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "Standard"
   zones               = [1, 2, 3]
@@ -292,7 +294,7 @@ module "bastion_host" {
   version = "0.9.0"
 
   location         = azurerm_resource_group.this.location
-  name             = module.naming.bastion_host.name_unique
+  name             = module.naming.names.bastion_host.name_unique
   parent_id        = azurerm_resource_group.this.id
   enable_telemetry = var.enable_telemetry
   ip_configuration = {
@@ -311,17 +313,18 @@ module "virtual_machine" {
   version = "0.21.0"
 
   location                                               = azurerm_resource_group.this.location
-  name                                                   = module.naming.virtual_machine.name_unique
+  name                                                   = module.naming.names.compute_virtual_machine.name_unique
   resource_group_name                                    = azurerm_resource_group.this.name
   zone                                                   = "1"
   admin_username                                         = "azureadmin"
   bypass_platform_safety_checks_on_user_schedule_enabled = false
+  computer_name                                          = module.naming.names.virtual_machine_windows.name_unique
   disable_password_authentication                        = false
   enable_telemetry                                       = var.enable_telemetry
   encryption_at_host_enabled                             = false
   network_interfaces = {
     network_interface_1 = {
-      name = "${module.naming.network_interface.name_unique}-vm"
+      name = "${module.naming.names.network_interface.name_unique}-vm"
       ip_configurations = {
         ip_configuration_1 = {
           name                          = "internal"
@@ -356,7 +359,7 @@ module "ai_foundry" {
   ai_foundry = {
     create_ai_agent_service       = true
     disable_local_auth            = true
-    name                          = module.naming.cognitive_account.name_unique
+    name                          = module.naming.names.cognitive_services_account.name_unique
     private_dns_zone_resource_ids = [azurerm_private_dns_zone.openai.id, azurerm_private_dns_zone.cognitiveservices.id, azurerm_private_dns_zone.ai_services.id]
     network_injections = [{
       scenario                   = "agent"
@@ -432,7 +435,7 @@ module "ai_foundry" {
 # Purge deleted AI Foundry account to release service association links
 resource "azapi_resource_action" "purge_ai_foundry" {
   method      = "DELETE"
-  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.cognitive_account.name_unique}"
+  resource_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.CognitiveServices/locations/${azurerm_resource_group.this.location}/resourceGroups/${azurerm_resource_group.this.name}/deletedAccounts/${module.naming.names.cognitive_services_account.name_unique}"
   type        = "Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts@2025-09-01"
   # Deleting the account is asynchronous, so the purge can be issued while the
   # account provisioning state is still non terminal, which returns a 409
