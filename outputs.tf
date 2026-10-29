@@ -2,8 +2,8 @@
 
 
 output "ai_agent_account_capability_host_id" {
-  description = "The resource ID of the account-level AI agent capability host."
-  value       = var.ai_foundry.create_ai_agent_service ? azapi_resource.ai_agent_capability_host[0].id : null
+  description = "The resource ID of the module-owned account AI agent capability host. Null when agents are disabled or an injected account uses the default platform-owned host."
+  value       = local.ai_agent_account_capability_host_enabled ? azapi_resource.ai_agent_capability_host[0].id : null
 }
 
 output "ai_agent_service_id" {

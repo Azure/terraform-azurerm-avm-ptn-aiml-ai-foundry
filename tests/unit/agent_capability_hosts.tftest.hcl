@@ -76,9 +76,10 @@ variables {
   create_byor                = true
   create_private_endpoints   = false
   ai_foundry = {
-    name                          = "test-foundry"
-    create_ai_agent_service       = true
-    public_network_access_enabled = false
+    name                           = "test-foundry"
+    create_ai_agent_service        = true
+    create_account_capability_host = true
+    public_network_access_enabled  = false
     network_injections = [{
       scenario                   = "agent"
       subnetArmId                = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/agents"
@@ -113,9 +114,10 @@ run "injected_agents_create_account_and_project_hosts_with_cmk" {
 
   variables {
     ai_foundry = {
-      name                          = "test-foundry"
-      create_ai_agent_service       = true
-      public_network_access_enabled = false
+      name                           = "test-foundry"
+      create_ai_agent_service        = true
+      create_account_capability_host = true
+      public_network_access_enabled  = false
       network_injections = [{
         scenario                   = "agent"
         subnetArmId                = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/agents"
@@ -147,6 +149,8 @@ run "injected_agents_create_account_and_project_hosts_with_cmk" {
       host.parent_id == output.ai_foundry_id &&
       host.name == "ai-agent-service-${random_string.resource_token.result}" &&
       host.body.properties.capabilityHostKind == "Agents" &&
+      host.body.properties.customerSubnet == one(var.ai_foundry.network_injections).subnetArmId &&
+      length(keys(host.body.properties)) == 2 &&
       output.ai_agent_account_capability_host_id == host.id
     ])
     error_message = "The account host must retain its parent, released naming formula, Agents kind, and output binding."
@@ -188,6 +192,10 @@ run "non_injected_agents_retain_account_and_project_hosts" {
       azapi_resource.ai_foundry.body.properties.networkInjections == null
     )
     error_message = "The released non-injected agent path must keep both hosts and the account host output."
+  }
+  assert {
+    condition     = !contains(keys(azapi_resource.ai_agent_capability_host[0].body.properties), "customerSubnet")
+    error_message = "Non-injected hosts must omit customerSubnet rather than send a null or nested object."
   }
 }
 
@@ -237,6 +245,176 @@ run "account_host_does_not_require_project_connections" {
       output.ai_agent_account_capability_host_id == azapi_resource.ai_agent_capability_host[0].id &&
       output.ai_agent_service_id["research"] == null
     )
-    error_message = "The account host is controlled by the account agent toggle; only the project host requires connections."
+    error_message = "Explicit account host provisioning does not require project connections; only the project host requires connections."
   }
+}
+
+run "injected_default_preserves_platform_host_ownership" {
+  command   = apply
+  state_key = "platform_owned"
+
+  variables {
+    ai_foundry = {
+      create_ai_agent_service = true
+      network_injections = [{
+        subnetArmId = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/agents"
+      }]
+    }
+  }
+
+  assert {
+    condition = (
+      length(azapi_resource.ai_agent_capability_host) == 0 &&
+      output.ai_agent_account_capability_host_id == null &&
+      output.ai_agent_service_id["research"] != null
+    )
+    error_message = "Injected accounts must default to platform host ownership and retain the released project path."
+  }
+}
+
+run "empty_injections_without_opt_in_preserve_released_behavior" {
+  command   = apply
+  state_key = "empty_default"
+
+  variables {
+    ai_foundry = {
+      create_ai_agent_service = true
+      network_injections      = []
+    }
+  }
+
+  assert {
+    condition     = length(azapi_resource.ai_agent_capability_host) == 0 && output.ai_agent_account_capability_host_id == null
+    error_message = "An empty non-null injection list must not implicitly opt into host ownership."
+  }
+}
+
+run "selects_agent_injection_by_scenario_not_list_position" {
+  command   = apply
+  state_key = "scenario_selection"
+
+  variables {
+    ai_foundry = {
+      create_ai_agent_service        = true
+      create_account_capability_host = true
+      network_injections = [
+        {
+          scenario    = "none"
+          subnetArmId = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/unused"
+        },
+        {
+          scenario    = "agent"
+          subnetArmId = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/agents"
+        }
+      ]
+    }
+  }
+
+  assert {
+    condition     = azapi_resource.ai_agent_capability_host[0].body.properties.customerSubnet == var.ai_foundry.network_injections[1].subnetArmId
+    error_message = "customerSubnet must be the agent injection's string ARM ID, not the first entry or a nested object."
+  }
+}
+
+run "rejects_opt_in_without_injection" {
+  command = plan
+
+  variables {
+    ai_foundry = {
+      create_ai_agent_service        = true
+      create_account_capability_host = true
+    }
+  }
+  expect_failures = [var.ai_foundry]
+}
+
+run "rejects_opt_in_with_empty_injections" {
+  command = plan
+
+  variables {
+    ai_foundry = {
+      create_ai_agent_service        = true
+      create_account_capability_host = true
+      network_injections             = []
+    }
+  }
+  expect_failures = [var.ai_foundry]
+}
+
+run "rejects_opt_in_with_disabled_agents" {
+  command = plan
+
+  variables {
+    ai_foundry = {
+      create_ai_agent_service        = false
+      create_account_capability_host = true
+      network_injections = [{
+        subnetArmId = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/agents"
+      }]
+    }
+  }
+  expect_failures = [var.ai_foundry]
+}
+
+run "rejects_ambiguous_agent_injections" {
+  command = plan
+
+  variables {
+    ai_foundry = {
+      create_ai_agent_service        = true
+      create_account_capability_host = true
+      network_injections = [
+        { subnetArmId = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/agents" },
+        { subnetArmId = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/other" }
+      ]
+    }
+  }
+  expect_failures = [var.ai_foundry]
+}
+
+run "rejects_microsoft_managed_agent_network" {
+  command = plan
+
+  variables {
+    ai_foundry = {
+      create_ai_agent_service        = true
+      create_account_capability_host = true
+      network_injections = [{
+        subnetArmId                = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/agents"
+        useMicrosoftManagedNetwork = true
+      }]
+    }
+  }
+  expect_failures = [var.ai_foundry]
+}
+
+run "rejects_unsupported_injection_scenario" {
+  command = plan
+
+  variables {
+    ai_foundry = {
+      create_ai_agent_service        = true
+      create_account_capability_host = true
+      network_injections = [{
+        scenario    = "unsupported"
+        subnetArmId = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/agents"
+      }]
+    }
+  }
+  expect_failures = [var.ai_foundry]
+}
+
+run "rejects_invalid_subnet_arm_id" {
+  command = plan
+
+  variables {
+    ai_foundry = {
+      create_ai_agent_service        = true
+      create_account_capability_host = true
+      network_injections = [{
+        subnetArmId = "not-a-subnet-arm-id"
+      }]
+    }
+  }
+  expect_failures = [var.ai_foundry]
 }
