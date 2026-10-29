@@ -56,6 +56,42 @@ authentication with default, explicitly disabled, and explicitly enabled values.
 Azure operations are mocked or overridden; these tests do not deploy resources.
 Standalone project tests provide additional identity and ARM body coverage.
 
+## Agent capability hosts with private network injection
+
+When `ai_foundry.create_ai_agent_service = true`, the module creates one
+account-level `Agents` capability host, including when
+`ai_foundry.network_injections` is configured. Each project with
+`create_project_connections = true` also creates its project-level host after
+the account host and its BYOR connections. Network injection does not replace
+the account-host prerequisite or change which Storage, Cosmos DB, and Search
+resources the project uses. The account host ID is returned through
+`ai_agent_account_capability_host_id`; it is `null` when agents are disabled.
+
+### Upgrading an existing injected deployment
+
+Release `0.13.0` skipped the account host when network injection was configured.
+For that configuration, this fix adds
+`azapi_resource.ai_agent_capability_host[0]` inside the module. Existing
+non-injected host addresses, generated names, and project-host dependencies are
+unchanged. No state move is introduced.
+
+Before applying, inspect both the plan and the account's existing capability
+hosts. Azure permits only one active host per account or project scope and
+does not support updating its configuration. A host created outside this
+module, including during recovery from a partial deployment, needs an
+ownership and naming review before applying the planned addition. Do not
+blindly import, rename, delete, or create a second host. Removing this fix
+after applying it to an injected deployment plans removal of the newly
+managed account host and can disrupt dependent agents; a code revert is not
+a proven rollback.
+
+See [Capability hosts for Foundry Agent Service](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/capability-hosts)
+for service constraints. Provider-mocked regression tests cover injected
+agents with BYOR connections, system/user-assigned identities and CMK,
+non-injected agents, disabled agents, and projects without connections. These
+tests do not establish Azure deployment, service readiness, or state-backed
+upgrade behavior.
+
 ## User-assigned identities created in the same deployment
 
 Use readable, stable aliases rather than computed Azure IDs as iteration keys:
