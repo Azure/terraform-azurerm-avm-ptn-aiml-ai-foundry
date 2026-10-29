@@ -56,6 +56,70 @@ authentication with default, explicitly disabled, and explicitly enabled values.
 Azure operations are mocked or overridden; these tests do not deploy resources.
 Standalone project tests provide additional identity and ARM body coverage.
 
+## Agent capability hosts with private network injection
+
+With agents enabled and `ai_foundry.network_injections = null`, the module
+creates the account-level `Agents` capability host as before. With a non-null
+injection list, the default remains platform-owned account-host provisioning.
+The module does not discover, adopt, or wait for that platform-owned host.
+Ensure it has finished provisioning before creating a project host.
+
+For an injected account that has finished provisioning but has **no existing or
+provisioning account capability host**, explicitly opt into module ownership:
+
+```hcl
+ai_foundry = {
+  create_ai_agent_service        = true
+  create_account_capability_host = true
+  network_injections = [{
+    scenario                   = "agent"
+    subnetArmId                = var.agent_subnet_resource_id
+    useMicrosoftManagedNetwork = false
+  }]
+}
+```
+
+The opt-in requires exactly one `agent` entry on a customer-managed network
+and sends its subnet ARM ID as the string `properties.customerSubnet` on the
+account host. The subnet must match the injection recorded on the account.
+Other entries may only use scenario `none`; no entry is selected by position.
+Null/empty injections, disabled agents, ambiguous agent entries, invalid subnet
+IDs and Microsoft-managed agent networks are rejected when opting in.
+No project-host subnet property or public-hosting flag is added.
+
+The managed account host retains its resource address
+`azapi_resource.ai_agent_capability_host[0]` and generated name. Each project
+with connections enabled retains its existing dependency on that host and its
+BYO connections/RBAC. The output `ai_agent_account_capability_host_id` is the
+module-owned host ID, or `null` for disabled agents and platform-owned injected
+hosts; it is not an inventory of platform resources.
+
+### Ownership and compatibility
+
+Release `0.13.0` skipped explicit account-host creation for every non-null
+injection list, including an empty list. That default remains unchanged;
+opting in adds the managed host. Existing non-injected addresses and names
+are unchanged. No state move is introduced.
+
+Before applying, inspect both the plan and the account's existing capability
+hosts. Network injection can automatically create
+`<account-name>@aml_aiagentservice`; a second host can fail with a conflict.
+The opt-in is an ownership declaration, not an automatic check for absence:
+do not enable it when a host exists or while the account/host is provisioning.
+Azure permits only one host per scope and does not support configuration
+updates. Do not blindly import, rename, delete, or create a second host.
+Changing the subnet is not an in-place host update. Disabling the opt-in
+after applying it plans deletion of the managed host and can disrupt agents;
+a code revert is not a proven rollback.
+
+See [Capability hosts for Foundry Agent Service](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/capability-hosts)
+and the [official private-network sample](https://github.com/microsoft-foundry/foundry-samples/tree/main/infrastructure/infrastructure-setup-bicep/15-private-network-standard-agent-setup)
+for service constraints and platform-host behavior. The
+[account-host API schema](https://learn.microsoft.com/en-us/azure/templates/microsoft.cognitiveservices/2025-10-01-preview/accounts/capabilityhosts)
+defines the subnet payload. Provider-mocked tests check payload shape,
+ownership defaults, validation, BYOR connections, identities and CMK.
+They do not prove Azure readiness or state-backed upgrade behavior.
+
 ## User-assigned identities created in the same deployment
 
 Use readable, stable aliases rather than computed Azure IDs as iteration keys:
@@ -261,6 +325,7 @@ Description: Configuration object for the Azure AI Foundry service to be created
 - `disable_local_auth` - (Optional) Whether to disable local authentication for the AI Foundry service. Default is false.
 - `allow_project_management` - (Optional) Whether to allow project management capabilities in the AI Foundry service. Default is true.
 - `create_ai_agent_service` - (Optional) Whether to create an AI agent service as part of the AI Foundry deployment. Default is false.
+- `create_account_capability_host` - (Optional) Explicitly provision and own the account capability host for a VNet-injected account. Default is false (platform-owned injected host). Enable only after confirming the account has no existing or provisioning capability host. Requires agents enabled and exactly one `agent` injection with `useMicrosoftManagedNetwork = false` and a valid subnet ARM ID. Non-injected accounts retain automatic module-owned host creation without this opt-in.
 - `network_injections` - (Optional) List of network injection configurations for the AI Foundry service.
   - `scenario` - (Optional) The scenario for the network injection. Default is "agent".
   - `subnetArmId` - The subnet ARM ID for the AI agent service.
@@ -302,10 +367,11 @@ Type:
 
 ```hcl
 object({
-    name                     = optional(string, null)
-    disable_local_auth       = optional(bool, false)
-    allow_project_management = optional(bool, true)
-    create_ai_agent_service  = optional(bool, false)
+    name                           = optional(string, null)
+    disable_local_auth             = optional(bool, false)
+    allow_project_management       = optional(bool, true)
+    create_ai_agent_service        = optional(bool, false)
+    create_account_capability_host = optional(bool, false)
     network_injections = optional(list(object({
       scenario                   = optional(string, "agent")
       subnetArmId                = string
@@ -1108,7 +1174,7 @@ The following outputs are exported:
 
 ### <a name="output_ai_agent_account_capability_host_id"></a> [ai\_agent\_account\_capability\_host\_id](#output\_ai\_agent\_account\_capability\_host\_id)
 
-Description: The resource ID of the account-level AI agent capability host.
+Description: The resource ID of the module-owned account AI agent capability host. Null when agents are disabled or an injected account uses the default platform-owned host.
 
 ### <a name="output_ai_agent_service_id"></a> [ai\_agent\_service\_id](#output\_ai\_agent\_service\_id)
 

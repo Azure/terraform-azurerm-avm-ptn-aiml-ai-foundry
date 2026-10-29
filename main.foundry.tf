@@ -52,15 +52,17 @@ resource "azapi_resource" "ai_foundry" {
 }
 
 resource "azapi_resource" "ai_agent_capability_host" {
-  count = var.ai_foundry.create_ai_agent_service && var.ai_foundry.network_injections == null ? 1 : 0
+  count = local.ai_agent_account_capability_host_enabled ? 1 : 0
 
   name      = "ai-agent-service-${random_string.resource_token.result}"
   parent_id = azapi_resource.ai_foundry.id
   type      = var.resource_types.cognitiveservices_accounts_capability_hosts
   body = {
-    properties = {
+    properties = merge({
       capabilityHostKind = "Agents"
-    }
+      }, var.ai_foundry.create_account_capability_host ? {
+      customerSubnet = local.ai_agent_customer_subnet
+    } : {})
   }
   retry                     = var.retry
   schema_validation_enabled = false
