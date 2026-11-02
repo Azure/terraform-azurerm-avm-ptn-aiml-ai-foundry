@@ -39,7 +39,7 @@ data "azurerm_client_config" "current" {}
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.13.0"
+  version = "0.13.2"
 
   location               = var.location
   enable_telemetry       = var.enable_telemetry
@@ -54,7 +54,7 @@ resource "random_shuffle" "locations" {
 
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 
   suffix        = [local.base_name]
   unique-length = 5
@@ -116,7 +116,7 @@ resource "azapi_resource" "ai_search" {
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  version = "0.12.0"
 
   location                        = azurerm_resource_group.this.location
   name                            = module.naming.names.key_vault_vault.name_unique
@@ -148,7 +148,7 @@ module "storage_account" {
 
 module "cosmosdb" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "0.10.0"
+  version = "0.12.0"
 
   location            = azurerm_resource_group.this.location
   name                = module.naming.names.database_account.name_unique
