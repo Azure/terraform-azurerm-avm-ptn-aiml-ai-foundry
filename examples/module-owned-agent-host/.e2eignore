@@ -1,0 +1,1 @@
+Requires an already-provisioned module-managed account with no existing or provisioning capability host. A fresh injected account can auto-create that singleton host. Do not run automatic fresh-deployment E2E or claim it verifies this precondition.

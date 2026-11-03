@@ -77,6 +77,10 @@ ai_foundry = {
 }
 ```
 
+See [module-owned-agent-host](examples/module-owned-agent-host) for the explicit
+opt-in configuration using the existing BYOR fixture. Read its absent-host,
+state-address and deployment limitations before using it.
+
 The opt-in requires exactly one `agent` entry on a customer-managed network
 and sends its subnet ARM ID as the string `properties.customerSubnet` on the
 account host. The subnet must match the injection recorded on the account.

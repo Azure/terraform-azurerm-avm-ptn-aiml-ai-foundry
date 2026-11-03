@@ -2,6 +2,10 @@
 
 This deploys the module with VNet injection and Bring Your Own Resources (BYOR) services.
 
+For an explicitly enabled ownership configuration, see
+[module-owned-agent-host](../module-owned-agent-host). It reuses this fixture
+with the opt-in enabled and documents the required absent-host deployment state.
+
 ## VNet-injected Agent Service regression
 
 This runnable example exercises standard Agent Service with a subnet delegated to
