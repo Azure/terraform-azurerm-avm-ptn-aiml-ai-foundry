@@ -181,7 +181,7 @@ data "azurerm_client_config" "current" {}
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.13.0"
+  version = "0.13.2"
 
   location               = var.location
   enable_telemetry       = var.enable_telemetry
@@ -200,7 +200,7 @@ locals {
 
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 
   suffix        = [local.base_name]
   unique-length = 5
@@ -520,7 +520,7 @@ resource "azurerm_private_endpoint" "pe_aisearch" {
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  version = "0.12.0"
 
   location            = azurerm_resource_group.this.location
   name                = module.naming.names.key_vault_vault.name_unique
@@ -595,7 +595,7 @@ module "storage_account" {
 
 module "cosmosdb" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "0.11.0"
+  version = "0.12.0"
 
   location                   = azurerm_resource_group.this.location
   name                       = module.naming.names.database_account.name_unique
@@ -909,25 +909,25 @@ Version: 0.9.0
 
 Source: Azure/avm-res-documentdb-databaseaccount/azurerm
 
-Version: 0.11.0
+Version: 0.12.0
 
 ### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
 
 Source: Azure/avm-res-keyvault-vault/azurerm
 
-Version: 0.10.2
+Version: 0.12.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/avm-utl-naming/azure
 
-Version: 0.2.0
+Version: 0.3.0
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.13.0
+Version: 0.13.2
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 
