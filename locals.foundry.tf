@@ -1,4 +1,12 @@
 locals {
+  ai_agent_account_capability_host_enabled = var.ai_foundry.create_ai_agent_service && (
+    var.ai_foundry.network_injections == null || var.ai_foundry.create_account_capability_host
+  )
+  ai_agent_customer_injections = [
+    for injection in(var.ai_foundry.network_injections == null ? [] : var.ai_foundry.network_injections) :
+    injection if injection.scenario == "agent" && !injection.useMicrosoftManagedNetwork
+  ]
+  ai_agent_customer_subnet = length(local.ai_agent_customer_injections) == 1 ? one(local.ai_agent_customer_injections).subnetArmId : null
   # ----- AI Foundry account identity -----
   # User-assigned identities come from two sources:
   #   1. var.ai_foundry.managed_identities.user_assigned_resource_ids - explicit list

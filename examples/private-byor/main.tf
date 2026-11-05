@@ -526,10 +526,11 @@ module "ai_foundry" {
   location                   = azurerm_resource_group.this.location
   resource_group_resource_id = azurerm_resource_group.this.id
   ai_foundry = {
-    create_ai_agent_service       = true
-    disable_local_auth            = true
-    name                          = module.naming.names.cognitive_services_account.name_unique
-    private_dns_zone_resource_ids = [azurerm_private_dns_zone.openai.id, azurerm_private_dns_zone.cognitiveservices.id, azurerm_private_dns_zone.ai_services.id]
+    create_ai_agent_service        = true
+    create_account_capability_host = var.create_account_capability_host
+    disable_local_auth             = true
+    name                           = module.naming.names.cognitive_services_account.name_unique
+    private_dns_zone_resource_ids  = [azurerm_private_dns_zone.openai.id, azurerm_private_dns_zone.cognitiveservices.id, azurerm_private_dns_zone.ai_services.id]
     network_injections = [{
       scenario                   = "agent"
       subnetArmId                = azurerm_subnet.agent_services.id

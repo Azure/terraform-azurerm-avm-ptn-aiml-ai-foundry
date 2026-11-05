@@ -1,9 +1,10 @@
 variable "ai_foundry" {
   type = object({
-    name                     = optional(string, null)
-    disable_local_auth       = optional(bool, false)
-    allow_project_management = optional(bool, true)
-    create_ai_agent_service  = optional(bool, false)
+    name                           = optional(string, null)
+    disable_local_auth             = optional(bool, false)
+    allow_project_management       = optional(bool, true)
+    create_ai_agent_service        = optional(bool, false)
+    create_account_capability_host = optional(bool, false)
     network_injections = optional(list(object({
       scenario                   = optional(string, "agent")
       subnetArmId                = string
@@ -51,6 +52,7 @@ Configuration object for the Azure AI Foundry service to be created for AI workl
 - `disable_local_auth` - (Optional) Whether to disable local authentication for the AI Foundry service. Default is false.
 - `allow_project_management` - (Optional) Whether to allow project management capabilities in the AI Foundry service. Default is true.
 - `create_ai_agent_service` - (Optional) Whether to create an AI agent service as part of the AI Foundry deployment. Default is false.
+- `create_account_capability_host` - (Optional) Explicitly provision and own the account capability host for a VNet-injected account. Default is false (platform-owned injected host). Enable only after confirming the account has no existing or provisioning capability host. Requires agents enabled and exactly one `agent` injection with `useMicrosoftManagedNetwork = false` and a valid subnet ARM ID. Non-injected accounts retain automatic module-owned host creation without this opt-in.
 - `network_injections` - (Optional) List of network injection configurations for the AI Foundry service.
   - `scenario` - (Optional) The scenario for the network injection. Default is "agent".
   - `subnetArmId` - The subnet ARM ID for the AI agent service.
@@ -89,6 +91,28 @@ Configuration object for the Azure AI Foundry service to be created for AI workl
   - `principal_type` - (Optional) Type of the principal (User, Group, ServicePrincipal).
 DESCRIPTION
 
+  validation {
+    condition = !var.ai_foundry.create_account_capability_host || (
+      var.ai_foundry.create_ai_agent_service &&
+      (var.ai_foundry.network_injections == null ? false : (
+        length([for injection in var.ai_foundry.network_injections : injection if injection.scenario == "agent"]) == 1 &&
+        alltrue([
+          for injection in var.ai_foundry.network_injections :
+          contains(["agent", "none"], injection.scenario) &&
+          (injection.scenario != "agent" || !injection.useMicrosoftManagedNetwork)
+        ])
+      ))
+    )
+    error_message = "ai_foundry.create_account_capability_host requires agents enabled and exactly one agent network injection using a customer-managed network. Only agent and none scenarios are supported."
+  }
+  validation {
+    condition = !var.ai_foundry.create_account_capability_host || alltrue([
+      for injection in(var.ai_foundry.network_injections == null ? [] : var.ai_foundry.network_injections) :
+      can(provider::azapi::parse_resource_id("Microsoft.Network/virtualNetworks/subnets", injection.subnetArmId))
+      if injection.scenario == "agent"
+    ])
+    error_message = "The explicitly provisioned account capability host requires a valid agent subnet ARM resource ID."
+  }
   validation {
     condition = alltrue([
       for id in values(var.ai_foundry.user_assigned_identities) :
