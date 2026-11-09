@@ -1,6 +1,6 @@
 module "avm_utl_regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.13.0"
+  version = "0.13.2"
 
   location         = var.location
   enable_telemetry = var.enable_telemetry
@@ -8,7 +8,7 @@ module "avm_utl_regions" {
 
 module "key_vault" {
   source   = "Azure/avm-res-keyvault-vault/azurerm"
-  version  = "0.10.2"
+  version  = "0.13.0"
   for_each = { for k, v in var.key_vault_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                        = var.location
@@ -77,7 +77,7 @@ module "storage_account" {
 
 module "cosmosdb" {
   source   = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version  = "0.11.0"
+  version  = "0.12.0"
   for_each = { for k, v in var.cosmosdb_definition : k => v if v.existing_resource_id == null && var.create_byor == true }
 
   location                   = var.location
