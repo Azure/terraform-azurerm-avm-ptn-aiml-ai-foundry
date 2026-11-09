@@ -387,10 +387,9 @@ module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "0.13.0"
 
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.names.key_vault_vault.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  location  = azurerm_resource_group.this.location
+  name      = module.naming.names.key_vault_vault.name_unique
+  tenant_id = data.azurerm_client_config.current.tenant_id
   diagnostic_settings = {
     keyvault = {
       name                  = "sendToLogAnalytics-kv-${module.naming.names.operational_insights_workspace.name_unique}"
@@ -413,6 +412,7 @@ module "key_vault" {
     }
   }
   public_network_access_enabled = false
+  resource_group_name           = azurerm_resource_group.this.name
 }
 
 module "storage_account" {

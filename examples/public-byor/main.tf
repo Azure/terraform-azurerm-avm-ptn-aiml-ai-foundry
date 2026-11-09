@@ -120,7 +120,6 @@ module "key_vault" {
 
   location                        = azurerm_resource_group.this.location
   name                            = module.naming.names.key_vault_vault.name_unique
-  resource_group_name             = azurerm_resource_group.this.name
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   enable_telemetry                = var.enable_telemetry
   enabled_for_deployment          = true
@@ -130,6 +129,7 @@ module "key_vault" {
     default_action = "Allow"
     bypass         = "AzureServices"
   }
+  resource_group_name = azurerm_resource_group.this.name
 }
 
 module "storage_account" {
