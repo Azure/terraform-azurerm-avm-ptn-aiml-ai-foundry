@@ -1,9 +1,9 @@
 module "avm_interfaces" {
   source  = "Azure/avm-utl-interfaces/azure"
-  version = "0.9.0"
+  version = "0.10.0"
 
-  location                         = var.location
   enable_telemetry                 = false
+  location                         = var.location
   role_assignment_definition_scope = azapi_resource.ai_foundry.id
   role_assignments                 = var.role_assignments
 }
