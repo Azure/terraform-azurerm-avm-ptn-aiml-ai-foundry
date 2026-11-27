@@ -13,7 +13,6 @@ module "key_vault" {
 
   location                        = var.location
   name                            = try(each.value.name, null) != null ? each.value.name : (try(var.base_name, null) != null ? "${var.base_name}-kv-${random_string.resource_token.result}" : "kv-fndry-${random_string.resource_token.result}")
-  resource_group_name             = local.resource_group_name
   tenant_id                       = each.value.tenant_id != null ? each.value.tenant_id : data.azurerm_client_config.current.tenant_id
   diagnostic_settings             = each.value.diagnostic_settings
   enable_telemetry                = var.enable_telemetry
@@ -38,6 +37,7 @@ module "key_vault" {
   wait_for_rbac_before_secret_operations = {
     create = "60s"
   }
+  resource_group_name = local.resource_group_name
 }
 
 #TODO:
