@@ -46,7 +46,7 @@ data "azurerm_client_config" "current" {}
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.13.0"
+  version = "0.15.0"
 
   location               = var.location
   enable_telemetry       = var.enable_telemetry
@@ -65,7 +65,7 @@ locals {
 
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 
   suffix        = [local.base_name]
   unique-length = 5
@@ -293,7 +293,7 @@ resource "azurerm_public_ip" "example" {
 
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
-  version = "0.9.0"
+  version = "0.10.0"
 
   location         = azurerm_resource_group.this.location
   name             = module.naming.names.bastion_host.name_unique
@@ -312,7 +312,7 @@ module "bastion_host" {
 
 module "virtual_machine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.21.0"
+  version = "0.22.1"
 
   location                                               = azurerm_resource_group.this.location
   name                                                   = module.naming.names.compute_virtual_machine.name_unique
@@ -410,11 +410,10 @@ resource "azapi_resource" "ai_search" {
 
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  version = "0.13.2"
 
   location                        = azurerm_resource_group.this.location
   name                            = module.naming.names.key_vault_vault.name_unique
-  resource_group_name             = azurerm_resource_group.this.name
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   enable_telemetry                = var.enable_telemetry
   enabled_for_deployment          = true
@@ -456,6 +455,7 @@ module "key_vault" {
   wait_for_rbac_before_secret_operations = {
     create = "60s"
   }
+  resource_group_name = azurerm_resource_group.this.name
 }
 
 module "storage_account" {
@@ -481,7 +481,7 @@ module "storage_account" {
 
 module "cosmosdb" {
   source  = "Azure/avm-res-documentdb-databaseaccount/azurerm"
-  version = "0.10.0"
+  version = "0.13.0"
 
   location                   = azurerm_resource_group.this.location
   name                       = module.naming.names.database_account.name_unique
